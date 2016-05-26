@@ -1,0 +1,34 @@
+<html>
+  <head>
+    <title>Demo App Frontend f&uuml;r den Saxonia Campus</title>
+
+    <!-- Load dependencies -->
+    <!-- Polyfill(s) for older browsers -->
+    <script src="node_modules/es6-shim/es6-shim.min.js"></script>
+
+    <script src="node_modules/zone.js/dist/zone.js"></script>
+    <script src="node_modules/reflect-metadata/Reflect.js"></script>
+    <script src="node_modules/systemjs/dist/system.src.js"></script>
+
+    <!-- ## ADD THE FOLLOWING LINE  ## -->
+    <script src="node_modules/angular2-google-maps/bundles/angular2-google-maps.js"></script>
+
+    <!-- Configure SystemJS -->
+    <!-- 2. Configure SystemJS -->
+    <script src="systemjs.config.js"></script>
+    <script> System.import('app').catch(function (err) {console.error(err);});</script>
+
+	<link rel="shortcut icon" href="images/favicon.ico" type="image/vnd.microsoft.icon" />
+
+  <link rel="stylesheet" type="text/css" href="styles/style.css">
+  </head>
+
+  <body>
+
+    <h1><img src="images/saxsys_logo.png" /> Demo App Frontend f&uuml;r den Saxonia Campus</h1>
+    <!-- <my-app> will be our application component -->
+    <my-app>Loading...</my-app>
+
+	<a href="https://angular-maps.com">Angular Maps</a>
+  </body>
+</html>

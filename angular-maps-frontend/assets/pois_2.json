@@ -1,0 +1,36 @@
+[{
+	"href": "localhost/rest/poi/jkl123",
+	"category": "Tankstelle",
+	"name": "Esso 1",
+	"location": {
+		"type": "Point",
+        "coordinates": [
+          13.732566833496094,
+          51.04058438908224
+        ]
+	}
+},
+{
+	"href": "localhost/rest/poi/mno456",
+	"category": "Tankstelle",
+	"name": "Esso 2",
+	"location": {
+		"type": "Point",
+		"coordinates": [
+          13.739261627197266,
+          51.03934311440941
+        ]
+	}
+},
+{
+	"href": "localhost/rest/poi/pqr789",
+	"category": "Tankstelle",
+	"name": "Esso 3",
+	"location": {
+		"type": "Point",
+		"coordinates": [
+          13.736000061035156,
+          51.0372922399152
+        ]
+	}
+}]
