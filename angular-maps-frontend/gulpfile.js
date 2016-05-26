@@ -8,10 +8,6 @@ const SystemBuilder = require('systemjs-builder');
 
 var builder = new SystemBuilder();
 
-gulp.task('default', function() {
-  // place code for your default task here
-});
-
 // clean the contents of the distribution directory
 gulp.task('clean', function () {
     return del(['dist/**/*', 'scripts/**/*']);
@@ -41,16 +37,8 @@ gulp.task('copy:assets', ['clean', 'compile'], function() {
         'node_modules/zone.js/dist/zone.js',
         'node_modules/reflect-metadata/Reflect.js',
         'node_modules/systemjs/dist/system.src.js',
-
-        //'node_modules/jquery/dist/jquery.min.js',
-        //'node_modules/tether/dist/js/tether.min.js',
-        //'node_modules/bootstrap/dist/js/bootstrap.min.js',
         'node_modules/angular2-google-maps/core.js',
         'node_modules/angular2-google-maps/bundles/angular2-google-maps.js',
-
-        //'node_modules/tether/dist/css/tether.min.css',
-        //'node_modules/bootstrap/dist/css/bootstrap.min.css',
-        //'WEB-INF/jboss-web.xml',
         'styles/*.css',
         'templates/**/*',
         'images/**/*',
@@ -82,3 +70,5 @@ gulp.task('replace:index', ['compile', 'copy:assets'], function() {
         ))
         .pipe(gulp.dest('dist'));
 });
+
+gulp.task('default', ['replace:index', 'compile', 'copy:assets']);
