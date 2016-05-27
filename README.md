@@ -3,7 +3,11 @@ Demo Application showing a JEE application using MongoDB with Morphia object map
 
 ## Angular2 frontend
 
-Angular 2 client with Typescript displaying geo data via google maps
+Angular 2 client with Typescript displaying geo data via Google Maps.
+
+Uses [angular2-google-maps](https://angular-maps.com/) for displaying Google Maps.
+
+To build everything you need the Node.js package manager npm, available here: [Node.js](https://nodejs.org/en/) 
 
 ### Download dependencies
 

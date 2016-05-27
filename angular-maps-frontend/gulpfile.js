@@ -3,6 +3,8 @@ const gulp = require('gulp');
 // install packages  > npm install --save-dev gulp-replace
 const del = require('del');
 const replace = require('gulp-replace');
+const war = require('gulp-war');
+const zip = require('gulp-zip');
 const ts = require('gulp-typescript');
 const SystemBuilder = require('systemjs-builder');
 
@@ -22,7 +24,7 @@ gulp.task('compile', ['clean'], function() {
 });
 
 // copy assets
-gulp.task('copy:assets', ['clean', 'compile'], function() {
+gulp.task('copy:assets', ['compile'], function() {
     builder.loadConfig('./systemjs.config.js')
         .then(function() {
             return builder.buildStatic('app', 'dist/bundle.js', {
@@ -39,6 +41,10 @@ gulp.task('copy:assets', ['clean', 'compile'], function() {
         'node_modules/systemjs/dist/system.src.js',
         'node_modules/angular2-google-maps/core.js',
         'node_modules/angular2-google-maps/bundles/angular2-google-maps.js',
+        'node_modules/jquery/dist/jquery.min.js',
+        'node_modules/tether/dist/js/tether.min.js',
+        'node_modules/bootstrap/dist/js/bootstrap.min.js',
+        'node_modules/bootstrap/dist/css/bootstrap.min.css',
         'styles/*.css',
         'templates/**/*',
         'images/**/*',
@@ -49,7 +55,7 @@ gulp.task('copy:assets', ['clean', 'compile'], function() {
 });
 
 // replace base in index to target war name
-gulp.task('replace:index', ['compile', 'copy:assets'], function() {
+gulp.task('replace:index', ['copy:assets'], function() {
     //var config = require('./dist/scripts/config.json');
     return gulp.src('dist/index.html')
         .pipe(replace(
@@ -71,4 +77,15 @@ gulp.task('replace:index', ['compile', 'copy:assets'], function() {
         .pipe(gulp.dest('dist'));
 });
 
-gulp.task('default', ['replace:index', 'compile', 'copy:assets']);
+// build war
+gulp.task('war', ['replace:index'], function () {
+    gulp.src(['dist/**/*'])
+        .pipe(war({
+            welcome: 'index.html',
+            displayName: 'Campus MongoDB Showcase Angular2 Frontend'
+        }))
+        .pipe(zip('campus.war'))
+        .pipe(gulp.dest('dist'));
+});
+
+gulp.task('default', ['war']);
