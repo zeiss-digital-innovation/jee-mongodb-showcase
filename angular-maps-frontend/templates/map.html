@@ -1,11 +1,24 @@
 <!-- this creates a google map on the page with the given lat/lng from the component as the initial center of the map: -->
+<ul class="nav nav-tabs" role="tablist">
+	<li class="nav-item"><a class="nav-link active" href="#map" role="tab" data-toggle="tab">Map</a></li>
+	<li class="nav-item">
+		<a class="nav-link" href="#json" role="tab" data-toggle="tab">JSON</a>
+	</li>
+</ul>
 
-<div class=".col-xs-8">
-	<sebm-google-map (centerChange)="processCenterChange($event)" (mouseup)="doQuery()" [latitude]="lat" [longitude]="lng" [zoom]="zoom">
-		<sebm-google-map-marker *ngFor="let poi of poiList" [latitude]=poi.location.coordinates[1] [longitude]=poi.location.coordinates[0] [label]=poi.name [title]=poi.category>
-			<sebm-google-map-info-window [disableAutoPan]="true">
-			 Hier sind wir!
-			</sebm-google-map-info-window>
-		</sebm-google-map-marker>
-	</sebm-google-map>
+<div class="tab-content">
+  <div role="tabpanel" class="tab-pane fade in active" id="map">
+		<sebm-google-map (centerChange)="processCenterChange($event)" (mouseup)="doQuery()" [latitude]="lat" [longitude]="lng" [zoom]="zoom">
+			<sebm-google-map-marker *ngFor="let poi of poiList" [latitude]=poi.location.coordinates[1] [longitude]=poi.location.coordinates[0] [label]=poi.name [title]=poi.category>
+				<sebm-google-map-info-window [disableAutoPan]="true">
+				 Hier sind wir!
+				</sebm-google-map-info-window>
+			</sebm-google-map-marker>
+		</sebm-google-map>
+	</div>
+  <div role="tabpanel" class="tab-pane fade" id="json">
+		<pre dg-prettify>
+		  {{poiList | json}}
+		</pre>
+	</div>
 </div>

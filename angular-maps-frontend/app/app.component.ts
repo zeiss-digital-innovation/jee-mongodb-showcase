@@ -14,7 +14,7 @@ import {PoiService} from './poi.service';
       height: 600px;
     }
   `],
-  templateUrl: 'templates/map.html',
+  templateUrl: 'templates/map.html'
 })
 export class AppComponent{
   lat: number = 51.030812;
