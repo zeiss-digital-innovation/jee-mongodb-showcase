@@ -11,6 +11,10 @@ export class PoiService {
     getPoiList(lat: number, lng: number) {
       //console.log('Service: ' + lat + ' ' + lng);
 
+      return this.http.get('http://localhost:8080/geoservice/rest/poi?lat=' + lat + '&lon=' + lng + '&radius=3000')
+           .map(res => res.json());
+
+      /*
       if (lat < 51.03507935246506) {
         return this.http.get('assets/pois.json')
              .map(res => res.json());
@@ -18,7 +22,7 @@ export class PoiService {
         return this.http.get('assets/pois_2.json')
              .map(res => res.json());
       }
-
+      */
 
     }
 }
