@@ -20,7 +20,7 @@ import org.mongodb.morphia.utils.IndexType;
  * 
  * @author Andreas Post
  */
-@Entity("point_of_interest")
+@Entity(value = "point_of_interest", noClassnameStored = true)
 @Indexes({ @Index(fields = { @Field(value = "location", type = IndexType.GEO2DSPHERE) }),
 		@Index(fields = { @Field(value = "category") }), @Index(fields = { @Field(value = "name") }) })
 public class PointOfInterestEntity {

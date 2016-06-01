@@ -13,6 +13,7 @@ import javax.ejb.Stateless;
 import javax.inject.Inject;
 
 import org.geojson.Point;
+import org.mongodb.morphia.geo.PointBuilder;
 
 import de.saxsys.mongodbws.geoservice.persistence.MongoDBPersistenceService;
 import de.saxsys.mongodbws.geoservice.persistence.entity.PointOfInterestEntity;
@@ -28,6 +29,29 @@ public class GeoDataService {
 
 	@Inject
 	MongoDBPersistenceService mongoService;
+
+	public PointOfInterest createPOI(PointOfInterest poi) {
+
+		PointOfInterestEntity entity = new PointOfInterestEntity();
+		entity.setCategory(poi.getCategory());
+		entity.setName(poi.getName());
+
+		PointBuilder pointBuilder = PointBuilder.pointBuilder();
+		pointBuilder.latitude(poi.getLocation().getCoordinates().getLatitude());
+		pointBuilder.longitude(poi.getLocation().getCoordinates().getLongitude());
+
+		entity.setLocation(pointBuilder.build());
+
+		entity = mongoService.createPointOfInterest(entity);
+
+		PointOfInterest json = new PointOfInterest();
+		json.setId(entity.getId().toString());
+		json.setCategory(entity.getCategory());
+		json.setName(entity.getName());
+		json.setLocation(new Point(entity.getLocation().getLongitude(), entity.getLocation().getLatitude()));
+
+		return json;
+	}
 
 	/**
 	 * Returns a list of nearest points of interest.

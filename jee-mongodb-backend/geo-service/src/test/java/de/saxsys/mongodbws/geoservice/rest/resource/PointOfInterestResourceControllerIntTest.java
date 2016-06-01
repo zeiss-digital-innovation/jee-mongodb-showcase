@@ -21,6 +21,7 @@ import java.util.logging.Logger;
 
 import javax.ws.rs.core.Response.Status;
 
+import org.geojson.Point;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -67,6 +68,21 @@ public class PointOfInterestResourceControllerIntTest {
 		RestAssured.baseURI = String.format("%s://%s:%s", baseURL.getProtocol(), baseURL.getHost(), baseURL.getPort());
 		RestAssured.port = baseURL.getPort();
 		RestAssured.basePath = BASE_PATH;
+	}
+
+	@Test
+	public void createPoi() {
+		PointOfInterest poi = new PointOfInterest();
+		poi.setName("Unit Test POI");
+		poi.setCategory("Tankstelle");
+		poi.setLocation(new Point(LONGITUDE_DRESDEN_FFP, LATITUDE_DRESDEN_FFP));
+
+		Response response = given().headers(headers).contentType(CONTENT_TYPE).body(poi).expect().log().all()
+				.post("poi");
+
+		response.then().assertThat().statusCode(Status.CREATED.getStatusCode());
+
+		assertNotNull("Location header must not be null", response.getHeader("location"));
 	}
 
 	@Test

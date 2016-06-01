@@ -30,6 +30,13 @@ public class MongoDBPersistenceService {
 	@Inject
 	MongoDBClientProvider mongoDBClientProvider;
 
+	public PointOfInterestEntity createPointOfInterest(PointOfInterestEntity poi) {
+
+		mongoDBClientProvider.getDatastore().save(poi);
+
+		return poi;
+	}
+
 	public List<PointOfInterestEntity> listPOIs(double lat, double lon, int radius) {
 		PointBuilder builder = PointBuilder.pointBuilder();
 		Point point = builder.latitude(lat).longitude(lon).build();
