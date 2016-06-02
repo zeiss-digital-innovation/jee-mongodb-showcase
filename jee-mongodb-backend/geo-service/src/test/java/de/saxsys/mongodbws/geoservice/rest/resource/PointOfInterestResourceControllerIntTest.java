@@ -12,7 +12,10 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -23,6 +26,7 @@ import javax.ws.rs.core.Response.Status;
 
 import org.geojson.Point;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -70,21 +74,41 @@ public class PointOfInterestResourceControllerIntTest {
 		RestAssured.basePath = BASE_PATH;
 	}
 
+	@Ignore
 	@Test
-	public void createPoi() {
+	public void createAndDeletePoi() {
 		PointOfInterest poi = new PointOfInterest();
 		poi.setName("Unit Test POI");
 		poi.setCategory("Tankstelle");
 		poi.setLocation(new Point(LONGITUDE_DRESDEN_FFP, LATITUDE_DRESDEN_FFP));
 
+		// create
 		Response response = given().headers(headers).contentType(CONTENT_TYPE).body(poi).expect().log().all()
 				.post("poi");
 
 		response.then().assertThat().statusCode(Status.CREATED.getStatusCode());
 
-		assertNotNull("Location header must not be null", response.getHeader("location"));
+		String location = response.getHeader("location");
+
+		assertNotNull("Location header must not be null", location);
+
+		// get
+		response = given().headers(headers).contentType(CONTENT_TYPE).body(poi).expect().log().all().get(location);
+
+		response.then().assertThat().statusCode(Status.OK.getStatusCode());
+
+		// now delete it
+		response = given().headers(headers).contentType(CONTENT_TYPE).body(poi).expect().log().all().delete(location);
+
+		response.then().assertThat().statusCode(Status.NO_CONTENT.getStatusCode());
+
+		// at least check the deletion
+		response = given().headers(headers).contentType(CONTENT_TYPE).body(poi).expect().log().all().get(location);
+
+		response.then().assertThat().statusCode(Status.NOT_FOUND.getStatusCode());
 	}
 
+	@Ignore
 	@Test
 	public void listPois() {
 		Response response = given().headers(headers).contentType(CONTENT_TYPE).queryParam("lat", LATITUDE_DRESDEN_FFP)
@@ -110,6 +134,33 @@ public class PointOfInterestResourceControllerIntTest {
 
 			assertTrue("Wrong Poi-type: " + poi.getCategory() + " - " + poiType + " erwartet.",
 					poiType.equals(poi.getCategory()));
+		}
+	}
+
+	@Test
+	public void createTestData() {
+		String testDataFile = "DKV.csv";
+
+		ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+
+		try {
+			String content = new String(Files.readAllBytes(Paths.get(classLoader.getResource(testDataFile).toURI())));
+
+			String[] split = content.split("\r\n");
+			for (String line : split) {
+				String[] parts = line.split(", ");
+
+				PointOfInterest poi = new PointOfInterest();
+				poi.setName(parts[2]);
+				poi.setCategory("Tankstelle");
+				poi.setLocation(new Point(Double.valueOf(parts[0]), Double.valueOf(parts[1])));
+
+				// create
+				Response response = given().headers(headers).contentType(CONTENT_TYPE).body(poi).expect().log().all()
+						.post("poi");
+			}
+		} catch (IOException | URISyntaxException e) {
+			throw new IllegalStateException("Error accessing file: " + testDataFile, e);
 		}
 	}
 

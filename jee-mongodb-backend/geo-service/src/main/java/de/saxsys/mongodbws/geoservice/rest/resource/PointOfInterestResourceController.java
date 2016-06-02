@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -50,7 +51,13 @@ public class PointOfInterestResourceController {
 	@Produces(Constants.MEDIA_TYPE_JSON)
 	public Response getPOI(@PathParam("id") String id) {
 
-		return Response.ok().header(Constants.CONTENT_ENC_KEY, Constants.CHARSET_UTF8).build();
+		PointOfInterest poi = geoDataService.getPOI(id);
+
+		if (poi == null) {
+			throw new NotFoundException();
+		}
+
+		return Response.ok(poi).header(Constants.CONTENT_ENC_KEY, Constants.CHARSET_UTF8).build();
 	}
 
 	/**
@@ -88,6 +95,8 @@ public class PointOfInterestResourceController {
 	@Path("{id}")
 	@Produces(Constants.MEDIA_TYPE_JSON)
 	public Response deletePOI(@PathParam("id") String id) {
+
+		geoDataService.deletePOI(id);
 
 		return Response.noContent().header(Constants.CONTENT_ENC_KEY, Constants.CHARSET_UTF8).build();
 	}

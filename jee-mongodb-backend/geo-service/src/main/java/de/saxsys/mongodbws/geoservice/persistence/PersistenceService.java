@@ -11,30 +11,61 @@ import java.util.logging.Logger;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
 
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.geo.Point;
 import org.mongodb.morphia.geo.PointBuilder;
+
+import com.mongodb.WriteResult;
 
 import de.saxsys.mongodbws.geoservice.persistence.entity.PointOfInterestEntity;
 
 /**
+ * Service for our persistence stuff.
  * 
  * @author Andreas Post
  */
 @Stateless
-public class MongoDBPersistenceService {
+public class PersistenceService {
 
-	private static final Logger LOG = Logger.getLogger(MongoDBPersistenceService.class.getName());
-
-	private static final String DATABASE_NAME = "saxonia_campus";
+	private static final Logger LOG = Logger.getLogger(PersistenceService.class.getName());
 
 	@Inject
 	MongoDBClientProvider mongoDBClientProvider;
 
+	/**
+	 * Saves the given {@link PointOfInterestEntity} as new entity. The
+	 * returning entity contains the generated id.
+	 * 
+	 * @param poi
+	 *            the entity to store.
+	 * @return the entity with id
+	 */
 	public PointOfInterestEntity createPointOfInterest(PointOfInterestEntity poi) {
 
 		mongoDBClientProvider.getDatastore().save(poi);
 
 		return poi;
+	}
+
+	/**
+	 * 
+	 * @param id
+	 * @return
+	 */
+	public PointOfInterestEntity getPointOfInterest(ObjectId id) {
+		return mongoDBClientProvider.getDatastore().get(PointOfInterestEntity.class, id);
+	}
+
+	/**
+	 * 
+	 * @param id
+	 */
+	public void deletePointOfInterest(ObjectId id) {
+		LOG.info("deletePointOfInterest: " + id);
+
+		WriteResult writeResult = mongoDBClientProvider.getDatastore().delete(PointOfInterestEntity.class, id);
+
+		LOG.info(writeResult.toString());
 	}
 
 	public List<PointOfInterestEntity> listPOIs(double lat, double lon, int radius) {

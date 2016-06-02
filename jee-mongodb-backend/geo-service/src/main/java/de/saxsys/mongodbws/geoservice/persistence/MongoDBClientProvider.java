@@ -33,6 +33,9 @@ public class MongoDBClientProvider {
 	private static final Logger LOG = Logger.getLogger(MongoDBClientProvider.class.getName());
 
 	// TODO extract to property file
+	private static final String DATABASE_NAME = "saxonia_campus";
+
+	// TODO extract to property file
 	private static final String HOST = "localhost";
 	// TODO extract to property file
 	private static final int PORT = 27017;
@@ -54,7 +57,7 @@ public class MongoDBClientProvider {
 		// can be called multiple times with different packages or classes
 		morphia.mapPackage("de.saxsys.mongodbws.geoservice.persistence.entity");
 
-		datastore = morphia.createDatastore(mongoClient, "saxonia_campus");
+		datastore = morphia.createDatastore(mongoClient, DATABASE_NAME);
 		datastore.ensureIndexes();
 	}
 
