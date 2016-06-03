@@ -22,6 +22,8 @@ export class AppComponent{
   zoom: number = 15;
   latQuery: number = 51.030812;
   lngQuery: number = 13.730180;
+  latQueryLast: number;
+  lngQueryLast: number;
 
   public poiList = [];
 
@@ -36,7 +38,13 @@ export class AppComponent{
   }
 
   doQuery() {
-	  this.loadData();
+    // only reload from server if things changed
+    if (this.latQueryLast != this.latQuery && this.lngQueryLast != this.latQuery) {
+      this.latQueryLast = this.latQuery;
+      this.lngQueryLast = this.lngQuery;
+      
+      this.loadData();
+    }
   }
 
   loadData() {
