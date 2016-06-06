@@ -57,6 +57,8 @@ public class PointOfInterestResourceController {
 			throw new NotFoundException();
 		}
 
+		poi.setHref(createUriString(poi));
+
 		return Response.ok(poi).header(Constants.CONTENT_ENC_KEY, Constants.CHARSET_UTF8).build();
 	}
 
@@ -118,6 +120,7 @@ public class PointOfInterestResourceController {
 
 		for (PointOfInterest poi : poiList) {
 			poi.setHref(createUriString(poi));
+			poi.setName(null);
 		}
 
 		return Response.ok(poiList).header(Constants.CONTENT_ENC_KEY, Constants.CHARSET_UTF8).build();

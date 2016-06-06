@@ -118,6 +118,14 @@
 			<version>2.9.0</version>
 			<scope>test</scope>
 		</dependency>
+		
+		<!-- http://mvnrepository.com/artifact/ca.carleton.gcrc/nunaliit2-gpx -->
+		<dependency>
+		    <groupId>ca.carleton.gcrc</groupId>
+		    <artifactId>nunaliit2-gpx</artifactId>
+		    <version>2.2.6</version>
+		    <scope>test</scope>
+		</dependency>
 
 		
 <!--

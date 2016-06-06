@@ -8,11 +8,14 @@ package de.saxsys.mongodbws.geoservice.rest.resource;
 import org.geojson.Point;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * 
  * @author Andreas Post
  */
+@JsonInclude(Include.NON_NULL)
 public class PointOfInterest {
 
 	private String href;
