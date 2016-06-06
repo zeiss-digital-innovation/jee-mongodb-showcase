@@ -24,8 +24,10 @@ export class AppComponent{
   lngQuery: number = 13.730180;
   latQueryLast: number;
   lngQueryLast: number;
+  markerInfoText : string;
 
   public poiList = [];
+  //public selectedPoi : object;
 
   constructor(private poiService: PoiService) {
 
@@ -37,12 +39,28 @@ export class AppComponent{
 	  this.lngQuery = coordinates.lng;
   }
 
+  processMarkerClick(poi) {
+    this.poiService.getPoi(poi.href).subscribe(p => poi.name = p.name.replace(/\n/g, "<br />"));
+  }
+
+  getIconUrl(category : string) {
+    // find icons at: https://sites.google.com/site/gmapsdevelopment/
+    if (category == "Gas Station") {
+      return "http://maps.google.com/mapfiles/ms/micons/gas.png";
+    } else if (category == "Supermarket") {
+      return "http://maps.google.com/mapfiles/ms/micons/convienancestore.png";
+    } else if (category == "Restaurant") {
+      return "http://maps.google.com/mapfiles/ms/micons/restaurant.png";
+    }
+    return "http://maps.google.com/mapfiles/ms/micons/red.png";
+  }
+
   doQuery() {
     // only reload from server if things changed
     if (this.latQueryLast != this.latQuery && this.lngQueryLast != this.latQuery) {
       this.latQueryLast = this.latQuery;
       this.lngQueryLast = this.lngQuery;
-      
+
       this.loadData();
     }
   }

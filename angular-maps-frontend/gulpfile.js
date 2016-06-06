@@ -82,9 +82,9 @@ gulp.task('war', ['replace:index'], function () {
     gulp.src(['dist/**/*'])
         .pipe(war({
             welcome: 'index.html',
-            displayName: 'Campus MongoDB Showcase Angular2 Frontend'
+            displayName: 'Saxonia Campus MongoDB Showcase Angular2 Frontend'
         }))
-        .pipe(zip('campus.war'))
+        .pipe(zip('angular-maps-frontend.war'))
         .pipe(gulp.dest('dist'));
 });
 
