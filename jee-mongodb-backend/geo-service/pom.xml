@@ -65,46 +65,12 @@
         </dependency>
         
         <!-- MongoDB -->
-        
-<!--         <dependency> -->
-<!--         	<groupId>org.mongodb</groupId> -->
-<!-- 	        <artifactId>mongodb-driver</artifactId> -->
-<!-- 	        <version>3.2.2</version> -->
-<!-- 	    </dependency> -->
 	    
 	    <dependency>
               <groupId>org.mongodb.morphia</groupId>
               <artifactId>morphia</artifactId>
               <version>1.1.1</version>
           </dependency>
-<!--
-		<dependency>
-			<groupId>org.wildfly</groupId>
-			<artifactId>wildfly-jaxrs</artifactId>
-			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.jboss.resteasy</groupId>
-			<artifactId>jaxrs-api</artifactId>
-			<scope>provided</scope>
-		</dependency>
-
-
-		<dependency>
-			<groupId>org.jboss.resteasy</groupId>
-			<artifactId>resteasy-client</artifactId>
-			<scope>provided</scope>
-		</dependency>
--->
-		<!-- Jackson dependencies for JSON processing -->
-<!--
-		<dependency>
-			<groupId>org.jboss.resteasy</groupId>
-			<artifactId>resteasy-jackson-provider</artifactId>
-			<scope>provided</scope>
-		</dependency>
--->
 
 		<dependency>
 			<groupId>junit</groupId>
@@ -127,16 +93,6 @@
 		    <scope>test</scope>
 		</dependency>
 
-		
-<!--
-
-		<dependency>
-			<groupId>commons-logging</groupId>
-			<artifactId>commons-logging</artifactId>
-			<version>1.1.1</version>
-			<scope>test</scope>
-		</dependency>
--->
 	</dependencies>
 
 	<dependencyManagement>

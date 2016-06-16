@@ -45,12 +45,19 @@ export class AppComponent{
 
   getIconUrl(category : string) {
     // find icons at: https://sites.google.com/site/gmapsdevelopment/
-    if (category == "Gas Station") {
+
+    if (category == "gasstation") {
       return "http://maps.google.com/mapfiles/ms/micons/gas.png";
-    } else if (category == "Supermarket") {
+    } else if (category == "supermarket") {
       return "http://maps.google.com/mapfiles/ms/micons/convienancestore.png";
-    } else if (category == "Restaurant") {
+    } else if (category == "restaurant") {
       return "http://maps.google.com/mapfiles/ms/micons/restaurant.png";
+    } else if (category == "cash") {
+      return "http://maps.google.com/mapfiles/ms/micons/dollar.png";
+    } else if (category == "parking") {
+      return "http://maps.google.com/mapfiles/ms/micons/parkinglot.png";
+    } else if (category == "coffee") {
+      return "http://maps.google.com/mapfiles/ms/micons/coffeehouse.png";
     }
     return "http://maps.google.com/mapfiles/ms/micons/red.png";
   }

@@ -1,6 +1,22 @@
 # jee-mongodb-showcase
 Demo Application showing a JEE application using MongoDB with Morphia object mapping plus an Angular2 frontend.
 
+## JEE Backend
+
+Simple REST client with a MongoDB connection.
+
+Uses [Morphia Object Mapper](http://mongodb.github.io/morphia/) to work with MongoDB.
+
+Expects a MongoDB running on localhost:27017. (TODO: add configuration for url).
+
+### Build
+
+Run `mvn package`
+
+### Wildfly deployment
+
+Running `mvn install` will also deploy the war file to a running wildfly instance on localhost.
+
 ## Angular2 frontend
 
 Angular 2 client with Typescript displaying geo data via Google Maps.
