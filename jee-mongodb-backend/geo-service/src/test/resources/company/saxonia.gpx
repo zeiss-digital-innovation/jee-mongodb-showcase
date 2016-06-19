@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="ISO-8859-2"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" version="1.1" creator="POIPlaza (http://www.poiplaza.com)">
+	<wpt lat="48.095061" lon="11.523601">
+		<name>Saxonia Systems AG, Kistlerhofstraße 70, 81379 München, Tel.: +49 (0)89 88 98 165-62, Fax: +49 (0)89 88 98 165-89</name>
+	</wpt>
+	<wpt lat="51.030782" lon="13.730123">
+		<name>Saxonia Systems AG, Fritz-Foerster-Platz 2, 01069 Dresden, Tel.: +49 (0)351 497 01-500, Fax: +49 (0)351 497 01-589</name>
+	</wpt>
+	<wpt lat="53.544845" lon="10.027274">
+		<name>Saxonia Systems AG, Süderstraße 73, 20097 Hamburg, Tel.: +49 (0)40 73 08 39 29, Fax: +49 (0)40 73 08 39 61</name>
+	</wpt>
+	<wpt lat="51.344530" lon="12.393019">
+		<name>Saxonia Systems AG, Ludwig-Erhard-Straße 51, 04103 Leipzig, Tel.: +49 (0)341 217 85 0, Fax: +49 (0)341 217 85 29</name>
+	</wpt>
+	<wpt lat="51.151722" lon="14.984623">
+		<name>Saxonia Systems AG, Berliner Straße 63, 02826 Görlitz, Tel.: +49 (0)3581 76 723 - 33, Fax: +49 (0)3581 76 723 - 39</name>
+	</wpt>
+</gpx>

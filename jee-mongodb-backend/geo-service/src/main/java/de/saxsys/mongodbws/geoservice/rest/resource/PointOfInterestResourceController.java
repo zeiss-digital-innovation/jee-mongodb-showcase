@@ -34,6 +34,8 @@ import de.saxsys.mongodbws.geoservice.service.GeoDataService;
 @Path(Constants.POI_RESOURCE_PATH)
 public class PointOfInterestResourceController {
 
+	private static final String EXPAND_DETAILS = "details";
+
 	@Inject
 	GeoDataService geoDataService;
 
@@ -49,9 +51,9 @@ public class PointOfInterestResourceController {
 	@GET
 	@Path("{id}")
 	@Produces(Constants.MEDIA_TYPE_JSON)
-	public Response getPOI(@PathParam("id") String id) {
+	public Response getPOI(@PathParam("id") String id, @QueryParam("expand") String expand) {
 
-		PointOfInterest poi = geoDataService.getPOI(id);
+		PointOfInterest poi = geoDataService.getPOI(id, EXPAND_DETAILS.equalsIgnoreCase(expand));
 
 		if (poi == null) {
 			throw new NotFoundException();
@@ -114,18 +116,24 @@ public class PointOfInterestResourceController {
 	@GET
 	@Produces(Constants.MEDIA_TYPE_JSON)
 	public Response listPOIs(@QueryParam("lat") double latitude, @QueryParam("lon") double longitude,
-			@QueryParam("radius") int radius) {
+			@QueryParam("radius") int radius, @QueryParam("expand") String expand) {
 
-		List<PointOfInterest> poiList = geoDataService.listPOIs(latitude, longitude, radius);
+		List<PointOfInterest> poiList = geoDataService.listPOIs(latitude, longitude, radius,
+				EXPAND_DETAILS.equalsIgnoreCase(expand));
 
 		for (PointOfInterest poi : poiList) {
 			poi.setHref(createUriString(poi));
-			poi.setName(null);
 		}
 
 		return Response.ok(poiList).header(Constants.CONTENT_ENC_KEY, Constants.CHARSET_UTF8).build();
 	}
 
+	/**
+	 * Create the URI of the poi as string.
+	 * 
+	 * @param poi
+	 * @return
+	 */
 	private String createUriString(PointOfInterest poi) {
 		return uriInfo.getBaseUri().toString() + Constants.POI_RESOURCE_PATH + poi.getId();
 	}

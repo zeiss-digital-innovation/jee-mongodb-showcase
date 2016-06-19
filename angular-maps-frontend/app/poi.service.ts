@@ -9,7 +9,7 @@ export class PoiService {
     }
 
     getPoi(href: string) {
-      return this.http.get(href).map(res => res.json());
+      return this.http.get(href + '?expand=details').map(res => res.json());
     }
 
     getPoiList(lat: number, lng: number) {

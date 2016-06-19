@@ -13,8 +13,6 @@ import javax.xml.bind.Unmarshaller;
 import org.geojson.Point;
 import org.junit.Test;
 
-import com.jayway.restassured.response.Headers;
-
 import ca.carleton.gcrc.gpx.GpxWayPoint;
 import ca.carleton.gcrc.gpx._11.Gpx11;
 
@@ -27,8 +25,6 @@ public class GPXFilesImporter extends TestsBase {
 
 	private static final Logger LOG = Logger.getLogger(GPXFilesImporter.class.getName());
 
-	private Headers headers;
-
 	@Test
 	public void importTestData() throws InterruptedException {
 		doReadFolder("supermarket");
@@ -37,6 +33,8 @@ public class GPXFilesImporter extends TestsBase {
 		doReadFolder("cash");
 		doReadFolder("parking");
 		doReadFolder("coffee");
+		doReadFolder("pharmacy");
+		doReadFolder("company");
 	}
 
 	/**
@@ -83,12 +81,20 @@ public class GPXFilesImporter extends TestsBase {
 
 				PointOfInterest poi = new PointOfInterest();
 				String name = gpxWayPoint.getName().replace(", ", "\n");
-				poi.setName(name);
+				poi.setDetails(name);
 				poi.setCategory(category);
 				poi.setLocation(new Point(gpxWayPoint.getLong().doubleValue(), gpxWayPoint.getLat().doubleValue()));
 
 				given().headers(headers).contentType(CONTENT_TYPE).body(poi).expect().post("poi");
-				Thread.sleep(10);
+				/*
+				 * Some waiting is necessary, since we're running requests faster than
+				 * RestAssured can close connections.
+				 * 
+				 * This doesn't seams to be enough:
+				 * RestAssured.config()
+				 * .connectionConfig(new ConnectionConfig().closeIdleConnectionsAfterEachResponse());
+				 */
+				Thread.sleep(5);
 			}
 
 			System.out.println("Imported " + wayPoints.size() + " POIs from " + file.getName());

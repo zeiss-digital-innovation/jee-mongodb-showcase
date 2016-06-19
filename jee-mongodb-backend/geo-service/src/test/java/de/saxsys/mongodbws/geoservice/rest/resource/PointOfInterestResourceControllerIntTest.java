@@ -40,7 +40,7 @@ public class PointOfInterestResourceControllerIntTest extends TestsBase {
 	@Test
 	public void createAndDeletePoi() {
 		PointOfInterest poi = new PointOfInterest();
-		poi.setName("Unit Test POI");
+		poi.setDetails("Unit Test POI");
 		poi.setCategory("gasstation");
 		poi.setLocation(new Point(LONGITUDE_DRESDEN_FFP, LATITUDE_DRESDEN_FFP));
 

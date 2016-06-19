@@ -11,16 +11,16 @@
 		<sebm-google-map (centerChange)="processCenterChange($event)" (mouseup)="doQuery()" [latitude]="lat" [longitude]="lng" [zoom]="zoom">
 			<sebm-google-map-marker *ngFor="let poi of poiList" (markerClick)="processMarkerClick(poi)" [latitude]=poi.location.coordinates[1] [longitude]=poi.location.coordinates[0] [iconUrl]=getIconUrl(poi.category)>
 				<sebm-google-map-info-window [disableAutoPan]="true">
-				 <p [innerHTML]="poi.name"></p>
+				 <p [innerHTML]="poi.details"></p>
 				</sebm-google-map-info-window>
 			</sebm-google-map-marker>
 		</sebm-google-map>
 	</div>
   <div role="tabpanel" class="tab-pane fade" id="json">
-<!--
+
 		<pre dg-prettify>
 		  {{poiList | json}}
 		</pre>
-	-->
+
 	</div>
 </div>

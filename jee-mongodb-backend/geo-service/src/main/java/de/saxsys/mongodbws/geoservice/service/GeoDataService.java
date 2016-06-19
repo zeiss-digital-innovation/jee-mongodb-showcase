@@ -33,12 +33,16 @@ public class GeoDataService {
 	private PointOfInterestEntityConverter entityConverter = new PointOfInterestEntityConverter();
 
 	/**
+	 * Get a poi by id.
 	 * 
 	 * @param id
+	 *            String representation of object id.
+	 * @param expandDetails
+	 *            If true returnes all data of the poi.
 	 * @return
 	 */
-	public PointOfInterest getPOI(String id) {
-		PointOfInterestEntity entity = persistenceService.getPointOfInterest(new ObjectId(id));
+	public PointOfInterest getPOI(String id, boolean expandDetails) {
+		PointOfInterestEntity entity = persistenceService.getPointOfInterest(new ObjectId(id), expandDetails);
 
 		if (entity == null) {
 			return null;
@@ -48,6 +52,7 @@ public class GeoDataService {
 	}
 
 	/**
+	 * Delete a poi by id.
 	 * 
 	 * @param id
 	 */
@@ -56,9 +61,10 @@ public class GeoDataService {
 	}
 
 	/**
+	 * Create a new poi.
 	 * 
 	 * @param poi
-	 * @return
+	 * @return The new poi including its id.
 	 */
 	public PointOfInterest createPOI(PointOfInterest poi) {
 
@@ -75,10 +81,12 @@ public class GeoDataService {
 	 * @param lat
 	 * @param lon
 	 * @param radius
+	 * @param expandDetails
+	 *            If true returnes all data of the poi.
 	 * @return
 	 */
-	public List<PointOfInterest> listPOIs(double lat, double lon, int radius) {
-		List<PointOfInterestEntity> entityList = persistenceService.listPOIs(lat, lon, radius);
+	public List<PointOfInterest> listPOIs(double lat, double lon, int radius, boolean expandDetails) {
+		List<PointOfInterestEntity> entityList = persistenceService.listPOIs(lat, lon, radius, expandDetails);
 
 		return entityConverter.decodeList(entityList);
 	}

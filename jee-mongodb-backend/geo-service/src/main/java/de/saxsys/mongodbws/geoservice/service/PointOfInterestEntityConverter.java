@@ -31,7 +31,7 @@ public class PointOfInterestEntityConverter {
 		PointOfInterest poi = new PointOfInterest();
 		poi.setId(entity.getId().toString());
 		poi.setCategory(entity.getCategory());
-		poi.setName(entity.getName());
+		poi.setDetails(entity.getDetails());
 		poi.setLocation(new Point(entity.getLocation().getLongitude(), entity.getLocation().getLatitude()));
 
 		return poi;
@@ -65,7 +65,7 @@ public class PointOfInterestEntityConverter {
 		entity.setId(getObjectId(poi));
 
 		entity.setCategory(poi.getCategory());
-		entity.setName(poi.getName());
+		entity.setDetails(poi.getDetails());
 
 		PointBuilder pointBuilder = PointBuilder.pointBuilder();
 		pointBuilder.latitude(poi.getLocation().getCoordinates().getLatitude());

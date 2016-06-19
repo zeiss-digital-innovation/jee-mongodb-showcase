@@ -11,7 +11,7 @@ import {PoiService} from './poi.service';
   // the following line sets the height of the map - Important: if you don't set a height, you won't see a map!!
   styles: [`
     .sebm-google-map-container {
-      height: 600px;
+      height: 500px;
     }
   `],
   templateUrl: 'templates/map.html'
@@ -40,7 +40,7 @@ export class AppComponent{
   }
 
   processMarkerClick(poi) {
-    this.poiService.getPoi(poi.href).subscribe(p => poi.name = p.name.replace(/\n/g, "<br />"));
+    this.poiService.getPoi(poi.href).subscribe(p => poi.details = p.details.replace(/\n/g, "<br />"));
   }
 
   getIconUrl(category : string) {
@@ -58,6 +58,10 @@ export class AppComponent{
       return "http://maps.google.com/mapfiles/ms/micons/parkinglot.png";
     } else if (category == "coffee") {
       return "http://maps.google.com/mapfiles/ms/micons/coffeehouse.png";
+    } else if (category == "pharmacy") {
+      return "images/pharmacy.png";
+    } else if (category == "company") {
+      return "images/saxsys_logo_map.png";
     }
     return "http://maps.google.com/mapfiles/ms/micons/red.png";
   }

@@ -14,6 +14,8 @@ import javax.inject.Inject;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.geo.Point;
 import org.mongodb.morphia.geo.PointBuilder;
+import org.mongodb.morphia.mapping.Mapper;
+import org.mongodb.morphia.query.Query;
 
 import com.mongodb.WriteResult;
 
@@ -48,15 +50,30 @@ public class PersistenceService {
 	}
 
 	/**
+	 * Retrieve an poi entity by id.
 	 * 
 	 * @param id
+	 *            The object id of the entity.
+	 * @param expandDetails
+	 *            If true returnes all data of the poi.
 	 * @return
 	 */
-	public PointOfInterestEntity getPointOfInterest(ObjectId id) {
-		return mongoDBClientProvider.getDatastore().get(PointOfInterestEntity.class, id);
+	public PointOfInterestEntity getPointOfInterest(ObjectId id, boolean expandDetails) {
+		/*
+		 * This is for showing how fields can be left out. The query would be like:
+		 * 
+		 * db.getCollection('point_of_interest').find({_id: ObjectId('[id]')},{'details': 0})
+		 */
+		if (!expandDetails) {
+			return mongoDBClientProvider.getDatastore().find(PointOfInterestEntity.class, Mapper.ID_KEY, id)
+					.retrievedFields(false, "details").get();
+		} else {
+			return mongoDBClientProvider.getDatastore().get(PointOfInterestEntity.class, id);
+		}
 	}
 
 	/**
+	 * Delete a poi by id.
 	 * 
 	 * @param id
 	 */
@@ -68,12 +85,28 @@ public class PersistenceService {
 		LOG.info(writeResult.toString());
 	}
 
-	public List<PointOfInterestEntity> listPOIs(double lat, double lon, int radius) {
+	/**
+	 * List poi's by coords and radius.
+	 * 
+	 * @param lat
+	 * @param lon
+	 * @param radius
+	 * @param expandDetails
+	 *            If true returnes all data of the poi.
+	 * @return
+	 */
+	public List<PointOfInterestEntity> listPOIs(double lat, double lon, int radius, boolean expandDetails) {
 		PointBuilder builder = PointBuilder.pointBuilder();
 		Point point = builder.latitude(lat).longitude(lon).build();
 
-		return mongoDBClientProvider.getDatastore().createQuery(PointOfInterestEntity.class).field("location")
-				.near(point, radius).asList();
+		Query<PointOfInterestEntity> query = mongoDBClientProvider.getDatastore()
+				.createQuery(PointOfInterestEntity.class);
+
+		if (!expandDetails) {
+			query = query.retrievedFields(false, "details");
+		}
+
+		return query.field("location").near(point, radius).asList();
 
 		/*
 		 * This is what we could do with plain mongodb driver:

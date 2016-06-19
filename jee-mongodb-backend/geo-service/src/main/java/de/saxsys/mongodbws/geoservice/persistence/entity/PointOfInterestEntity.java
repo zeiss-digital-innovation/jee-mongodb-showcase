@@ -30,10 +30,14 @@ public class PointOfInterestEntity {
 
 	private String category;
 
-	private String name;
+	private String details;
 
 	@Embedded
 	private Point location;
+
+	public PointOfInterestEntity() {
+
+	}
 
 	/**
 	 * @return the id
@@ -66,18 +70,18 @@ public class PointOfInterestEntity {
 	}
 
 	/**
-	 * @return the name
+	 * @return the details
 	 */
-	public String getName() {
-		return name;
+	public String getDetails() {
+		return details;
 	}
 
 	/**
-	 * @param name
-	 *            the name to set
+	 * @param details
+	 *            the details to set
 	 */
-	public void setName(String name) {
-		this.name = name;
+	public void setDetails(String details) {
+		this.details = details;
 	}
 
 	/**

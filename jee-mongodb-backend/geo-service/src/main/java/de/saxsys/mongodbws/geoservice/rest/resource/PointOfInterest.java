@@ -27,29 +27,13 @@ public class PointOfInterest {
 
 	private String category;
 
-	private String name;
+	private String details;
 
 	/**
 	 * 
 	 */
 	public PointOfInterest() {
 
-	}
-
-	/**
-	 * 
-	 * @param href
-	 * @param id
-	 * @param location
-	 * @param category
-	 * @param name
-	 */
-	public PointOfInterest(String href, String id, Point location, String category, String name) {
-		this.href = href;
-		this.id = id;
-		this.location = location;
-		this.category = category;
-		this.name = name;
 	}
 
 	/**
@@ -113,18 +97,18 @@ public class PointOfInterest {
 	}
 
 	/**
-	 * @return the name
+	 * @return the details
 	 */
-	public String getName() {
-		return name;
+	public String getDetails() {
+		return details;
 	}
 
 	/**
-	 * @param name
-	 *            the name to set
+	 * @param details
+	 *            the details to set
 	 */
-	public void setName(String name) {
-		this.name = name;
+	public void setDetails(String details) {
+		this.details = details;
 	}
 
 }
