@@ -62,6 +62,14 @@ export class AppComponent{
       return "images/pharmacy.png";
     } else if (category == "company") {
       return "images/saxsys_logo_map.png";
+    } else if (category == "lodging") {
+      return "http://maps.google.com/mapfiles/ms/micons/lodging.png";
+    } else if (category == "post") {
+      return "http://maps.google.com/mapfiles/ms/micons/postoffice-us.png";
+    } else if (category == "toilet") {
+      return "http://maps.google.com/mapfiles/ms/micons/toilets.png";
+    } else if (category == "police") {
+      return "http://maps.google.com/mapfiles/ms/micons/police.png";
     }
     return "http://maps.google.com/mapfiles/ms/micons/red.png";
   }

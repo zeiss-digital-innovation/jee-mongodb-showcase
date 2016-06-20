@@ -13,7 +13,7 @@ export class PoiService {
     }
 
     getPoiList(lat: number, lng: number) {
-      return this.http.get('http://localhost:8080/geoservice/rest/poi?lat=' + lat + '&lon=' + lng + '&radius=5000')
+      return this.http.get('http://localhost:8080/geoservice/rest/poi?lat=' + lat + '&lon=' + lng + '&radius=2500')
            .map(res => res.json());
     }
 }

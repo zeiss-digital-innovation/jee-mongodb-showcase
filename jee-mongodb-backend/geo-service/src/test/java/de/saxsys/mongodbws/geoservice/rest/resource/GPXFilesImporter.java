@@ -27,14 +27,18 @@ public class GPXFilesImporter extends TestsBase {
 
 	@Test
 	public void importTestData() throws InterruptedException {
-		doReadFolder("supermarket");
-		doReadFolder("restaurant");
-		doReadFolder("gasstation");
 		doReadFolder("cash");
-		doReadFolder("parking");
 		doReadFolder("coffee");
-		doReadFolder("pharmacy");
 		doReadFolder("company");
+		doReadFolder("gasstation");
+		doReadFolder("lodging");
+		doReadFolder("parking");
+		doReadFolder("pharmacy");
+		doReadFolder("police");
+		doReadFolder("post");
+		doReadFolder("restaurant");
+		doReadFolder("supermarket");
+		doReadFolder("toilet");
 	}
 
 	/**
