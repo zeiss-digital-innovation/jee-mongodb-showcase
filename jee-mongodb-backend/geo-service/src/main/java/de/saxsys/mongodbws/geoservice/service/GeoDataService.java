@@ -7,9 +7,9 @@ package de.saxsys.mongodbws.geoservice.service;
 
 import java.util.List;
 
-import javax.ejb.LocalBean;
-import javax.ejb.Stateless;
-import javax.inject.Inject;
+import jakarta.ejb.LocalBean;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
 
 import org.bson.types.ObjectId;
 

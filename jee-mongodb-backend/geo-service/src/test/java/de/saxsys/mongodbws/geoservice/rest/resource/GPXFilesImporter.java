@@ -1,6 +1,6 @@
 package de.saxsys.mongodbws.geoservice.rest.resource;
 
-import static com.jayway.restassured.RestAssured.given;
+import static io.restassured.RestAssured.given;
 
 import java.io.File;
 import java.util.List;
@@ -89,7 +89,7 @@ public class GPXFilesImporter extends TestsBase {
 				poi.setCategory(category);
 				poi.setLocation(new Point(gpxWayPoint.getLong().doubleValue(), gpxWayPoint.getLat().doubleValue()));
 
-				given().headers(headers).contentType(CONTENT_TYPE).body(poi).expect().post("poi");
+				given().headers(headers).contentType(CONTENT_TYPE).body(poi).post("poi");
 				/*
 				 * Some waiting is necessary, since we're running requests faster than
 				 * RestAssured can close connections.

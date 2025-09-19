@@ -12,10 +12,11 @@ import java.util.logging.Logger;
 
 import org.junit.Before;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.config.ConnectionConfig;
-import com.jayway.restassured.response.Header;
-import com.jayway.restassured.response.Headers;
+import io.restassured.RestAssured;
+import io.restassured.config.ConnectionConfig;
+import io.restassured.http.ContentType;
+import io.restassured.http.Header;
+import io.restassured.http.Headers;
 
 /**
  * Abstract base class for several tests.

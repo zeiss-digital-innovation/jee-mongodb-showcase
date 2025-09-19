@@ -8,9 +8,9 @@ package de.saxsys.mongodbws.geoservice.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.saxsys.mongodbws.geoservice.persistence.entity.GeoPoint;
 import org.bson.types.ObjectId;
 import org.geojson.Point;
-import org.mongodb.morphia.geo.PointBuilder;
 
 import de.saxsys.mongodbws.geoservice.persistence.entity.PointOfInterestEntity;
 import de.saxsys.mongodbws.geoservice.rest.resource.PointOfInterest;
@@ -23,7 +23,7 @@ import de.saxsys.mongodbws.geoservice.rest.resource.PointOfInterest;
 public class PointOfInterestEntityConverter {
 
 	/**
-	 * 
+	 *
 	 * @param entity
 	 * @return
 	 */
@@ -38,7 +38,7 @@ public class PointOfInterestEntityConverter {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param entityList
 	 * @return
 	 */
@@ -55,7 +55,7 @@ public class PointOfInterestEntityConverter {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param poi
 	 * @return
 	 */
@@ -67,17 +67,15 @@ public class PointOfInterestEntityConverter {
 		entity.setCategory(poi.getCategory());
 		entity.setDetails(poi.getDetails());
 
-		PointBuilder pointBuilder = PointBuilder.pointBuilder();
-		pointBuilder.latitude(poi.getLocation().getCoordinates().getLatitude());
-		pointBuilder.longitude(poi.getLocation().getCoordinates().getLongitude());
+		GeoPoint point = new GeoPoint(poi.getLocation().getCoordinates().getLatitude(), poi.getLocation().getCoordinates().getLongitude());
 
-		entity.setLocation(pointBuilder.build());
+		entity.setLocation(point);
 
 		return entity;
 	}
 
 	/**
-	 * 
+	 *
 	 * @param poiList
 	 * @return
 	 */
@@ -94,7 +92,7 @@ public class PointOfInterestEntityConverter {
 	}
 
 	/**
-	 * 
+	 *
 	 * @param poi
 	 * @return
 	 */
