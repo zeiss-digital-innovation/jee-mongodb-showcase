@@ -11,5 +11,11 @@ COPY target/zdi-geo-service.war $DEPLOYMENT_DIR
 # Expose the default WildFly port
 EXPOSE 8080
 
+# Expose the management port (optional, for admin console access)
+# EXPOSE 9990
+
 # Start WildFly in standalone mode
 CMD ["/opt/jboss/wildfly/bin/standalone.sh", "-b", "0.0.0.0"]
+
+# Use this to start Wildfly with admin console access
+#CMD ["/opt/jboss/wildfly/bin/standalone.sh", "-b", "0.0.0.0", "-bmanagement", "0.0.0.0"]
