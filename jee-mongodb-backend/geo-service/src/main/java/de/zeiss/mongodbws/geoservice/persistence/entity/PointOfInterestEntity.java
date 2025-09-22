@@ -1,7 +1,7 @@
 /**
  * This file is part of a demo application showing MongoDB usage with Morphia library.
  * 
- * Copyright (C) 2016 Saxonia Systems AG
+ * Copyright (C) 2025 Carl Zeiss Digital Innovation GmbH
  */
 package de.zeiss.mongodbws.geoservice.persistence.entity;
 

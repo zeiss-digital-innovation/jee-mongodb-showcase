@@ -1,7 +1,7 @@
 /**
  * This file is part of a demo application showing MongoDB usage with Morphia library.
  * 
- * Copyright (C) 2016 Saxonia Systems AG
+ * Copyright (C) 2025 Carl Zeiss Digital Innovation GmbH
  */
 package de.zeiss.mongodbws.geoservice.persistence;
 
@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 import com.mongodb.client.model.geojson.Position;
 import com.mongodb.client.result.DeleteResult;
+import dev.morphia.query.FindOptions;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
 
@@ -69,13 +70,12 @@ public class PersistenceService {
 		 * db.getCollection('point_of_interest').find({_id: ObjectId('[id]')},{'details': 0})
 		 */
 		if (!expandDetails) {
-			return //mongoDBClientProvider.getDatastore().find(PointOfInterestEntity.class, Mapper.ID_KEY, id)
-					//.retrievedFields(false, "details").get();
-					mongoDBClientProvider.getDatastore()
+			FindOptions options = new FindOptions().projection().exclude("details");
+
+			return mongoDBClientProvider.getDatastore()
 							.find(PointOfInterestEntity.class)
 							.filter(eq("_id", id))
-//							.retrievedFields(false, "details")
-							.iterator()
+							.iterator(options)
 							.tryNext();
 		} else {
 			return mongoDBClientProvider.getDatastore()//.get(PointOfInterestEntity.class, id);
@@ -131,6 +131,11 @@ public class PersistenceService {
 		Query<PointOfInterestEntity> query = mongoDBClientProvider.getDatastore()
 				.find(PointOfInterestEntity.class)
 				.filter(dev.morphia.query.filters.Filters.near("location", point).maxDistance((double) radius));
+
+		if (!expandDetails) {
+			FindOptions options = new FindOptions().projection().exclude("details");
+			return query.iterator(options).toList();
+		}
 
 		return query.iterator().toList();
 
