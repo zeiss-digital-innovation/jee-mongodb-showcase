@@ -3,21 +3,21 @@
  *
  * Copyright (C) 2016 Saxonia Systems AG
  */
-package de.saxsys.mongodbws.geoservice.service;
+package de.zeiss.mongodbws.geoservice.service;
 
 import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.List;
 
-import de.saxsys.mongodbws.geoservice.persistence.entity.GeoPoint;
+import de.zeiss.mongodbws.geoservice.persistence.entity.GeoPoint;
 import org.bson.types.ObjectId;
 import org.geojson.Point;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.saxsys.mongodbws.geoservice.persistence.entity.PointOfInterestEntity;
-import de.saxsys.mongodbws.geoservice.rest.resource.PointOfInterest;
+import de.zeiss.mongodbws.geoservice.persistence.entity.PointOfInterestEntity;
+import de.zeiss.mongodbws.geoservice.rest.resource.PointOfInterest;
 
 /**
  * Unit tests for {@link PointOfInterestEntityConverter}

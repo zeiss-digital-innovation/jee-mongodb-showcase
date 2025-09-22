@@ -1,4 +1,4 @@
-package de.saxsys.mongodbws.geoservice.persistence.entity;
+package de.zeiss.mongodbws.geoservice.persistence.entity;
 
 public class GeoPoint {
     public double getLatitude() {

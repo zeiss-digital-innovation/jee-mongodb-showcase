@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2016 Saxonia Systems AG
  */
-package de.saxsys.mongodbws.geoservice.service;
+package de.zeiss.mongodbws.geoservice.service;
 
 import java.util.List;
 
@@ -13,9 +13,9 @@ import jakarta.inject.Inject;
 
 import org.bson.types.ObjectId;
 
-import de.saxsys.mongodbws.geoservice.persistence.PersistenceService;
-import de.saxsys.mongodbws.geoservice.persistence.entity.PointOfInterestEntity;
-import de.saxsys.mongodbws.geoservice.rest.resource.PointOfInterest;
+import de.zeiss.mongodbws.geoservice.persistence.PersistenceService;
+import de.zeiss.mongodbws.geoservice.persistence.entity.PointOfInterestEntity;
+import de.zeiss.mongodbws.geoservice.rest.resource.PointOfInterest;
 
 /**
  * Our data service. Does currently nothing more than converting beeing the

@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2016 Saxonia Systems AG
  */
-package de.saxsys.mongodbws.geoservice.persistence;
+package de.zeiss.mongodbws.geoservice.persistence;
 
 import java.util.logging.Logger;
 
@@ -34,7 +34,7 @@ public class MongoDBClientProvider {
 	private static final Logger LOG = Logger.getLogger(MongoDBClientProvider.class.getName());
 
 	// TODO extract to property file
-	private static final String DATABASE_NAME = "saxonia_campus";
+	private static final String DATABASE_NAME = "demo_campus";
 
 	// TODO extract to property file
 	private static final String HOST = "localhost";
@@ -51,13 +51,13 @@ public class MongoDBClientProvider {
 	public void init() {
 		MongoClientOptions settings = MongoClientOptions.builder()
 				.codecRegistry(com.mongodb.MongoClient.getDefaultCodecRegistry()).build();
-		mongoClient = MongoClients.create("mongodb://localhost:27017");
+		mongoClient = MongoClients.create("mongodb://" + HOST + ":" + PORT);
 
 		// tell morphia where to find your classes
 		// can be called multiple times with different packages or classes
 
 		datastore = Morphia.createDatastore(mongoClient, DATABASE_NAME);
-		datastore.getMapper().mapPackage("de.saxsys.mongodbws.geoservice.persistence.entity");
+		datastore.getMapper().mapPackage("de.zeiss.mongodbws.geoservice.persistence.entity");
 //		datastore.ensureIndexes();
 	}
 

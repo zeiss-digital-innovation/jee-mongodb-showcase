@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2016 Saxonia Systems AG
  */
-package de.saxsys.mongodbws.geoservice.persistence;
+package de.zeiss.mongodbws.geoservice.persistence;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -21,7 +21,7 @@ import dev.morphia.query.Query;
 import com.mongodb.client.model.geojson.Point;
 //import com.mongodb.WriteResult;
 
-import de.saxsys.mongodbws.geoservice.persistence.entity.PointOfInterestEntity;
+import de.zeiss.mongodbws.geoservice.persistence.entity.PointOfInterestEntity;
 
 import static dev.morphia.query.filters.Filters.eq;
 

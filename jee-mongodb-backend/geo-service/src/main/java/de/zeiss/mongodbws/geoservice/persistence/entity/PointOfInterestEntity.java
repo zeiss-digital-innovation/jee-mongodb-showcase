@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2016 Saxonia Systems AG
  */
-package de.saxsys.mongodbws.geoservice.persistence.entity;
+package de.zeiss.mongodbws.geoservice.persistence.entity;
 
 import org.bson.types.ObjectId;
 import dev.morphia.annotations.Embedded;

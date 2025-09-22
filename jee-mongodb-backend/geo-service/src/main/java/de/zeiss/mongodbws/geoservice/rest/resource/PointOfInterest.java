@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2016 Saxonia Systems AG
  */
-package de.saxsys.mongodbws.geoservice.rest.resource;
+package de.zeiss.mongodbws.geoservice.rest.resource;
 
 import org.geojson.Point;
 

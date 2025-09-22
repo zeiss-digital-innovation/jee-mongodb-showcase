@@ -3,7 +3,7 @@
  * 
  * Copyright (C) 2016 Saxonia Systems AG
  */
-package de.saxsys.mongodbws.geoservice.rest.resource;
+package de.zeiss.mongodbws.geoservice.rest.resource;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -24,8 +24,8 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 import jakarta.ws.rs.core.UriInfo;
 
-import de.saxsys.mongodbws.geoservice.rest.Constants;
-import de.saxsys.mongodbws.geoservice.service.GeoDataService;
+import de.zeiss.mongodbws.geoservice.rest.Constants;
+import de.zeiss.mongodbws.geoservice.service.GeoDataService;
 
 /**
  * 

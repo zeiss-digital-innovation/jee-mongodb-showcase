@@ -1,4 +1,4 @@
-package de.saxsys.mongodbws.geoservice.rest.resource;
+package de.zeiss.mongodbws.geoservice.rest.resource;
 
 import java.io.IOException;
 import java.io.InputStream;
