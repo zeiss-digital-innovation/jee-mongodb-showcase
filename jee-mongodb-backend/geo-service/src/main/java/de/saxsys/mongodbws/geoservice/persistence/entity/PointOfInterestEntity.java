@@ -6,21 +6,20 @@
 package de.saxsys.mongodbws.geoservice.persistence.entity;
 
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.Embedded;
-import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Field;
-import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Index;
-import org.mongodb.morphia.annotations.Indexes;
-import org.mongodb.morphia.geo.Point;
-import org.mongodb.morphia.utils.IndexType;
+import dev.morphia.annotations.Embedded;
+import dev.morphia.annotations.Entity;
+import dev.morphia.annotations.Field;
+import dev.morphia.annotations.Id;
+import dev.morphia.annotations.Index;
+import dev.morphia.annotations.Indexes;
+import dev.morphia.utils.IndexType;
 
 /**
  * This is our morphia entity for a point of interest.
  * 
  * @author Andreas Post
  */
-@Entity(value = "point_of_interest", noClassnameStored = true)
+@Entity(value = "point_of_interest", useDiscriminator = false)
 @Indexes({ @Index(fields = { @Field(value = "location", type = IndexType.GEO2DSPHERE) }),
 		@Index(fields = { @Field(value = "category") }), @Index(fields = { @Field(value = "name") }) })
 public class PointOfInterestEntity {
@@ -32,8 +31,8 @@ public class PointOfInterestEntity {
 
 	private String details;
 
-	@Embedded
-	private Point location;
+//	@Embedded
+	private GeoPoint location;
 
 	public PointOfInterestEntity() {
 
@@ -87,7 +86,7 @@ public class PointOfInterestEntity {
 	/**
 	 * @return the location
 	 */
-	public Point getLocation() {
+	public GeoPoint getLocation() {
 		return location;
 	}
 
@@ -95,7 +94,7 @@ public class PointOfInterestEntity {
 	 * @param location
 	 *            the location to set
 	 */
-	public void setLocation(Point location) {
+	public void setLocation(GeoPoint location) {
 		this.location = location;
 	}
 }

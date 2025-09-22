@@ -8,18 +8,22 @@ package de.saxsys.mongodbws.geoservice.persistence;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.ejb.Stateless;
-import javax.inject.Inject;
+import com.mongodb.client.model.geojson.Position;
+import com.mongodb.client.result.DeleteResult;
+import jakarta.ejb.Stateless;
+import jakarta.inject.Inject;
 
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.geo.Point;
-import org.mongodb.morphia.geo.PointBuilder;
-import org.mongodb.morphia.mapping.Mapper;
-import org.mongodb.morphia.query.Query;
-
-import com.mongodb.WriteResult;
+//import dev.morphia.geo.Point;
+//import dev.morphia.geo.PointBuilder;
+//import dev.morphia.mapping.Mapper;
+import dev.morphia.query.Query;
+import com.mongodb.client.model.geojson.Point;
+//import com.mongodb.WriteResult;
 
 import de.saxsys.mongodbws.geoservice.persistence.entity.PointOfInterestEntity;
+
+import static dev.morphia.query.filters.Filters.eq;
 
 /**
  * Service for our persistence stuff.
@@ -61,14 +65,24 @@ public class PersistenceService {
 	public PointOfInterestEntity getPointOfInterest(ObjectId id, boolean expandDetails) {
 		/*
 		 * This is for showing how fields can be left out. The query would be like:
-		 * 
+		 *
 		 * db.getCollection('point_of_interest').find({_id: ObjectId('[id]')},{'details': 0})
 		 */
 		if (!expandDetails) {
-			return mongoDBClientProvider.getDatastore().find(PointOfInterestEntity.class, Mapper.ID_KEY, id)
-					.retrievedFields(false, "details").get();
+			return //mongoDBClientProvider.getDatastore().find(PointOfInterestEntity.class, Mapper.ID_KEY, id)
+					//.retrievedFields(false, "details").get();
+					mongoDBClientProvider.getDatastore()
+							.find(PointOfInterestEntity.class)
+							.filter(eq("_id", id))
+//							.retrievedFields(false, "details")
+							.iterator()
+							.tryNext();
 		} else {
-			return mongoDBClientProvider.getDatastore().get(PointOfInterestEntity.class, id);
+			return mongoDBClientProvider.getDatastore()//.get(PointOfInterestEntity.class, id);
+					.find(PointOfInterestEntity.class)
+					.filter(eq("_id", id))
+					.iterator()
+					.tryNext();
 		}
 	}
 
@@ -80,7 +94,10 @@ public class PersistenceService {
 	public void deletePointOfInterest(ObjectId id) {
 		LOG.info("deletePointOfInterest: " + id);
 
-		WriteResult writeResult = mongoDBClientProvider.getDatastore().delete(PointOfInterestEntity.class, id);
+		DeleteResult writeResult = mongoDBClientProvider.getDatastore()//.delete(PointOfInterestEntity.class, id);
+				.find(PointOfInterestEntity.class)
+				.filter(eq("_id", id))
+				.delete();
 
 		LOG.info(writeResult.toString());
 	}
@@ -96,17 +113,28 @@ public class PersistenceService {
 	 * @return
 	 */
 	public List<PointOfInterestEntity> listPOIs(double lat, double lon, int radius, boolean expandDetails) {
-		PointBuilder builder = PointBuilder.pointBuilder();
-		Point point = builder.latitude(lat).longitude(lon).build();
+//		PointBuilder builder = PointBuilder.pointBuilder();
+//		Point point = builder.latitude(lat).longitude(lon).build();
+//
+//		Query<PointOfInterestEntity> query = mongoDBClientProvider.getDatastore()
+//				.createQuery(PointOfInterestEntity.class);
+//
+//		if (!expandDetails) {
+////			query = query.retrievedFields(false, "details");
+//		}
+//
+//		return query.field("location").near(point, radius).asList();
+		Point point = new Point(
+				new Position(lon, lat)
+		);
 
 		Query<PointOfInterestEntity> query = mongoDBClientProvider.getDatastore()
-				.createQuery(PointOfInterestEntity.class);
+				.find(PointOfInterestEntity.class)
+				.filter(dev.morphia.query.filters.Filters.near("location", point).maxDistance((double) radius));
 
-		if (!expandDetails) {
-			query = query.retrievedFields(false, "details");
-		}
+		return query.iterator().toList();
 
-		return query.field("location").near(point, radius).asList();
+
 
 		/*
 		 * This is what we could do with plain mongodb driver:
@@ -134,3 +162,4 @@ public class PersistenceService {
 		// });
 	}
 }
+

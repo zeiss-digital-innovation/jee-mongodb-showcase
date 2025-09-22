@@ -5,7 +5,7 @@
  */
 package de.saxsys.mongodbws.geoservice.rest.resource;
 
-import static com.jayway.restassured.RestAssured.given;
+import static io.restassured.RestAssured.given;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.geojson.Point;
 import org.junit.Ignore;
@@ -21,7 +21,7 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.restassured.response.Response;
+import io.restassured.response.Response;
 
 /**
  * Some test for the REST interface.
@@ -45,7 +45,7 @@ public class PointOfInterestResourceControllerIntTest extends TestsBase {
 		poi.setLocation(new Point(LONGITUDE_DRESDEN_FFP, LATITUDE_DRESDEN_FFP));
 
 		// create
-		Response response = given().headers(headers).contentType(CONTENT_TYPE).body(poi).expect().log().all()
+		Response response = given().headers(headers).contentType(CONTENT_TYPE).body(poi).log().all()
 				.post("poi");
 
 		response.then().assertThat().statusCode(Status.CREATED.getStatusCode());
@@ -55,17 +55,17 @@ public class PointOfInterestResourceControllerIntTest extends TestsBase {
 		assertNotNull("Location header must not be null", location);
 
 		// get
-		response = given().headers(headers).contentType(CONTENT_TYPE).body(poi).expect().log().all().get(location);
+		response = given().headers(headers).contentType(CONTENT_TYPE).body(poi).log().all().get(location);
 
 		response.then().assertThat().statusCode(Status.OK.getStatusCode());
 
 		// now delete it
-		response = given().headers(headers).contentType(CONTENT_TYPE).body(poi).expect().log().all().delete(location);
+		response = given().headers(headers).contentType(CONTENT_TYPE).body(poi).log().all().delete(location);
 
 		response.then().assertThat().statusCode(Status.NO_CONTENT.getStatusCode());
 
 		// at least check the deletion
-		response = given().headers(headers).contentType(CONTENT_TYPE).body(poi).expect().log().all().get(location);
+		response = given().headers(headers).contentType(CONTENT_TYPE).body(poi).log().all().get(location);
 
 		response.then().assertThat().statusCode(Status.NOT_FOUND.getStatusCode());
 	}
@@ -74,7 +74,7 @@ public class PointOfInterestResourceControllerIntTest extends TestsBase {
 	@Test
 	public void listPois() {
 		Response response = given().headers(headers).contentType(CONTENT_TYPE).queryParam("lat", LATITUDE_DRESDEN_FFP)
-				.queryParam("lon", LONGITUDE_DRESDEN_FFP).queryParam("radius", 5000).expect().log().all().get("poi");
+				.queryParam("lon", LONGITUDE_DRESDEN_FFP).queryParam("radius", 5000).log().all().get("poi");
 
 		response.then().assertThat().statusCode(Status.OK.getStatusCode());
 

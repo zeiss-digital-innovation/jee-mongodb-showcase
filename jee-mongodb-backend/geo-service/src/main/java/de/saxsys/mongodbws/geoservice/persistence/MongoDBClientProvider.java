@@ -7,18 +7,19 @@ package de.saxsys.mongodbws.geoservice.persistence;
 
 import java.util.logging.Logger;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.ejb.ConcurrencyManagement;
-import javax.ejb.ConcurrencyManagementType;
-import javax.ejb.Lock;
-import javax.ejb.LockType;
-import javax.ejb.Singleton;
+import com.mongodb.client.MongoClients;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.ejb.ConcurrencyManagement;
+import jakarta.ejb.ConcurrencyManagementType;
+import jakarta.ejb.Lock;
+import jakarta.ejb.LockType;
+import jakarta.ejb.Singleton;
 
-import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.Morphia;
+import dev.morphia.Datastore;
+import dev.morphia.Morphia;
 
-import com.mongodb.MongoClient;
+import com.mongodb.client.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
 
@@ -50,15 +51,14 @@ public class MongoDBClientProvider {
 	public void init() {
 		MongoClientOptions settings = MongoClientOptions.builder()
 				.codecRegistry(com.mongodb.MongoClient.getDefaultCodecRegistry()).build();
-		mongoClient = new MongoClient(new ServerAddress(HOST, PORT), settings);
-		morphia = new Morphia();
+		mongoClient = MongoClients.create("mongodb://localhost:27017");
 
 		// tell morphia where to find your classes
 		// can be called multiple times with different packages or classes
-		morphia.mapPackage("de.saxsys.mongodbws.geoservice.persistence.entity");
 
-		datastore = morphia.createDatastore(mongoClient, DATABASE_NAME);
-		datastore.ensureIndexes();
+		datastore = Morphia.createDatastore(mongoClient, DATABASE_NAME);
+		datastore.getMapper().mapPackage("de.saxsys.mongodbws.geoservice.persistence.entity");
+//		datastore.ensureIndexes();
 	}
 
 	@Lock(LockType.READ)
