@@ -21,7 +21,7 @@ import dev.morphia.utils.IndexType;
  */
 @Entity(value = "point_of_interest", useDiscriminator = false)
 @Indexes({ @Index(fields = { @Field(value = "location", type = IndexType.GEO2DSPHERE) }),
-		@Index(fields = { @Field(value = "category") }), @Index(fields = { @Field(value = "name") }) })
+		@Index(fields = { @Field(value = "category") }) })
 public class PointOfInterestEntity {
 
 	@Id

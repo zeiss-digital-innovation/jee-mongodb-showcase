@@ -52,7 +52,7 @@ public class GeoDataServiceTest {
         testEntity.setId(testObjectId);
         testEntity.setCategory("restaurant");
         testEntity.setDetails("Best restaurant in town");
-        testEntity.setLocation(new GeoPoint(51.0504,13.7373));
+//        testEntity.setLocation(new GeoPoint(51.0504,13.7373));
 
         // Setup test POI
         testPoi = new PointOfInterest();
@@ -132,7 +132,7 @@ public class GeoDataServiceTest {
         createdEntity.setId(testObjectId);
         createdEntity.setCategory("pharmacy");
         createdEntity.setDetails("City pharmacy");
-        createdEntity.setLocation(new GeoPoint(51.0504, 13.7373));
+//        createdEntity.setLocation(new GeoPoint(51.0504, 13.7373));
 
         when(persistenceService.createPointOfInterest(any(PointOfInterestEntity.class))).thenReturn(createdEntity);
 
@@ -160,7 +160,7 @@ public class GeoDataServiceTest {
         entity2.setId(objectId2);
         entity2.setCategory("pharmacy");
         entity2.setDetails("Local pharmacy");
-        entity2.setLocation(new GeoPoint(51.0600, 13.7400));
+//        entity2.setLocation(new GeoPoint(51.0600, 13.7400));
 
         List<PointOfInterestEntity> entityList = Arrays.asList(testEntity, entity2);
         when(persistenceService.listPOIs(lat, lon, radius, expandDetails)).thenReturn(entityList);

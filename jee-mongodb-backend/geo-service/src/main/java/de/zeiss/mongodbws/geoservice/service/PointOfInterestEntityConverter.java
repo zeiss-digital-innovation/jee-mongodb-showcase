@@ -32,7 +32,7 @@ public class PointOfInterestEntityConverter {
 		poi.setId(entity.getId().toString());
 		poi.setCategory(entity.getCategory());
 		poi.setDetails(entity.getDetails());
-		poi.setLocation(new Point(entity.getLocation().getLongitude(), entity.getLocation().getLatitude()));
+		//poi.setLocation(new Point(entity.getLocation().getLongitude(), entity.getLocation().getLatitude()));
 
 		return poi;
 	}
@@ -67,9 +67,9 @@ public class PointOfInterestEntityConverter {
 		entity.setCategory(poi.getCategory());
 		entity.setDetails(poi.getDetails());
 
-		GeoPoint point = new GeoPoint(poi.getLocation().getCoordinates().getLatitude(), poi.getLocation().getCoordinates().getLongitude());
+		//GeoPoint point = new GeoPoint(poi.getLocation().getCoordinates().getLatitude(), poi.getLocation().getCoordinates().getLongitude());
 
-		entity.setLocation(point);
+		//entity.setLocation(point);
 
 		return entity;
 	}

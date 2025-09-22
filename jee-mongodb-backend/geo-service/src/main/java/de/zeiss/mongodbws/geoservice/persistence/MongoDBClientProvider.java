@@ -7,7 +7,10 @@ package de.zeiss.mongodbws.geoservice.persistence;
 
 import java.util.logging.Logger;
 
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoDatabase;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import jakarta.ejb.ConcurrencyManagement;
@@ -37,7 +40,7 @@ public class MongoDBClientProvider {
 	private static final String DATABASE_NAME = "demo_campus";
 
 	// TODO extract to property file
-	private static final String HOST = "localhost";
+	private static final String HOST = "172.18.0.2";
 	// TODO extract to property file
 	private static final int PORT = 27017;
 
@@ -49,16 +52,22 @@ public class MongoDBClientProvider {
 
 	@PostConstruct
 	public void init() {
-		MongoClientOptions settings = MongoClientOptions.builder()
-				.codecRegistry(com.mongodb.MongoClient.getDefaultCodecRegistry()).build();
-		mongoClient = MongoClients.create("mongodb://" + HOST + ":" + PORT);
+//		MongoClientOptions settings = MongoClientOptions.builder()
+//				.codecRegistry(com.mongodb.MongoClient.getDefaultCodecRegistry()).build();
+		//mongoClient = MongoClients.create("mongodb://" + HOST + ":" + PORT);
 
 		// tell morphia where to find your classes
 		// can be called multiple times with different packages or classes
 
+		mongoClient = MongoClients.create(
+				MongoClientSettings.builder()
+						.applyConnectionString(new ConnectionString("mongodb://" + HOST + ":" + PORT))
+						.build());
+		//MongoDatabase database = mongoClient.getDatabase(DATABASE_NAME);
+
 		datastore = Morphia.createDatastore(mongoClient, DATABASE_NAME);
 		datastore.getMapper().mapPackage("de.zeiss.mongodbws.geoservice.persistence.entity");
-//		datastore.ensureIndexes();
+		//datastore.ensureIndexes();
 	}
 
 	@Lock(LockType.READ)
