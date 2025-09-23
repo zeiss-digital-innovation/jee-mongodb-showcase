@@ -4,6 +4,10 @@ import dev.morphia.annotations.Embedded;
 
 @Embedded
 public class GeoPoint {
+
+    private static final int LONGITUDE_INDEX = 0;
+    private static final int LATITUDE_INDEX = 1;
+
     private String type = "Point";
 
     private double[] coordinates;
@@ -12,27 +16,28 @@ public class GeoPoint {
 
     }
 
-//    public GeoPoint(double latitude, double longitude) {
-//        this.latitude = latitude;
-//        this.longitude = longitude;
-//    }
-//
-//    public GeoPoint(String type, double latitude, double longitude) {
-//        this.latitude = latitude;
-//        this.longitude = longitude;
-//    }
-
     public double getLatitude() {
-        return coordinates[0];
+        return coordinates[LATITUDE_INDEX];
     }
 
     public double getLongitude() {
-        return coordinates[1];
+        return coordinates[LONGITUDE_INDEX];
     }
 
     public void setCoordinates(double[] coordinates) {
         this.coordinates = coordinates;
     }
 
-    // Getter und Setter
+    public void setCoordinates(double latitude, double longitude) {
+        // MongoDB Point specifies coordinates as [longitude, latitude]
+        this.coordinates = new double[]{longitude, latitude};
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 }

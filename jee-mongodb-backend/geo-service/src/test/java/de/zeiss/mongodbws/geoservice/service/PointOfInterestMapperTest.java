@@ -1,50 +1,44 @@
 /**
  * This file is part of a demo application showing MongoDB usage with Morphia library.
- *
+ * <p>
  * Copyright (C) 2025 Carl Zeiss Digital Innovation GmbH
  */
 package de.zeiss.mongodbws.geoservice.service;
 
-import static org.junit.Assert.*;
+import de.zeiss.mongodbws.geoservice.persistence.entity.GeoPoint;
+import de.zeiss.mongodbws.geoservice.persistence.entity.PointOfInterestEntity;
+import de.zeiss.mongodbws.geoservice.rest.resource.PointOfInterest;
+import de.zeiss.mongodbws.geoservice.service.mapper.PointOfInterestMapper;
+import org.bson.types.ObjectId;
+import org.geojson.Point;
+import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
 
-import de.zeiss.mongodbws.geoservice.persistence.entity.GeoPoint;
-import org.bson.types.ObjectId;
-import org.geojson.Point;
-import org.junit.Before;
-import org.junit.Test;
-
-import de.zeiss.mongodbws.geoservice.persistence.entity.PointOfInterestEntity;
-import de.zeiss.mongodbws.geoservice.rest.resource.PointOfInterest;
+import static org.junit.Assert.*;
 
 /**
- * Unit tests for {@link PointOfInterestEntityConverter}
+ * Unit tests for {@link PointOfInterestMapper}
  *
  * @author Generated Tests
  */
-public class PointOfInterestEntityConverterTest {
-
-    private PointOfInterestEntityConverter converter;
-
-    @Before
-    public void setUp() {
-        converter = new PointOfInterestEntityConverter();
-    }
+public class PointOfInterestMapperTest {
 
     @Test
-    public void testDecode_ValidEntity_ShouldReturnPointOfInterest() {
+    public void testEntityToModel_ValidMap_ShouldReturnPointOfInterest() {
         // Given
         ObjectId objectId = new ObjectId();
         PointOfInterestEntity entity = new PointOfInterestEntity();
         entity.setId(objectId);
         entity.setCategory("restaurant");
         entity.setDetails("Best pizza in town");
-        //entity.setLocation(new GeoPoint(51.0504,13.7373));
+        GeoPoint geoPoint = new GeoPoint();
+        geoPoint.setCoordinates(51.0504, 13.7373);
+        entity.setLocation(geoPoint);
 
         // When
-        PointOfInterest result = converter.decode(entity);
+        PointOfInterest result = PointOfInterestMapper.mapToModel(entity);
 
         // Then
         assertNotNull(result);
@@ -57,7 +51,7 @@ public class PointOfInterestEntityConverterTest {
     }
 
     @Test
-    public void testDecodeList_ValidEntityList_ShouldReturnPointOfInterestList() {
+    public void testEntityToModelList_ValidMapList_ShouldReturnPointOfInterestList() {
         // Given
         ObjectId objectId1 = new ObjectId();
         ObjectId objectId2 = new ObjectId();
@@ -66,18 +60,22 @@ public class PointOfInterestEntityConverterTest {
         entity1.setId(objectId1);
         entity1.setCategory("restaurant");
         entity1.setDetails("Pizza place");
-//        entity1.setLocation(new GeoPoint(51.0504,13.7373));
+        GeoPoint geoPoint = new GeoPoint();
+        geoPoint.setCoordinates(51.0504, 13.7373);
+        entity1.setLocation(geoPoint);
 
         PointOfInterestEntity entity2 = new PointOfInterestEntity();
         entity2.setId(objectId2);
         entity2.setCategory("pharmacy");
         entity2.setDetails("City pharmacy");
-//        entity2.setLocation(new GeoPoint(52.5200,13.4050));
+        geoPoint = new GeoPoint();
+        geoPoint.setCoordinates(52.5200, 13.4050);
+        entity2.setLocation(geoPoint);
 
         List<PointOfInterestEntity> entityList = Arrays.asList(entity1, entity2);
 
         // When
-        List<PointOfInterest> result = converter.decodeList(entityList);
+        List<PointOfInterest> result = entityList.stream().map(PointOfInterestMapper::mapToModel).toList();
 
         // Then
         assertNotNull(result);
@@ -95,17 +93,7 @@ public class PointOfInterestEntityConverterTest {
     }
 
     @Test
-    public void testDecodeList_NullEntityList_ShouldReturnEmptyList() {
-        // When
-        List<PointOfInterest> result = converter.decodeList(null);
-
-        // Then
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    public void testEncode_ValidPointOfInterest_ShouldReturnEntity() {
+    public void testEntityToModelBack_ValidPointOfInterest_ShouldReturnMap() {
         // Given
         String objectIdString = new ObjectId().toString();
         PointOfInterest poi = new PointOfInterest();
@@ -115,20 +103,20 @@ public class PointOfInterestEntityConverterTest {
         poi.setLocation(new Point(13.7373, 51.0504));
 
         // When
-        PointOfInterestEntity result = converter.encode(poi);
+        PointOfInterestEntity result = PointOfInterestMapper.mapToEntity(poi);
 
         // Then
         assertNotNull(result);
         assertEquals(objectIdString, result.getId().toString());
         assertEquals("supermarket", result.getCategory());
         assertEquals("24/7 supermarket", result.getDetails());
-//        assertNotNull(result.getLocation());
-//        assertEquals(13.7373, result.getLocation().getLongitude(), 0.0001);
-//        assertEquals(51.0504, result.getLocation().getLatitude(), 0.0001);
+        assertNotNull(result.getLocation());
+        assertEquals(13.7373, result.getLocation().getLongitude(), 0.0001);
+        assertEquals(51.0504, result.getLocation().getLatitude(), 0.0001);
     }
 
     @Test
-    public void testEncode_PointOfInterestWithNullId_ShouldHandleGracefully() {
+    public void testMapToModelBack_PointOfInterestWithNullId_ShouldHandleGracefully() {
         // Given
         PointOfInterest poi = new PointOfInterest();
         poi.setId(null);
@@ -137,7 +125,7 @@ public class PointOfInterestEntityConverterTest {
         poi.setLocation(new Point(13.7373, 51.0504));
 
         // When
-        PointOfInterestEntity result = converter.encode(poi);
+        PointOfInterestEntity result = PointOfInterestMapper.mapToEntity(poi);
 
         // Then
         assertNotNull(result);
@@ -147,7 +135,7 @@ public class PointOfInterestEntityConverterTest {
     }
 
     @Test
-    public void testEncodeList_ValidPointOfInterestList_ShouldReturnEntityList() {
+    public void testEntityToModelBackList_ValidPointOfInterestList_ShouldReturnMapList() {
         // Given
         String objectId1String = new ObjectId().toString();
         String objectId2String = new ObjectId().toString();
@@ -167,7 +155,7 @@ public class PointOfInterestEntityConverterTest {
         List<PointOfInterest> poiList = Arrays.asList(poi1, poi2);
 
         // When
-        List<PointOfInterestEntity> result = converter.encodeList(poiList);
+        List<PointOfInterestEntity> result = poiList.stream().map(PointOfInterestMapper::mapToEntity).toList();
 
         // Then
         assertNotNull(result);
@@ -184,13 +172,4 @@ public class PointOfInterestEntityConverterTest {
         assertEquals("5-star hotel", entity2.getDetails());
     }
 
-    @Test
-    public void testEncodeList_NullPointOfInterestList_ShouldReturnEmptyList() {
-        // When
-        List<PointOfInterestEntity> result = converter.encodeList(null);
-
-        // Then
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-    }
 }
