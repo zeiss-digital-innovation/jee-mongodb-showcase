@@ -1,9 +1,18 @@
 # Demo REST backend using Jakarta Enterprise technology.
 
 ## Dependencies and environment
+
+### Java
 - Java 21
 - Jakarta Enterprise
 - Wildfly Application Server Version 37
+
+### MongoDB
+- REST backend uses MongoDB as data provider.
+- The default connection settings are host=localhost, port=27017, database=demo_campus. 
+You can set different settings by supplying a custom `/src/main/webapp/META-INF/microprofile-config.properties` file. 
+See the `microprofile-config.properties.template` file.
+- As this is only a small demo application, there is currently no support for authentication with MongoDB. So it only works with a MongoDB instance without any authentication necessary (default after install).
 
 ## Build with Maven
 - Use `mvn package` to create a `war` file for deployment.

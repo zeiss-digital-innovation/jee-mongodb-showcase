@@ -1,88 +1,73 @@
 /**
  * This file is part of a demo application showing MongoDB usage with Morphia library.
- * 
+ * <p>
  * Copyright (C) 2025 Carl Zeiss Digital Innovation GmbH
  */
 package de.zeiss.mongodbws.geoservice.persistence;
 
-import java.util.logging.Logger;
-
-import com.mongodb.ConnectionString;
-import com.mongodb.MongoClientSettings;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoDatabase;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import jakarta.ejb.ConcurrencyManagement;
-import jakarta.ejb.ConcurrencyManagementType;
-import jakarta.ejb.Lock;
-import jakarta.ejb.LockType;
-import jakarta.ejb.Singleton;
-
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.ejb.*;
+import jakarta.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-import com.mongodb.client.MongoClient;
-import com.mongodb.MongoClientOptions;
-import com.mongodb.ServerAddress;
+import java.util.logging.Logger;
 
 /**
- * 
  * @author Andreas Post
  */
 @Singleton
 @ConcurrencyManagement(ConcurrencyManagementType.CONTAINER)
 public class MongoDBClientProvider {
 
-	private static final Logger LOG = Logger.getLogger(MongoDBClientProvider.class.getName());
+    private static final Logger LOG = Logger.getLogger(MongoDBClientProvider.class.getName());
 
-	// TODO extract to property file
-	private static final String DATABASE_NAME = "demo_campus";
+    @Inject
+    @ConfigProperty(name = "mongodb.database", defaultValue = "demo_campus")
+    String databaseName = "demo_campus";
 
-	// TODO extract to property file
-	private static final String HOST = "172.18.0.2";
-	// TODO extract to property file
-	private static final int PORT = 27017;
+    @Inject
+    @ConfigProperty(name = "mongodb.host", defaultValue = "localhost")
+    String hostname;
 
-	private MongoClient mongoClient = null;
+    @Inject
+    @ConfigProperty(name = "mongodb.port", defaultValue = "27017")
+    int port;
 
-	private Morphia morphia;
+    private MongoClient mongoClient = null;
 
-	private Datastore datastore;
+    private Morphia morphia;
 
-	@PostConstruct
-	public void init() {
-//		MongoClientOptions settings = MongoClientOptions.builder()
-//				.codecRegistry(com.mongodb.MongoClient.getDefaultCodecRegistry()).build();
-		//mongoClient = MongoClients.create("mongodb://" + HOST + ":" + PORT);
+    private Datastore datastore;
 
-		// tell morphia where to find your classes
-		// can be called multiple times with different packages or classes
+    @PostConstruct
+    public void init() {
+        // TODO add user and password support
+        mongoClient = MongoClients.create("mongodb://" + hostname + ":" + port);
 
-		mongoClient = MongoClients.create(
-				MongoClientSettings.builder()
-						.applyConnectionString(new ConnectionString("mongodb://" + HOST + ":" + PORT))
-						.build());
-		//MongoDatabase database = mongoClient.getDatabase(DATABASE_NAME);
+        datastore = Morphia.createDatastore(mongoClient, databaseName);
+        // looks like we don't need this anymore with Morphia 2.x
+        //datastore.getMapper().mapPackage("de.zeiss.mongodbws.geoservice.persistence.entity");
+        //datastore.ensureIndexes();
+    }
 
-		datastore = Morphia.createDatastore(mongoClient, DATABASE_NAME);
-		datastore.getMapper().mapPackage("de.zeiss.mongodbws.geoservice.persistence.entity");
-		//datastore.ensureIndexes();
-	}
+    @Lock(LockType.READ)
+    public Datastore getDatastore() {
+        return datastore;
+    }
 
-	@Lock(LockType.READ)
-	public Datastore getDatastore() {
-		return datastore;
-	}
-
-	/**
-	 * 
-	 */
-	@PreDestroy
-	public void preDestroy() {
-		LOG.info("preDestroy()");
-		if (mongoClient != null) {
-			mongoClient.close();
-		}
-	}
+    /**
+     *
+     */
+    @PreDestroy
+    public void preDestroy() {
+        LOG.info("preDestroy()");
+        if (mongoClient != null) {
+            mongoClient.close();
+        }
+    }
 }

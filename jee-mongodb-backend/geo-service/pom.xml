@@ -16,6 +16,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <version.wildfly.bom>37.0.1.Final</version.wildfly.bom>
+        <version.wildfly.microprofile>33.0.2.Final</version.wildfly.microprofile>
         <version.resteasy>6.2.7.Final</version.resteasy>
     </properties>
 
@@ -43,6 +44,11 @@
             <groupId>org.jboss.resteasy</groupId>
             <artifactId>resteasy-core</artifactId>
             <version>${version.resteasy}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.microprofile.config</groupId>
+            <artifactId>microprofile-config-api</artifactId>
             <scope>provided</scope>
         </dependency>
 
@@ -122,6 +128,13 @@
                 <groupId>org.wildfly.bom</groupId>
                 <artifactId>wildfly-ee</artifactId>
                 <version>${version.wildfly.bom}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.wildfly.bom</groupId>
+                <artifactId>wildfly-microprofile</artifactId>
+                <version>${version.wildfly.microprofile}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
