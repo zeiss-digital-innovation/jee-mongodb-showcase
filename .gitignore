@@ -1,6 +1,0 @@
-.idea
-*.iml
-/jee-mongodb-backend/target/
-/jee-mongodb-backend/.idea/
-/.idea/
-/jee-mongodb-backend/geo-service/target/
