@@ -19,7 +19,13 @@ See the `microprofile-config.properties.template` file.
 - Deploy the service to a running Wildfly using `mvn install`. Setup Wildfly credentials and hostname in the ~/.m2/settings.xml. For this set `wildfly.deploy.username`, `wildfly.deploy.password` and `wildfly.deploy.hostname`.
 
 ## Docker
-
 After building the Java project you can use the Dockerfile provided in the repository to create an image. It contains:
 - Wildfly 37.0.1.Final-jdk21
 - Latest build from the folder geo-service/target/
+
+### MongoDB
+- Currently the backend doesn't comes with a pre configured MongoDB.
+- If you want to use MongoDB as a docker container, you can use the image below. The code was tested with this version.
+- `docker pull mongodb/mongodb-community-server:latest`
+- `docker run --name mongodb -p 27017:27017 --network demo-campus -d mongodb/mongodb-community-server:latest`
+- See the `--network` option to specify a common network for MongoDB and Wildfly.
