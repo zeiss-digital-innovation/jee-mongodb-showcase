@@ -6,7 +6,7 @@ ENV WILDFLY_VERSION 37.0.1.Final-jdk21
 ENV DEPLOYMENT_DIR /opt/jboss/wildfly/standalone/deployments/
 
 # Copy the WAR file to the deployments directory
-COPY target/zdi-geo-service.war $DEPLOYMENT_DIR
+COPY geo-service/target/zdi-geo-service.war $DEPLOYMENT_DIR
 
 # Expose the default WildFly port
 EXPOSE 8080
