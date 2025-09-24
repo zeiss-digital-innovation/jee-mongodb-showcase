@@ -1,10 +1,19 @@
 import { Injectable } from "@angular/core";
 import { PointOfInterest } from "../model/point_of_interest";
 
+/**
+ * Service for map related data (i.e. popup content) and calculations.
+ */
 @Injectable({
     providedIn: 'root'
 })
 export class MapDataService {
+
+    /**
+     * Creates the popup content for a given point of interest.
+     * @param poi Point of interest
+     * @returns Popup content.
+     */
     getMarkerPopupFor(poi: PointOfInterest): string {
 
         var iconImg: string;
@@ -83,6 +92,14 @@ export class MapDataService {
                     <path d="M2 1a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1zm11 0H3v14h3v-2.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5V15h3z"/>
                  </svg>`;
                 break;
+            case 'pharmacy':
+                iconImg =
+                    `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-prescription2" viewBox="0 0 16 16">
+                    <path d="M7 6h2v2h2v2H9v2H7v-2H5V8h2z"/>
+                    <path d="M2 1a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v10.5a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 3 14.5V4a1 1 0 0 1-1-1zm2 3v10.5a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5V4zM3 3h10V1H3z"/>
+                    </svg>
+                    `;
+                break;
             default:
                 iconImg =
                     ``;
@@ -97,5 +114,26 @@ export class MapDataService {
         iconImg += `<br>${details}`;
 
         return iconImg
+    }
+
+    /**
+     * Determines the search radius for points of interest based on the current zoom level.
+     * @param zoom Current map zoom level.
+     * @returns Search radius in meters.
+     */
+    getRadiusForZoom(zoom: number): number {
+        if (zoom <= 8) {
+            return 20000;
+        }
+        if (zoom <= 11) {
+            return 10000;
+        }
+        if (zoom == 12) {
+            return 5000;
+        }
+        if (zoom == 13) {
+            return 2000;
+        }
+        return 1000;
     }
 }

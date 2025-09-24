@@ -32,30 +32,29 @@ export class PointOfInterestMapComponent implements OnInit {
   pointsOfInterest: PointOfInterest[] = [];
   map: L.Map | undefined;
 
+  latitudeDefault = 51.0504;
+  longitudeDefault = 13.7373;
+  zoomDefault = 13;
+
   constructor(private poiService: PointOfInterestService, private mapDataService: MapDataService) {
     //
   }
 
   ngOnInit(): void {
-    // Example coordinates and radius
-    const latitude = 51.0504; // Replace with actual latitude
-    const longitude = 13.7373; // Replace with actual longitude
-    const radius = 1000; // Replace with actual radius in meters
-
     // Initialize the map
-    this.map = L.map('map').setView([latitude, longitude], 13);
+    this.map = L.map('map').setView([this.latitudeDefault, this.longitudeDefault], this.zoomDefault);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(this.map);
 
-    this.loadPointsOfInterest(latitude, longitude, radius);
+    this.loadPointsOfInterest(this.latitudeDefault, this.longitudeDefault, this.mapDataService.getRadiusForZoom(this.zoomDefault));
 
     this.map.on('moveend', () => {
       const center = this.map!.getCenter();
       const newLatitude = center.lat;
       const newLongitude = center.lng;
-      const newRadius = 1000; // TODO radius calculation based on zoom level? 
+      const newRadius = this.mapDataService.getRadiusForZoom(this.map!.getZoom());
       this.loadPointsOfInterest(newLatitude, newLongitude, newRadius);
     });
 
