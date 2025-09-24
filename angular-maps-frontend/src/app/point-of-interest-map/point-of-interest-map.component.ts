@@ -50,6 +50,15 @@ export class PointOfInterestMapComponent implements OnInit {
     }).addTo(this.map);
 
     this.loadPointsOfInterest(latitude, longitude, radius);
+
+    this.map.on('moveend', () => {
+      const center = this.map!.getCenter();
+      const newLatitude = center.lat;
+      const newLongitude = center.lng;
+      const newRadius = 1000; // TODO radius calculation based on zoom level? 
+      this.loadPointsOfInterest(newLatitude, newLongitude, newRadius);
+    });
+
   }
 
   loadPointsOfInterest(latitude: number, longitude: number, radius: number): void {
@@ -66,6 +75,14 @@ export class PointOfInterestMapComponent implements OnInit {
       console.error('Map is not initialized');
       return;
     }
+
+    // remove all current markers
+    this.map.eachLayer((layer) => {
+      if (layer instanceof L.Marker) {
+        this.map!.removeLayer(layer);
+      }
+    });
+
     this.pointsOfInterest.forEach(poi => {
       const coords = poi.location.coordinates;
 

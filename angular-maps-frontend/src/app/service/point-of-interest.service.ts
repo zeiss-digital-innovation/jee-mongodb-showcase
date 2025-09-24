@@ -8,6 +8,7 @@ import { PointOfInterest } from '../model/point_of_interest';
 })
 export class PointOfInterestService {
 
+    // TODO move to environment variables
     private readonly baseUrl = 'http://localhost:8080/geoservice/rest/'; // Adjust this to your backend URL
 
     constructor(private http: HttpClient) { }
@@ -17,7 +18,10 @@ export class PointOfInterestService {
      * @returns Observable<PointOfInterest[]> - Array of points of interest
      */
     getPointsOfInterest(latitude: number, longitude: number, radius: number): Observable<PointOfInterest[]> {
-        // TODO validate parameters
+        if (!latitude || !longitude || !radius) {
+            throw new Error('Invalid parameters');
+        }
+
         return getMockPointsOfInterest();
         //return this.http.get<PointOfInterest[]>(`${this.baseUrl}/poi?lat=${latitude}&lon=${longitude}&radius=${radius}`);
     }
