@@ -23,7 +23,7 @@ export class PointOfInterestService {
         }
 
         //return getMockPointsOfInterest();
-        return this.http.get<PointOfInterest[]>(`${this.baseUrl}/poi?lat=${latitude}&lon=${longitude}&radius=${radius}`);
+        return this.http.get<PointOfInterest[]>(`${this.baseUrl}/poi?lat=${latitude}&lon=${longitude}&radius=${radius}&expand=details`);
     }
 
 }
