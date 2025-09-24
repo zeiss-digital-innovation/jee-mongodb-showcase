@@ -9,7 +9,7 @@ import { PointOfInterest } from '../model/point_of_interest';
 export class PointOfInterestService {
 
     // TODO move to environment variables
-    private readonly baseUrl = 'http://localhost:8080/geoservice/rest/'; // Adjust this to your backend URL
+    private readonly baseUrl = 'http://localhost:8080/geoservice/rest'; // Adjust this to your backend URL
 
     constructor(private http: HttpClient) { }
 
@@ -22,12 +22,13 @@ export class PointOfInterestService {
             throw new Error('Invalid parameters');
         }
 
-        return getMockPointsOfInterest();
-        //return this.http.get<PointOfInterest[]>(`${this.baseUrl}/poi?lat=${latitude}&lon=${longitude}&radius=${radius}`);
+        //return getMockPointsOfInterest();
+        return this.http.get<PointOfInterest[]>(`${this.baseUrl}/poi?lat=${latitude}&lon=${longitude}&radius=${radius}`);
     }
 
 }
 
+// Use this function to work with mock data (i.e. without a running backend).
 function getMockPointsOfInterest(): Observable<PointOfInterest[]> {
     const mockData: PointOfInterest[] = [
         {
