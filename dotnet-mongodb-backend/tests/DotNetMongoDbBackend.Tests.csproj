@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Target net8.0 so tests run with installed .NET 8 runtime on this machine -->
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+  <!-- xUnit core: align with the VSTest adapter version present on the machine -->
+  <PackageReference Include="xunit" Version="2.5.3" />
+    <!-- Test SDK required for most runners and for dotnet test to work reliably -->
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+  <!-- xUnit runner for Visual Studio / dotnet test discovery (align with adapter) -->
+  <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+    <!-- Coverage collector (coverlet) -->
+    <PackageReference Include="coverlet.collector" Version="3.2.0" />
+  </ItemGroup>
+
+  <!-- No ProjectReference: tests are pure unit tests and don't depend on app project to avoid runtime deps -->
+
+  <!-- rely on app's runtime; no explicit DnsClient here -->
+
+</Project>
