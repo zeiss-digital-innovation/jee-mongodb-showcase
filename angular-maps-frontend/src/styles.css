@@ -1,0 +1,10 @@
+/* You can add global styles to this file, and also import other style files */
+
+/* Import Leaflet CSS */
+@import 'leaflet/dist/leaflet.css';
+
+/* Map styling */
+.map_large {
+    height: 500px;
+    width: 100%;
+}
