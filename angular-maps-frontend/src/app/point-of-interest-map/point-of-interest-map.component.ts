@@ -3,6 +3,7 @@ import { PointOfInterest } from '../model/point_of_interest';
 import { PointOfInterestService } from '../service/point-of-interest.service';
 import * as L from 'leaflet';
 import { MapDataService } from '../service/map-data.service';
+import { CommonModule } from '@angular/common';
 
 // Fix for default markers in Leaflet with Angular
 const iconRetinaUrl = 'media/leaflet/marker-icon-2x.png';
@@ -23,13 +24,14 @@ L.Marker.prototype.options.icon = iconDefault;
 @Component({
   selector: 'app-point-of-interest-map',
   standalone: true,
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './point-of-interest-map.component.html',
   styleUrl: './point-of-interest-map.component.css'
 })
 export class PointOfInterestMapComponent implements OnInit {
 
   pointsOfInterest: PointOfInterest[] = [];
+  categories: string[] = ['Restaurant', 'Cash', 'Supermarket', 'Post', 'Lodging', 'Police', 'Toilet', 'Coffee', 'Parking', 'Gas Station', 'Company', 'Pharmacy'];
   map: L.Map | undefined;
 
   latitudeDefault = 51.0504;
@@ -90,4 +92,9 @@ export class PointOfInterestMapComponent implements OnInit {
     });
   }
 
+  onCategoryChange($event: Event) {
+    const selectedCategory = ($event.target as HTMLSelectElement).value;
+    // TODO filter by Category
+    //this.filterPointsOfInterestByCategory(selectedCategory);
+  }
 }
