@@ -1,153 +1,177 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<groupId>de.saxsys.mongodb-ws</groupId>
-	<artifactId>geo-service</artifactId>
-	<version>1.0-SNAPSHOT</version>
-	<packaging>war</packaging>
+    <groupId>de.zeiss.mongodb-ws</groupId>
+    <artifactId>geo-service</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>war</packaging>
 
-	<properties>
-		<service.name>saxsys-geo-service</service.name>
-		<mvnBuildTimestamp>${maven.build.timestamp}</mvnBuildTimestamp>
-		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <properties>
+        <service.name>zdi-geo-service</service.name>
+        <mvnBuildTimestamp>${maven.build.timestamp}</mvnBuildTimestamp>
+        <maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-		<version.jboss.bom>10.0.0.Final</version.jboss.bom>
-		<version.org.jboss.resteasy.resteasy-jaxrs-all>3.0.11.Final</version.org.jboss.resteasy.resteasy-jaxrs-all>
-		
-<!-- 		<wildfly.deployment.username>admin</wildfly.deployment.username> -->
-<!-- 		<wildfly.deployment.password>adminnnn</wildfly.deployment.password> -->
-<!-- 		<wildfly.deployment.hostname>localhost</wildfly.deployment.hostname> -->
-	</properties>
+        <version.wildfly.bom>37.0.1.Final</version.wildfly.bom>
+        <version.wildfly.microprofile>33.0.2.Final</version.wildfly.microprofile>
+        <version.resteasy>6.2.7.Final</version.resteasy>
+    </properties>
 
-	<dependencies>
-	
-		<dependency>
-            <groupId>javax.enterprise</groupId>
-            <artifactId>cdi-api</artifactId>
+    <dependencies>
+
+        <dependency>
+            <groupId>jakarta.enterprise</groupId>
+            <artifactId>jakarta.enterprise.cdi-api</artifactId>
+            <version>4.0.1</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.jboss.spec.javax.ejb</groupId>
-            <artifactId>jboss-ejb-api_3.2_spec</artifactId>
+            <groupId>jakarta.ejb</groupId>
+            <artifactId>jakarta.ejb-api</artifactId>
+            <version>4.0.1</version>
             <scope>provided</scope>
         </dependency>
-		<dependency>
+        <dependency>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+            <version>3.1.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.jboss.resteasy</groupId>
-            <artifactId>resteasy-jaxrs</artifactId>
+            <artifactId>resteasy-core</artifactId>
+            <version>${version.resteasy}</version>
             <scope>provided</scope>
         </dependency>
-        
+        <dependency>
+            <groupId>org.eclipse.microprofile.config</groupId>
+            <artifactId>microprofile-config-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <scope>provided</scope>
         </dependency>
-        
+
         <!-- https://github.com/opendatalab-de/geojson-jackson -->
         <dependency>
             <groupId>de.grundid.opendatalab</groupId>
             <artifactId>geojson-jackson</artifactId>
-            <version>1.6</version>
+            <version>1.14</version>
             <exclusions>
-            	<exclusion>
-            		<artifactId>jackson-core</artifactId>
-            		<groupId>com.fasterxml.jackson.core</groupId>
-            	</exclusion>
-            	<exclusion>
-            		<artifactId>jackson-databind</artifactId>
-            		<groupId>com.fasterxml.jackson.core</groupId>
-            	</exclusion>
+                <exclusion>
+                    <artifactId>jackson-core</artifactId>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>jackson-databind</artifactId>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                </exclusion>
             </exclusions>
         </dependency>
-        
+
         <!-- MongoDB -->
-	    
-	    <dependency>
-              <groupId>org.mongodb.morphia</groupId>
-              <artifactId>morphia</artifactId>
-              <version>1.1.1</version>
-          </dependency>
 
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.jayway.restassured</groupId>
-			<artifactId>rest-assured</artifactId>
-			<version>2.9.0</version>
-			<scope>test</scope>
-		</dependency>
-		
-		<!-- http://mvnrepository.com/artifact/ca.carleton.gcrc/nunaliit2-gpx -->
-		<dependency>
-		    <groupId>ca.carleton.gcrc</groupId>
-		    <artifactId>nunaliit2-gpx</artifactId>
-		    <version>2.2.6</version>
-		    <scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-sync</artifactId>
+            <version>5.5.0</version>
+        </dependency>
 
-	</dependencies>
+        <!-- Morphia ORM für MongoDB -->
+        <dependency>
+            <groupId>dev.morphia.morphia</groupId>
+            <artifactId>morphia-core</artifactId>
+            <version>2.5.0</version>
+        </dependency>
 
-	<dependencyManagement>
-		<dependencies>
-			<!-- WildFly Server EE7 BOM Maven Coordinates. By adding the Java EE7 
-				BOM (bill of materials) to your pom.xml prevents you from having to add multiple 
-				dependencies to your Maven projects. With this you can add a single dependency 
-				and have access to all the Java EE7 API's. If your only interested the BOM 
-				for the web profile then change the artifactId to jboss-javaee-web-7.0. Likewise, 
-				if if you want the entire EE7 API then use jboss-javaee-all-7.0 -->
-			<dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>5.5.0</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>5.3.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- http://mvnrepository.com/artifact/ca.carleton.gcrc/nunaliit2-gpx -->
+        <dependency>
+            <groupId>ca.carleton.gcrc</groupId>
+            <artifactId>nunaliit2-gpx</artifactId>
+            <version>2.2.6</version>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- WildFly Jakarta EE BOM für Jakarta EE 10 -->
+            <dependency>
                 <groupId>org.wildfly.bom</groupId>
-                <artifactId>wildfly-javaee7</artifactId>
-                <version>${version.jboss.bom}</version>
+                <artifactId>wildfly-ee</artifactId>
+                <version>${version.wildfly.bom}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.wildfly.bom</groupId>
+                <artifactId>wildfly-microprofile</artifactId>
+                <version>${version.wildfly.microprofile}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>org.jboss.resteasy</groupId>
-                <artifactId>resteasy-jaxrs-all</artifactId>
-                <version>${version.org.jboss.resteasy.resteasy-jaxrs-all}</version>
+                <artifactId>resteasy-bom</artifactId>
+                <version>${version.resteasy}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-            <dependency>
-                <groupId>org.jboss.resteasy</groupId>
-                <artifactId>jaxrs-api</artifactId>
-                <version>${version.org.jboss.resteasy.resteasy-jaxrs-all}</version>
-            </dependency>
 
-		</dependencies>
+        </dependencies>
 
-	</dependencyManagement>
+    </dependencyManagement>
 
-	<build>
-		<plugins>
-			<plugin>
-				<artifactId>maven-war-plugin</artifactId>
-				<version>2.1.1</version>
-				<configuration>
-					<failOnMissingWebXml>false</failOnMissingWebXml>
-					<archive>
-						<addMavenDescriptor />
-						<index />
-						<manifestEntries>
-							<Dependencies></Dependencies>
-							<!-- -->
-						</manifestEntries>
-					</archive>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.wildfly.plugins</groupId>
-				<artifactId>wildfly-maven-plugin</artifactId>
-				<executions>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>3.4.0</version>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <archive>
+                        <addMavenDescriptor/>
+                        <index/>
+                        <manifestEntries>
+                            <!-- -->
+                        </manifestEntries>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.wildfly.plugins</groupId>
+                <artifactId>wildfly-maven-plugin</artifactId>
+                <version>5.0.0.Final</version>
+                <executions>
                     <execution>
                         <phase>install</phase>
                         <goals>
@@ -155,59 +179,38 @@
                         </goals>
                     </execution>
                 </executions>
-			</plugin>
-		</plugins>
+            </plugin>
+        </plugins>
 
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.wildfly.plugins</groupId>
-					<artifactId>wildfly-maven-plugin</artifactId>
-					<version>1.0.2.Final</version>
-<!-- 					<configuration> -->
-<!-- 						<id>default</id> -->
-<!-- 						<username>${wildfly.deployment.username}</username> -->
-<!-- 						<password>${wildfly.deployment.password}</password> -->
-<!-- 						<hostname>${wildfly.deployment.hostname}</hostname> -->
-<!-- 						<skip>false</skip> -->
-<!-- 					</configuration> -->
-				</plugin>
-				
-				<plugin>
-					<artifactId>maven-compiler-plugin</artifactId>
-					<version>2.3.2</version>
-					<configuration>
-						<source>1.8</source>
-						<target>1.8</target>
-						<encoding>${project.build.sourceEncoding}</encoding>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.wildfly.plugins</groupId>
+                    <artifactId>wildfly-maven-plugin</artifactId>
+                    <version>5.0.0.Final</version>
+                    <configuration>
+                        <id>default</id>
+                        <!-- place the property definitions in ~/.m2/settings.xml -->
+                        <username>${wildfly.deploy.username}</username>
+                        <password>${wildfly.deploy.password}</password>
+                        <hostname>${wildfly.deploy.hostname}</hostname>
+                    </configuration>
+                </plugin>
 
-		<finalName>${service.name}</finalName>
-	</build>
+                <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <version>3.11.0</version>
+                    <configuration>
+                        <source>21</source>
+                        <target>21</target>
+                        <encoding>${project.build.sourceEncoding}</encoding>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
 
-	<profiles>
-		<profile>
-			<id>wildfly-deploy</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.wildfly.plugins</groupId>
-						<artifactId>wildfly-maven-plugin</artifactId>
-						<version>1.0.2.Final</version>
-						<configuration>
-							<id>default</id>
-							<username>${wildfly.deployment.username}</username>
-							<password>${wildfly.deployment.password}</password>
-							<hostname>${wildfly.deployment.hostname}</hostname>
-							<skip>false</skip>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
+        <finalName>${service.name}</finalName>
+    </build>
 
 </project>
