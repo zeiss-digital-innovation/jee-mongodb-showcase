@@ -1,0 +1,15 @@
+C:\Users\diilinko\.net workspace\Learning\jee-mongodb-showcase\dotnet-mongodb-backend\tests\obj\Debug\net10.0\DotNetMongoDbBackend.Tests.csproj.AssemblyReference.cache
+C:\Users\diilinko\.net workspace\Learning\jee-mongodb-showcase\dotnet-mongodb-backend\tests\obj\Debug\net10.0\DotNetMongoDbBackend.Tests.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\diilinko\.net workspace\Learning\jee-mongodb-showcase\dotnet-mongodb-backend\tests\obj\Debug\net10.0\DotNetMongoDbBackend.Tests.AssemblyInfoInputs.cache
+C:\Users\diilinko\.net workspace\Learning\jee-mongodb-showcase\dotnet-mongodb-backend\tests\obj\Debug\net10.0\DotNetMongoDbBackend.Tests.AssemblyInfo.cs
+C:\Users\diilinko\.net workspace\Learning\jee-mongodb-showcase\dotnet-mongodb-backend\tests\obj\Debug\net10.0\DotNetMongoDbBackend.Tests.csproj.CoreCompileInputs.cache
+C:\Users\diilinko\.net workspace\Learning\jee-mongodb-showcase\dotnet-mongodb-backend\tests\obj\Debug\net10.0\DotNetMongoDbBackend.Tests.sourcelink.json
+C:\Users\diilinko\.net workspace\Learning\jee-mongodb-showcase\dotnet-mongodb-backend\tests\bin\Debug\net10.0\DotNetMongoDbBackend.Tests.deps.json
+C:\Users\diilinko\.net workspace\Learning\jee-mongodb-showcase\dotnet-mongodb-backend\tests\bin\Debug\net10.0\DotNetMongoDbBackend.Tests.runtimeconfig.json
+C:\Users\diilinko\.net workspace\Learning\jee-mongodb-showcase\dotnet-mongodb-backend\tests\bin\Debug\net10.0\DotNetMongoDbBackend.Tests.dll
+C:\Users\diilinko\.net workspace\Learning\jee-mongodb-showcase\dotnet-mongodb-backend\tests\bin\Debug\net10.0\DotNetMongoDbBackend.Tests.pdb
+C:\Users\diilinko\.net workspace\Learning\jee-mongodb-showcase\dotnet-mongodb-backend\tests\obj\Debug\net10.0\DotNetMongoDbBackend.Tests.dll
+C:\Users\diilinko\.net workspace\Learning\jee-mongodb-showcase\dotnet-mongodb-backend\tests\obj\Debug\net10.0\refint\DotNetMongoDbBackend.Tests.dll
+C:\Users\diilinko\.net workspace\Learning\jee-mongodb-showcase\dotnet-mongodb-backend\tests\obj\Debug\net10.0\DotNetMongoDbBackend.Tests.pdb
+C:\Users\diilinko\.net workspace\Learning\jee-mongodb-showcase\dotnet-mongodb-backend\tests\obj\Debug\net10.0\DotNetMongoDbBackend.Tests.genruntimeconfig.cache
+C:\Users\diilinko\.net workspace\Learning\jee-mongodb-showcase\dotnet-mongodb-backend\tests\obj\Debug\net10.0\ref\DotNetMongoDbBackend.Tests.dll
