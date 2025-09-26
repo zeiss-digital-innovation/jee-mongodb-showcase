@@ -12,14 +12,18 @@ import jakarta.xml.bind.Unmarshaller;
 
 import javax.xml.transform.stream.StreamSource;
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 public class Main {
 
@@ -35,27 +39,36 @@ public class Main {
         LOG.info("Starting POI data generation and upload to: " + POI_SERVICE_URL);
 
         Main main = new Main();
+        main.processAllResourceFolders();
+    }
 
-        main.processFolder("company");
+    public void processAllResourceFolders() {
+        Path resourceDir = Paths.get("src/main/resources");
+
+        try (Stream<Path> paths = Files.walk(resourceDir)) {
+            paths.filter(Files::isDirectory)
+                    .forEach(f -> processFolder(f));
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE, "An error occurred while searching for resource folders.", e);
+        }
     }
 
     /**
      * Processes all GPX files in the specified folder.
      *
-     * @param folderName the name of the folder containing GPX files
+     * @param path a path to check for GPX files
      */
-    private void processFolder(String folderName) {
-        LOG.info("Processing files in: " + folderName);
-        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+    private void processFolder(Path path) {
+        LOG.info("Processing files in: " + path.getFileName());
 
-        try {
-            File folder = new File(classLoader.getResource(folderName).toURI());
-            List<File> files = Arrays.asList(folder.listFiles((f, name) -> name.toLowerCase().endsWith(".gpx")));
+        File[] files = path.toFile().listFiles((f, name) -> name.toLowerCase().endsWith(".gpx"));
 
-            files.forEach(f -> processFile(f, folderName));
-        } catch (Exception e) {
-            throw new IllegalStateException("Error accessing directory: " + folderName, e);
+        if (files == null || files.length == 0) {
+            LOG.info("No GPX files found in folder: " + path.getFileName());
+            return;
         }
+
+        Arrays.asList(files).forEach(f -> processFile(f, path.getFileName().toString()));
     }
 
     /**

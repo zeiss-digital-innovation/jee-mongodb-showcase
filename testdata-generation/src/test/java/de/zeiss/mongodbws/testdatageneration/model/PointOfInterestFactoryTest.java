@@ -7,6 +7,12 @@ import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Unit tests for PointOfInterestFactory.
+ *
+ * @author AI Generated
+ * @author Andreas Post
+ */
 public class PointOfInterestFactoryTest {
     @Test
     void createPointOfInterest_nullLatitude_throwsNPE() {
