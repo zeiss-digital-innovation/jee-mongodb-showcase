@@ -1,37 +1,35 @@
 /**
  * This file is part of a demo application showing MongoDB usage with Morphia library.
- *
+ * <p>
  * Copyright (C) 2025 Carl Zeiss Digital Innovation GmbH
  */
 package de.zeiss.mongodbws.geoservice.rest.resource;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import de.zeiss.mongodbws.geoservice.service.GeoDataService;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
+import org.geojson.Point;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
-import jakarta.ws.rs.NotFoundException;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.UriInfo;
-
-import org.geojson.Point;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import de.zeiss.mongodbws.geoservice.service.GeoDataService;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for {@link PointOfInterestResourceController}
  *
  * @author Generated Tests
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class PointOfInterestResourceControllerTest {
 
     @Mock
@@ -46,7 +44,7 @@ public class PointOfInterestResourceControllerTest {
     private PointOfInterest testPoi;
     private String testId;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         testId = "507f1f77bcf86cd799439011";
 
@@ -58,7 +56,7 @@ public class PointOfInterestResourceControllerTest {
 
         // Mock UriInfo
         URI baseUri = new URI("http://localhost:8080/api/");
-        when(uriInfo.getBaseUri()).thenReturn(baseUri);
+        lenient().when(uriInfo.getBaseUri()).thenReturn(baseUri);
     }
 
     @Test
@@ -72,7 +70,7 @@ public class PointOfInterestResourceControllerTest {
         // Then
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         assertNotNull(response.getEntity());
-        assertTrue(response.getEntity() instanceof PointOfInterest);
+        assertInstanceOf(PointOfInterest.class, response.getEntity());
 
         PointOfInterest returnedPoi = (PointOfInterest) response.getEntity();
         assertEquals(testId, returnedPoi.getId());
@@ -110,15 +108,12 @@ public class PointOfInterestResourceControllerTest {
         verify(geoDataService).getPOI(testId, true);
     }
 
-    @Test(expected = NotFoundException.class)
+    @Test
     public void testGetPOI_NonExistentId_ShouldThrowNotFoundException() {
         // Given
         when(geoDataService.getPOI(testId, false)).thenReturn(null);
 
-        // When
-        controller.getPOI(testId, null);
-
-        // Then - exception should be thrown
+        assertThrows(NotFoundException.class, () -> controller.getPOI(testId, null));
     }
 
     @Test
