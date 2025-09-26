@@ -73,7 +73,7 @@ public class Main {
             String json = JSON_MAPPER.writeValueAsString(poi);
 
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://localhost:8080/geoservice/rest/poi"))
+                    .uri(URI.create(Config.getPoiServiceUrl()))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .build();
