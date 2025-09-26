@@ -88,7 +88,7 @@ public class Main {
      * @param category the category of the waypoint
      */
     private void postWaypoint(WptType waypoint, String category) {
-        PointOfInterest poi = PointOfInterestFactory.createPointOfInterest(waypoint.getLat(), waypoint.getLon(), category, waypoint.getName());
+        PointOfInterest poi = PointOfInterestFactory.createFromWptType(waypoint, category);
 
         String json = "";
 
