@@ -58,13 +58,13 @@ Check the `application.properties` file in `/src/main/resources` to setup the co
 
 To build the project, use:
 
-```
+```bash
 mvn clean package
 ```
 
 To run the JAR file:
 
-```
+```bash
 java -jar target/geo-service-testdata-generation-1.0-SNAPSHOT.jar
 ```
 
