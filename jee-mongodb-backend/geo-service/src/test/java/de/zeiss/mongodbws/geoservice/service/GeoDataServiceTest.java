@@ -1,36 +1,34 @@
 /**
  * This file is part of a demo application showing MongoDB usage with Morphia library.
- *
+ * <p>
  * Copyright (C) 2025 Carl Zeiss Digital Innovation GmbH
  */
 package de.zeiss.mongodbws.geoservice.service;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import de.zeiss.mongodbws.geoservice.persistence.PersistenceService;
+import de.zeiss.mongodbws.geoservice.persistence.entity.PointOfInterestEntity;
+import de.zeiss.mongodbws.geoservice.rest.resource.PointOfInterest;
+import org.bson.types.ObjectId;
+import org.geojson.Point;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.List;
 
-import de.zeiss.mongodbws.geoservice.persistence.entity.GeoPoint;
-import org.bson.types.ObjectId;
-import org.geojson.Point;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
-
-import de.zeiss.mongodbws.geoservice.persistence.PersistenceService;
-import de.zeiss.mongodbws.geoservice.persistence.entity.PointOfInterestEntity;
-import de.zeiss.mongodbws.geoservice.rest.resource.PointOfInterest;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for {@link GeoDataService}
  *
  * @author Generated Tests
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class GeoDataServiceTest {
 
     @Mock
@@ -43,7 +41,7 @@ public class GeoDataServiceTest {
     private PointOfInterestEntity testEntity;
     private PointOfInterest testPoi;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         testObjectId = new ObjectId();
 

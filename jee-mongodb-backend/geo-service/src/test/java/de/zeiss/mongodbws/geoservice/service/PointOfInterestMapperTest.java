@@ -11,12 +11,13 @@ import de.zeiss.mongodbws.geoservice.rest.resource.PointOfInterest;
 import de.zeiss.mongodbws.geoservice.service.mapper.PointOfInterestMapper;
 import org.bson.types.ObjectId;
 import org.geojson.Point;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 
 /**
  * Unit tests for {@link PointOfInterestMapper}
