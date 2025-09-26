@@ -1,30 +1,27 @@
 <?xml version="1.0" encoding="ISO-8859-2"?>
 <gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" version="1.1">
 	<wpt lat="51.030782" lon="13.730123">
-		<name>Carl Zeiss Digital Innovation GmbH, Fritz-Foerster-Platz 2, 01069 Dresden, Tel.: +49 (0)351 497 01-500</name>
+		<name>Carl Zeiss Digital Innovation GmbH, Fritz-Foerster-Platz 2, 01069 Dresden, Tel.: +49 (0)351 497 01-500, https://www.zeiss.de/digital-innovation</name>
 	</wpt>
 	<wpt lat="52.529563" lon="13.371455">
-		<name>Carl Zeiss Digital Innovation GmbH, Am Hamburger Bhf 4, 10557 Berlin, Tel.: +49 (0)30 25 095 750</name>
-	</wpt>
-	<wpt lat="52.510499" lon="13.3787391">
-		<name>Carl Zeiss Digital Innovation GmbH / Test Services Berlin, Leipziger Platz 14, 10117 Berlin, Tel.: +49 (0)30 23 576 723</name>
+		<name>Carl Zeiss Digital Innovation GmbH, Am Hamburger Bhf 4, 10557 Berlin, Tel.: +49 (0)30 25 095 750, https://www.zeiss.de/digital-innovation</name>
 	</wpt>
 	<wpt lat="48.095061" lon="11.5244054">
-		<name>Carl Zeiss Digital Innovation GmbH, Kistlerhofstraße 75, 81379 München, Tel.: +49 (0)89 88 98 165-60</name>
+		<name>Carl Zeiss Digital Innovation GmbH, Kistlerhofstraße 75, 81379 München, Tel.: +49 (0)89 88 98 165-60, https://www.zeiss.de/digital-innovation</name>
 	</wpt>
 	<wpt lat="51.338944" lon="12.373639">
-		<name>Carl Zeiss Digital Innovation GmbH, Thomaskirchhof 9, 04109 Leipzig, Tel.: +49 (0)341 49 63 240</name>
+		<name>Carl Zeiss Digital Innovation GmbH, Thomaskirchhof 9, 04109 Leipzig, Tel.: +49 (0)341 49 63 240, https://www.zeiss.de/digital-innovation</name>
 	</wpt>
 	<wpt lat="51.151815" lon="14.984675">
-		<name>Carl Zeiss Digital Innovation GmbH, Berliner Straße 63, 02826 Görlitz, Tel.: +49 (0)3581 76 72 30</name>
+		<name>Carl Zeiss Digital Innovation GmbH, Berliner Straße 63, 02826 Görlitz, Tel.: +49 (0)3581 76 72 30, https://www.zeiss.de/digital-innovation</name>
 	</wpt>
 	<wpt lat="48.107337" lon="20.787347">
-		<name>Carl Zeiss Digital Innovation Hungary Kft., Miskolc, Arany János tér 1, 3526 Ungarn</name>
+		<name>Carl Zeiss Digital Innovation Hungary Kft., Miskolc, Arany János tér 1, 3526 Ungarn, https://www.zeiss.com/digital-innovation</name>
 	</wpt>
 	<wpt lat="47.533201" lon="19.063594">
-		<name>Carl Zeiss Digital Innovation Hungary Kft., Budapest Esztergomi út 39 HUB, 3 épület., 3. emelet, 1138 Ungarn</name>
+		<name>Carl Zeiss Digital Innovation Hungary Kft., Budapest Esztergomi út 39 HUB, 3 épület., 3. emelet, 1138 Ungarn, https://www.zeiss.com/digital-innovation</name>
 	</wpt>
 	<wpt lat="48.780911" lon="10.099832">
-		<name>Carl Zeiss AG, Carl-Zeiss-Straße 22, 73447 Oberkochen, +49 (0)800 9347733</name>
+		<name>Carl Zeiss AG, Carl-Zeiss-Straße 22, 73447 Oberkochen, +49 (0)800 9347733, https://www.zeiss.de</name>
 	</wpt>
 </gpx>
