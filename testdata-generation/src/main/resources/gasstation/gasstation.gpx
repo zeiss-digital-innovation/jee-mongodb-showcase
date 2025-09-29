@@ -1,6 +1,10 @@
-<?xml version="1.0" encoding="ISO-8859-2"?>
-<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" version="1.1">
-	<wpt lat="51.0201557" lon="13.7302389">
-		<name>Aral, Bergstraße 121, 01217 Dresden, Tel.: +49 (0)351 401 61 50, https://tankstelle.aral.de/tankstelle/27061700</name>
-	</wpt>
+<?xml version="1.0" encoding="utf-8"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" version="1.1"
+     creator="Andreas Post">
+    <wpt lat="51.0201557" lon="13.7302389">
+        <name>Aral, BergstraĂe 121, 01217 Dresden, Tel.: +49 (0)351 401 61 50,
+            https://tankstelle.aral.de/tankstelle/27061700
+        </name>
+    </wpt>
 </gpx>

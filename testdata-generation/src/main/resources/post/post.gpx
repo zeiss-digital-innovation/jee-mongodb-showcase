@@ -1,6 +1,10 @@
-<?xml version="1.0" encoding="ISO-8859-2"?>
-<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" version="1.1">
-	<wpt lat="51.034374" lon="13.7225152">
-		<name>Deutsche Post Filiale 516, Nürnberger Str. 33-35, 01187 Dresden, Tel.: +49 (0)228 433 31 12, https://www.deutschepost.de/de/s/standorte.html?objectid=4330936</name>
-	</wpt>
+<?xml version="1.0" encoding="utf-8"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" version="1.1"
+     creator="Andreas Post">
+    <wpt lat="51.034374" lon="13.7225152">
+        <name>Deutsche Post Filiale 516, NĂźrnberger Str. 33-35, 01187 Dresden, Tel.: +49 (0)228 433 31 12,
+            https://www.deutschepost.de/de/s/standorte.html?objectid=4330936
+        </name>
+    </wpt>
 </gpx>

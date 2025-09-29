@@ -1,9 +1,11 @@
-<?xml version="1.0" encoding="ISO-8859-2"?>
-<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" version="1.1">
-	<wpt lat="51.032472" lon="13.7297550">
-		<name>Rewe, Bergstraße 56a, 01069 Dresden, Tel.: +49 (0)351 32 616 020</name>
-	</wpt>
-	<wpt lat="51.032378" lon="13.725329">
-		<name>Netto Marken-Discount, Nürnberger Str. 36, 01187 Dresden</name>
-	</wpt>
+<?xml version="1.0" encoding="utf-8"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" version="1.1"
+     creator="Andreas Post">
+    <wpt lat="51.032472" lon="13.7297550">
+        <name>Rewe, BergstraĂe 56a, 01069 Dresden, Tel.: +49 (0)351 32 616 020</name>
+    </wpt>
+    <wpt lat="51.032378" lon="13.725329">
+        <name>Netto Marken-Discount, NĂźrnberger Str. 36, 01187 Dresden</name>
+    </wpt>
 </gpx>

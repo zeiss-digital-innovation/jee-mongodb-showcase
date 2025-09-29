@@ -1,12 +1,20 @@
-<?xml version="1.0" encoding="ISO-8859-2"?>
-<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" version="1.1">
-	<wpt lat="51.031514" lon="13.7284917">
-		<name>Mensa Zeltschlösschen, Nürnberger Str. 55, 01187 Dresden, Tel.: +49 (0)351 469 750, https://www.studentenwerk-dresden.de/mensen/details-zeltschloesschen.html</name>
-	</wpt>
-	<wpt lat="51.034354" lon="13.7340023">
-		<name>Mensa Matrix, Reichenbachstraße 1, 01069 Dresden, Tel.: +49 (0)351 873 248 25 89, http://www.studentenwerk-dresden.de/mensen/details-mensa-reichenbachstrasse.html</name>
-	</wpt>
-	<wpt lat="51.026965" lon="13.7263825">
-		<name>Alte Mensa, Mommsenstraße 13, 01069 Dresden, Tel.: +49 (0)351 253 884 231, https://www.studentenwerk-dresden.de/mensen/details-alte-mensa.html</name>
-	</wpt>
+<?xml version="1.0" encoding="utf-8"?>
+<gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd" version="1.1"
+     creator="Andreas Post">
+    <wpt lat="51.031514" lon="13.7284917">
+        <name>Mensa ZeltschlĂśsschen, NĂźrnberger Str. 55, 01187 Dresden, Tel.: +49 (0)351 469 750,
+            https://www.studentenwerk-dresden.de/mensen/details-zeltschloesschen.html
+        </name>
+    </wpt>
+    <wpt lat="51.034354" lon="13.7340023">
+        <name>Mensa Matrix, ReichenbachstraĂe 1, 01069 Dresden, Tel.: +49 (0)351 873 248 25 89,
+            http://www.studentenwerk-dresden.de/mensen/details-mensa-reichenbachstrasse.html
+        </name>
+    </wpt>
+    <wpt lat="51.026965" lon="13.7263825">
+        <name>Alte Mensa, MommsenstraĂe 13, 01069 Dresden, Tel.: +49 (0)351 253 884 231,
+            https://www.studentenwerk-dresden.de/mensen/details-alte-mensa.html
+        </name>
+    </wpt>
 </gpx>
