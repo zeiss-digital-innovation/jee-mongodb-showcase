@@ -27,8 +27,8 @@ public class MongoDBClientProvider {
     private static final Logger LOG = Logger.getLogger(MongoDBClientProvider.class.getName());
 
     @Inject
-    @ConfigProperty(name = "mongodb.database", defaultValue = "demo_campus")
-    String databaseName = "demo_campus";
+    @ConfigProperty(name = "mongodb.database", defaultValue = "demo-campus")
+    String databaseName = "demo-campus";
 
     @Inject
     @ConfigProperty(name = "mongodb.host", defaultValue = "localhost")
