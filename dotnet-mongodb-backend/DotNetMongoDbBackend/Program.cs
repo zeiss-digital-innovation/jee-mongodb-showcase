@@ -9,8 +9,15 @@ var builder = WebApplication.CreateBuilder(args);
 // Fallback falls ASPNETCORE_URLS nicht gesetzt ist
 if (string.IsNullOrEmpty(builder.Configuration["ASPNETCORE_URLS"]))
 {
-    builder.WebHost.UseUrls("http://+:80");
+    builder.WebHost.UseUrls("https://+:443;http://+:80");
 }
+
+// HTTPS-Redirection für alle Umgebungen aktivieren
+builder.Services.AddHttpsRedirection(options =>
+{
+    options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
+    options.HttpsPort = 5001;
+});
 
 // Bind Mongo settings
 builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("MongoSettings"));
@@ -48,16 +55,16 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
     {
-    policy.WithOrigins("http://localhost:4200") // Angular server (dev)
-        .AllowAnyMethod()
-        .AllowAnyHeader();
+        policy.WithOrigins("http://localhost:4200", "https://localhost:4200") // HTTP und HTTPS für Angular
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
 
 var app = builder.Build();
-if(app.Environment.IsDevelopment()){
-    app.UseHttpsRedirection();
-}
+
+// HTTPS-Redirection für alle Umgebungen aktivieren (nicht nur Development)
+app.UseHttpsRedirection();
 
 app.UseCors("AllowAngular");
 app.MapControllers();
