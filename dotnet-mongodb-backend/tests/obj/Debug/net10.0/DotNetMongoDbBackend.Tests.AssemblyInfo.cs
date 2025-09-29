@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DotNetMongoDbBackend.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9f58bf3218f8563a935fa8a8e88cf75cb417740e")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+adbf39abaaa290cad9a2607de619d47ece90b00d")]
 [assembly: System.Reflection.AssemblyProductAttribute("DotNetMongoDbBackend.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DotNetMongoDbBackend.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

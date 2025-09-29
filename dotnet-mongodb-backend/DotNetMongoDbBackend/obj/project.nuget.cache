@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "T9MElRrWF2M=",
+  "dgSpecHash": "amNWD/cPQgc=",
   "success": true,
-  "projectFilePath": "C:\\Users\\diilinko\\.net workspace\\Learning\\jee-mongodb-showcase\\dotnet-mongodb-backend\\DotNetMongoDbBackend\\DotNetMongoDbBackend.csproj",
+  "projectFilePath": "C:\\Users\\diilinko\\.net workspace\\showcase-backend\\dotnet-mongodb-backend\\DotNetMongoDbBackend\\DotNetMongoDbBackend.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\diilinko\\.nuget\\packages\\dnsclient\\1.6.1\\dnsclient.1.6.1.nupkg.sha512",
     "C:\\Users\\diilinko\\.nuget\\packages\\microsoft.aspnetcore.openapi\\8.0.0\\microsoft.aspnetcore.openapi.8.0.0.nupkg.sha512",

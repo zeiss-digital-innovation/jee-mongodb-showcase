@@ -39,7 +39,7 @@ builder.Services.AddSingleton(sp =>
 });
 
 // Register PointOfInterestService
-builder.Services.AddScoped<PointOfInterestService>();
+builder.Services.AddScoped<IPointOfInterestService, PointOfInterestService>();
 
 // Add controllers (existing app uses controllers elsewhere)
 builder.Services.AddControllers();

@@ -8,14 +8,14 @@ namespace DotNetMongoDbBackend.Services;
 /// Service für Point of Interest Business Logic
 /// Kompatibel mit JEE und Spring Boot Backend APIs
 /// </summary>
-public class PointOfInterestService
+public class PointOfInterestService : IPointOfInterestService
 {
     private readonly IMongoCollection<PointOfInterest> _poisCollection;
     private readonly ILogger<PointOfInterestService> _logger;
 
     public PointOfInterestService(IMongoDatabase database, ILogger<PointOfInterestService> logger)
     {
-        _poisCollection = database.GetCollection<PointOfInterest>("pointsOfInterest");
+        _poisCollection = database.GetCollection<PointOfInterest>("points_of_interest");
         _logger = logger;
         
         // Erstelle 2dsphere Index für geografische Suchen

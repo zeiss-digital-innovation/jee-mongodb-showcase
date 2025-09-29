@@ -13,10 +13,10 @@ namespace DotNetMongoDbBackend.Controllers;
 [Route("api")]
 public class PointOfInterestController : ControllerBase
 {
-    private readonly PointOfInterestService _poiService;
+    private readonly IPointOfInterestService _poiService;
     private readonly ILogger<PointOfInterestController> _logger;
 
-    public PointOfInterestController(PointOfInterestService poiService, ILogger<PointOfInterestController> logger)
+    public PointOfInterestController(IPointOfInterestService poiService, ILogger<PointOfInterestController> logger)
     {
         _poiService = poiService;
         _logger = logger;

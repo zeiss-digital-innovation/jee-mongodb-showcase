@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\diilinko\\.net workspace\\Learning\\jee-mongodb-showcase\\dotnet-mongodb-backend\\DotNetMongoDbBackend\\DotNetMongoDbBackend.csproj": {}
+    "C:\\Users\\diilinko\\.net workspace\\showcase-backend\\dotnet-mongodb-backend\\DotNetMongoDbBackend\\DotNetMongoDbBackend.csproj": {}
   },
   "projects": {
-    "C:\\Users\\diilinko\\.net workspace\\Learning\\jee-mongodb-showcase\\dotnet-mongodb-backend\\DotNetMongoDbBackend\\DotNetMongoDbBackend.csproj": {
+    "C:\\Users\\diilinko\\.net workspace\\showcase-backend\\dotnet-mongodb-backend\\DotNetMongoDbBackend\\DotNetMongoDbBackend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\diilinko\\.net workspace\\Learning\\jee-mongodb-showcase\\dotnet-mongodb-backend\\DotNetMongoDbBackend\\DotNetMongoDbBackend.csproj",
+        "projectUniqueName": "C:\\Users\\diilinko\\.net workspace\\showcase-backend\\dotnet-mongodb-backend\\DotNetMongoDbBackend\\DotNetMongoDbBackend.csproj",
         "projectName": "DotNetMongoDbBackend",
-        "projectPath": "C:\\Users\\diilinko\\.net workspace\\Learning\\jee-mongodb-showcase\\dotnet-mongodb-backend\\DotNetMongoDbBackend\\DotNetMongoDbBackend.csproj",
+        "projectPath": "C:\\Users\\diilinko\\.net workspace\\showcase-backend\\dotnet-mongodb-backend\\DotNetMongoDbBackend\\DotNetMongoDbBackend.csproj",
         "packagesPath": "C:\\Users\\diilinko\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\diilinko\\.net workspace\\Learning\\jee-mongodb-showcase\\dotnet-mongodb-backend\\DotNetMongoDbBackend\\obj\\",
+        "outputPath": "C:\\Users\\diilinko\\.net workspace\\showcase-backend\\dotnet-mongodb-backend\\DotNetMongoDbBackend\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
