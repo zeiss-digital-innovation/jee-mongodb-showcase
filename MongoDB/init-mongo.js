@@ -13,34 +13,20 @@ db.point_of_interest.createIndex({ location: "2dsphere" });
 // Insert sample data (optional - remove if not needed)
 db.point_of_interest.insertMany([
     {
-        name: "Sample Location 1",
-        description: "A sample point of interest",
+        category: "company",
+        details: "Carl Zeiss Digital Innovation GmbH, Fritz-Foerster-Platz 2, 01069 Dresden, Tel.: +49 (0)351 497 01-500,https://www.zeiss.de/digital-innovation",
         location: {
             type: "Point",
-            coordinates: [13.4050, 52.5200] // Berlin, Germany [longitude, latitude]
-        },
-        category: "landmark",
-        created_at: new Date()
+            coordinates: [13.730123, 51.050407] // Dresden, Germany [longitude, latitude]
+        }
     },
     {
-        name: "Sample Location 2",
-        description: "Another sample point of interest",
+        category: "company",
+        details: "Carl Zeiss Digital Innovation Hungary Kft., Miskolc, Arany János tér 1, 3526 Ungarn,https://www.zeiss.com/digital-innovation",
         location: {
             type: "Point",
-            coordinates: [2.3522, 48.8566] // Paris, France [longitude, latitude]
-        },
-        category: "tourist_attraction",
-        created_at: new Date()
-    },
-    {
-        name: "Sample Location 3",
-        description: "Third sample point of interest",
-        location: {
-            type: "Point",
-            coordinates: [-74.0060, 40.7128] // New York, USA [longitude, latitude]
-        },
-        category: "city",
-        created_at: new Date()
+            coordinates: [20.787347, 48.107337] // Miskolc, Hungary [longitude, latitude]
+        }
     }
 ]);
 
