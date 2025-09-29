@@ -1,0 +1,28 @@
+services:
+  mongodb:
+    image: mongodb/mongodb-community-server:8.0.13-ubuntu2204
+    container_name: mongodb-demo-campus
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=demo-campus
+    networks:
+      - demo-campus
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  mongodb_data:
+    driver: local
+
+networks:
+  demo-campus:
+    external: true
