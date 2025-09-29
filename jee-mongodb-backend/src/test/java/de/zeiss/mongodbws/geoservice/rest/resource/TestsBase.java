@@ -1,3 +1,8 @@
+/**
+ * This file is part of a demo application showing MongoDB usage with Morphia library.
+ * <p>
+ * Copyright (C) 2025 Carl Zeiss Digital Innovation GmbH
+ */
 package de.zeiss.mongodbws.geoservice.rest.resource;
 
 import io.restassured.RestAssured;
