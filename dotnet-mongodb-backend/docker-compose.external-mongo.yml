@@ -1,0 +1,29 @@
+version: "3.8"
+services:
+  backend:
+    build: "."
+    container_name: "dotnet-mongodb-backend"
+    ports:
+      - "5000:80"
+      - "5001:443"
+    environment:
+      - "ASPNETCORE_URLS=https://+:443;http://+:80"
+      - "ASPNETCORE_HTTPS_PORT=5001"
+      - "ASPNETCORE_Kestrel__Certificates__Default__Password=YourPassword123"
+      - "ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx"
+      # Flexible MongoDB Connection - kann extern oder intern sein
+      - "MongoSettings__ConnectionString=${MONGO_CONNECTION_STRING:-mongodb://host.docker.internal:27017}"
+      - "MongoSettings__Database=demo_campus"
+      - "MongoSettings__Collections__Pois=points_of_interest"
+    volumes:
+      - ./certs:/https:ro
+    healthcheck:
+      test: ["CMD", "curl", "-k", "-f", "https://localhost:443/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  mongo-data: {}
