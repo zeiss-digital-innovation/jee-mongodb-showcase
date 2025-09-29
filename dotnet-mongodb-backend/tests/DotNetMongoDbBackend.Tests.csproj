@@ -1,24 +1,29 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <!-- Target net8.0 so tests run with installed .NET 8 runtime on this machine -->
-    <TargetFramework>net8.0</TargetFramework>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
+    <PropertyGroup>
+        <!-- Target net10 so tests run with installed .NET 8 runtime on this machine -->
+        <TargetFramework>net10.0</TargetFramework>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
 
-  <ItemGroup>
-  <!-- xUnit core: align with the VSTest adapter version present on the machine -->
-  <PackageReference Include="xunit" Version="2.5.3" />
-    <!-- Test SDK required for most runners and for dotnet test to work reliably -->
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
-  <!-- xUnit runner for Visual Studio / dotnet test discovery (align with adapter) -->
-  <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
-    <!-- Coverage collector (coverlet) -->
-    <PackageReference Include="coverlet.collector" Version="3.2.0" />
-  </ItemGroup>
+    <ItemGroup>
+        <!-- xUnit core: align with the VSTest adapter version present on the machine -->
+        <PackageReference Include="xunit" Version="2.5.3" />
+        <!-- Test SDK required for most runners and for dotnet test to work reliably -->
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+        <!-- xUnit runner for Visual Studio / dotnet test discovery (align with adapter) -->
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+        <!-- ASP.NET Core WebApplicationFactory to host the API in tests -->
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.0" />
+        <!-- MongoDB.Driver to access MongoDB in tests -->
+        <PackageReference Include="MongoDb.Driver" Version="2.28.0" />
+        <!-- Testcontainers for MongoDB to run integration tests with a real MongoDB instance in a container -->
+        <PackageReference Include="Testcontainers.MongoDb" Version="3.9.0" />
+        <!-- Coverage collector (coverlet) -->
+        <PackageReference Include="coverlet.collector" Version="3.2.0" />
+    </ItemGroup>
 
-  <!-- No ProjectReference: tests are pure unit tests and don't depend on app project to avoid runtime deps -->
-
-  <!-- rely on app's runtime; no explicit DnsClient here -->
-
+    <ItemGroup>
+        <ProjectReference Include="../DotNetMongoDbBackend/DotNetMongoDbBackend.csproj" />
+    </ItemGroup>
 </Project>
