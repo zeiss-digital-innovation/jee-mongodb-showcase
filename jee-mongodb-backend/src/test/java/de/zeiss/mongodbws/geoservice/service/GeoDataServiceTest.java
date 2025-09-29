@@ -6,6 +6,7 @@
 package de.zeiss.mongodbws.geoservice.service;
 
 import de.zeiss.mongodbws.geoservice.persistence.PersistenceService;
+import de.zeiss.mongodbws.geoservice.persistence.entity.GeoPoint;
 import de.zeiss.mongodbws.geoservice.persistence.entity.PointOfInterestEntity;
 import de.zeiss.mongodbws.geoservice.rest.resource.PointOfInterest;
 import org.bson.types.ObjectId;
@@ -130,7 +131,9 @@ public class GeoDataServiceTest {
         createdEntity.setId(testObjectId);
         createdEntity.setCategory("pharmacy");
         createdEntity.setDetails("City pharmacy");
-//        createdEntity.setLocation(new GeoPoint(51.0504, 13.7373));
+        GeoPoint point = new GeoPoint();
+        point.setCoordinates(51.0504, 13.7373);
+        createdEntity.setLocation(point);
 
         when(persistenceService.createPointOfInterest(any(PointOfInterestEntity.class))).thenReturn(createdEntity);
 
@@ -158,7 +161,9 @@ public class GeoDataServiceTest {
         entity2.setId(objectId2);
         entity2.setCategory("pharmacy");
         entity2.setDetails("Local pharmacy");
-//        entity2.setLocation(new GeoPoint(51.0600, 13.7400));
+        GeoPoint point = new GeoPoint();
+        point.setCoordinates(51.0600, 13.7400);
+        entity2.setLocation(point);
 
         List<PointOfInterestEntity> entityList = Arrays.asList(testEntity, entity2);
         when(persistenceService.listPOIs(lat, lon, radius, expandDetails)).thenReturn(entityList);
