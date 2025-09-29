@@ -2,8 +2,15 @@ using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using DotNetMongoDbBackend.Configurations;
 using DotNetMongoDbBackend.Models;
+using DotNetMongoDbBackend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Fallback falls ASPNETCORE_URLS nicht gesetzt ist
+if (string.IsNullOrEmpty(builder.Configuration["ASPNETCORE_URLS"]))
+{
+    builder.WebHost.UseUrls("http://+:80");
+}
 
 // Bind Mongo settings
 builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("MongoSettings"));
@@ -31,13 +38,28 @@ builder.Services.AddSingleton(sp =>
     return db.GetCollection<PointOfInterest>(cfg.Collections.Pois);
 });
 
+// Register PointOfInterestService
+builder.Services.AddScoped<PointOfInterestService>();
+
 // Add controllers (existing app uses controllers elsewhere)
 builder.Services.AddControllers();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular", policy =>
+    {
+    policy.WithOrigins("http://localhost:4200") // Angular server (dev)
+        .AllowAnyMethod()
+        .AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
+if(app.Environment.IsDevelopment()){
+    app.UseHttpsRedirection();
+}
 
-app.UseHttpsRedirection();
-
+app.UseCors("AllowAngular");
 app.MapControllers();
 
 await app.RunAsync();
