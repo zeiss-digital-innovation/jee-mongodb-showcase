@@ -8,10 +8,10 @@ services:
       dockerfile: Dockerfile
     container_name: dotnet-mongodb-backend
     ports:
-      - "5000:80"
+      - "8080:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_URLS=http://+:8080
       - MongoSettings__ConnectionString=mongodb://mongodb:27017
       - MongoSettings__Database=demo_campus
       - MongoSettings__Collections__Pois=points_of_interest

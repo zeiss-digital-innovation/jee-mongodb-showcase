@@ -255,4 +255,19 @@ public class PointOfInterestController : ControllerBase
     {
         return Ok(".NET MongoDB Backend is running");
     }
+
+    /// <summary>
+    /// GET /geoservice/pois - Kompatibilitäts-Endpunkt für Frontend (Plural)
+    /// </summary>
+    [HttpGet("pois")]
+    public async Task<ActionResult<List<PointOfInterest>>> GetAllPoisPlural(
+        [FromQuery] string? category = null,
+        [FromQuery] string? search = null,
+        [FromQuery] int? limit = null,
+        [FromQuery] double? lat = null,
+        [FromQuery] double? lng = null,
+        [FromQuery] double? radius = null)
+    {
+        return await GetAllPois(category, search, limit, lat, lng, radius);
+    }
 }

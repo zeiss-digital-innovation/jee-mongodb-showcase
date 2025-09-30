@@ -1,4 +1,6 @@
 using DotNetMongoDbBackend.Models;
+using DotNetMongoDbBackend.Configurations;
+using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using MongoDB.Bson;
 
@@ -13,11 +15,13 @@ public class PointOfInterestService : IPointOfInterestService
     private readonly IMongoCollection<PointOfInterest> _poisCollection;
     private readonly ILogger<PointOfInterestService> _logger;
 
-    public PointOfInterestService(IMongoDatabase database, ILogger<PointOfInterestService> logger)
+    public PointOfInterestService(IMongoDatabase database, IOptions<MongoSettings> mongoSettings, ILogger<PointOfInterestService> logger)
     {
-        _poisCollection = database.GetCollection<PointOfInterest>("points_of_interest");
+        _poisCollection = database.GetCollection<PointOfInterest>(mongoSettings.Value.Collections.Pois);
         _logger = logger;
         
+        _logger.LogInformation("PointOfInterestService initialisiert mit Collection: {CollectionName}", mongoSettings.Value.Collections.Pois);
+
         // Erstelle 2dsphere Index für geografische Suchen
         CreateIndexes();
     }

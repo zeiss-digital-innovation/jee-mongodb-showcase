@@ -7,8 +7,17 @@ using DotNetMongoDbBackend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// URLs-Konfiguration
-builder.WebHost.UseUrls("http://+:80");
+// URLs-Konfiguration - einheitlich Port 8080 mit korrekter Container-Bindung
+if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
+{
+    // Container: Bindung an alle Interfaces
+    builder.WebHost.UseUrls("http://0.0.0.0:8080");
+}
+else
+{
+    // Lokal: localhost-Bindung
+    builder.WebHost.UseUrls("http://localhost:8080");
+}
 
 // Bind Mongo settings
 builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("MongoSettings"));

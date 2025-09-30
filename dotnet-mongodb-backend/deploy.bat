@@ -48,9 +48,9 @@ docker ps --filter "name=dotnet-mongodb-backend" --format "table {{.Names}}\t{{.
 
 echo.
 echo Deployment abgeschlossen!
-echo Backend ist verfuegbar unter: http://localhost:5000
-echo API-Endpunkte: http://localhost:5000/geoservice/poi
-echo Health Check: http://localhost:5000/geoservice/health
+echo Backend ist verfuegbar unter: http://localhost:8080
+echo API-Endpunkte: http://localhost:8080/geoservice/poi
+echo Health Check: http://localhost:8080/geoservice/health
 echo MongoDB ist verfuegbar unter: mongodb://localhost:27017
 echo.
 echo Um Logs zu sehen: docker logs dotnet-mongodb-backend -f
