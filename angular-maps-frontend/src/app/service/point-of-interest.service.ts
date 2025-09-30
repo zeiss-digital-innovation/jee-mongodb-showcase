@@ -9,7 +9,7 @@ import { PointOfInterest } from '../model/point_of_interest';
 export class PointOfInterestService {
 
     // TODO move to environment variables
-    private readonly baseUrl = 'http://localhost:8080/geoservice/rest'; // Adjust this to your backend URL
+    private readonly baseUrl = 'http://localhost:8080/geoservice'; // Adjust this to your backend URL
 
     constructor(private http: HttpClient) { }
 

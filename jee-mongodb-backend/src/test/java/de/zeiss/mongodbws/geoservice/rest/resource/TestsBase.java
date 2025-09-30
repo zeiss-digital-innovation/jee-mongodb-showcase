@@ -32,7 +32,7 @@ public abstract class TestsBase {
 
     protected static final String CONTENT_TYPE = "application/json; charset=UTF-8";
 
-    protected static final String BASE_PATH = "geoservice/rest";
+    protected static final String BASE_PATH = "geoservice";
 
     protected Headers headers;
 
