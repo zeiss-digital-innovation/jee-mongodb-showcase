@@ -1,6 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+
+import { environment } from '../environments/environment';
 import { PointOfInterest } from '../model/point_of_interest';
 
 @Injectable({
@@ -8,8 +10,7 @@ import { PointOfInterest } from '../model/point_of_interest';
 })
 export class PointOfInterestService {
 
-    // TODO move to environment variables
-    private readonly baseUrl = 'http://localhost:8080/geoservice'; // Adjust this to your backend URL
+    private readonly baseUrl = environment.apiBaseUrl;
 
     constructor(private http: HttpClient) { }
 
