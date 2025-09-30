@@ -24,7 +24,8 @@ export class PointOfInterestService {
         }
 
         //return getMockPointsOfInterest();
-        return this.http.get<PointOfInterest[]>(`${this.baseUrl}/poi?lat=${latitude}&lon=${longitude}&radius=${radius}&expand=details`);
+        // Note: The BaseUrlInterceptor will prepend the base URL
+        return this.http.get<PointOfInterest[]>(`/poi?lat=${latitude}&lon=${longitude}&radius=${radius}&expand=details`);
     }
 
 }
