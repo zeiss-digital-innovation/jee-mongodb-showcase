@@ -2,15 +2,12 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { environment } from '../environments/environment';
 import { PointOfInterest } from '../model/point_of_interest';
 
 @Injectable({
     providedIn: "root"
 })
 export class PointOfInterestService {
-
-    private readonly baseUrl = environment.apiBaseUrl;
 
     constructor(private http: HttpClient) { }
 
