@@ -17,6 +17,8 @@ import { environment } from '../environments/environment';
 @Injectable()
 export class BaseUrlInterceptor implements HttpInterceptor {
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+        // Uncomment next line to log the original URL for debugging
+        //console.log('[BaseUrlInterceptor] original url:', req.url);
         let url = req.url;
 
         // If URL is not absolute, prepend base URL
