@@ -10,7 +10,7 @@ namespace DotNetMongoDbBackend.Controllers;
 /// Kompatible API mit JEE und Spring Boot Backend
 /// </summary>
 [ApiController]
-[Route("geoservice/rest")]
+[Route("geoservice")]
 public class PointOfInterestController : ControllerBase
 {
     private readonly IPointOfInterestService _poiService;
@@ -23,7 +23,7 @@ public class PointOfInterestController : ControllerBase
     }
 
     /// <summary>
-    /// GET /geoservice/rest/poi - Alle POIs abrufen
+    /// GET /geoservice/poi - Alle POIs abrufen
     /// </summary>
     /// <param name="category">Filtert nach Kategorie</param>
     /// <param name="search">Volltext-Suche in Name, Adresse und Tags</param>
@@ -77,7 +77,7 @@ public class PointOfInterestController : ControllerBase
     }
 
     /// <summary>
-    /// GET /geoservice/rest/poi/{id} - POI nach ID abrufen
+    /// GET /geoservice/poi/{id} - POI nach ID abrufen
     /// </summary>
     /// <param name="id">MongoDB ObjectId des POI</param>
     /// <returns>POI oder 404 wenn nicht gefunden</returns>
@@ -105,7 +105,7 @@ public class PointOfInterestController : ControllerBase
     }
 
     /// <summary>
-    /// POST /geoservice/rest/poi - Neuen POI erstellen
+    /// POST /geoservice/poi - Neuen POI erstellen
     /// </summary>
     /// <param name="poi">POI-Daten</param>
     /// <returns>Erstellter POI mit generierter ID</returns>
@@ -137,7 +137,7 @@ public class PointOfInterestController : ControllerBase
     }
 
     /// <summary>
-    /// PUT /geoservice/rest/poi/{id} - POI aktualisieren
+    /// PUT /geoservice/poi/{id} - POI aktualisieren
     /// </summary>
     /// <param name="id">MongoDB ObjectId des POI</param>
     /// <param name="poi">Aktualisierte POI-Daten</param>
@@ -176,7 +176,7 @@ public class PointOfInterestController : ControllerBase
     }
 
     /// <summary>
-    /// DELETE /geoservice/rest/poi/{id} - POI löschen
+    /// DELETE /geoservice/poi/{id} - POI löschen
     /// </summary>
     /// <param name="id">MongoDB ObjectId des POI</param>
     /// <returns>204 bei Erfolg oder 404 wenn nicht gefunden</returns>

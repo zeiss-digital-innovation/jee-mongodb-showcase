@@ -134,22 +134,23 @@ public class PointOfInterestService : IPointOfInterestService
     }
 
     /// <summary>
-    /// POIs in der Nähe eines Punktes finden
+    /// POIs in der Nähe einer geografischen Position finden
     /// </summary>
-    public async Task<List<PointOfInterest>> GetNearbyPoisAsync(double longitude, double latitude, double radiusInKm = 10.0)
+    public async Task<List<PointOfInterest>> GetNearbyPoisAsync(double longitude, double latitude, double radiusInKm)
     {
         try
         {
-            var radiusInMeters = radiusInKm * 1000; // Konvertierung zu Metern
+            // Verwende GeoWithin statt Near für bessere 2dsphere Index Kompatibilität
+            var radiusInRadians = radiusInKm / 6378.1; // Erdradius in km
 
-            var locationFilter = Builders<PointOfInterest>.Filter.Near(
+            var geoWithinFilter = Builders<PointOfInterest>.Filter.GeoWithinCenterSphere(
                 p => p.Location,
-                longitude, 
+                longitude,
                 latitude, 
-                radiusInMeters
+                radiusInRadians
             );
 
-            var pois = await _poisCollection.Find(locationFilter).ToListAsync();
+            var pois = await _poisCollection.Find(geoWithinFilter).ToListAsync();
             pois.ForEach(poi => poi.GenerateHref());
             return pois;
         }

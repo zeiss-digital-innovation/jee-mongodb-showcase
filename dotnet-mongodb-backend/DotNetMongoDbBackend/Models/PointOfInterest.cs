@@ -53,34 +53,61 @@ public class PointOfInterest
     {
         if (!string.IsNullOrEmpty(Id))
         {
-            Href = $"/geoservice/rest/pois/{Id}";
+            Href = $"/geoservice/poi/{Id}";
         }
     }
 }
 
 /// <summary>
-/// Location (Koordinaten) für einen Point of Interest
+/// Location (Koordinaten) für einen Point of Interest - MongoDB GeoJSON kompatibel
 /// </summary>
 public class Location
 {
-    [BsonElement("longitude")]
+    [BsonElement("type")]
+    [JsonPropertyName("type")]
+    public string Type { get; set; } = "Point";
+
+    [BsonElement("coordinates")]
+    [JsonPropertyName("coordinates")]
+    [Required(ErrorMessage = "Coordinates sind erforderlich")]
+    public double[] Coordinates { get; set; } = new double[2];
+
+    // Convenience Properties für bessere API-Kompatibilität
+    [BsonIgnore]
     [JsonPropertyName("longitude")]
-    [Required(ErrorMessage = "Longitude ist erforderlich")]
     [Range(-180.0, 180.0, ErrorMessage = "Longitude muss zwischen -180 und 180 liegen")]
-    public double Longitude { get; set; }
+    public double Longitude
+    {
+        get => Coordinates.Length > 0 ? Coordinates[0] : 0;
+        set
+        {
+            if (Coordinates.Length < 2) Coordinates = new double[2];
+            Coordinates[0] = value;
+        }
+    }
 
-    [BsonElement("latitude")]
+    [BsonIgnore]
     [JsonPropertyName("latitude")]
-    [Required(ErrorMessage = "Latitude ist erforderlich")]
     [Range(-90.0, 90.0, ErrorMessage = "Latitude muss zwischen -90 und 90 liegen")]
-    public double Latitude { get; set; }
+    public double Latitude
+    {
+        get => Coordinates.Length > 1 ? Coordinates[1] : 0;
+        set
+        {
+            if (Coordinates.Length < 2) Coordinates = new double[2];
+            Coordinates[1] = value;
+        }
+    }
 
-    public Location() { }
+    public Location()
+    {
+        Coordinates = new double[2];
+    }
 
     public Location(double longitude, double latitude)
     {
-        Longitude = longitude;
-        Latitude = latitude;
+        Type = "Point";
+        Coordinates = new double[] { longitude, latitude };
     }
 
     /// <summary>

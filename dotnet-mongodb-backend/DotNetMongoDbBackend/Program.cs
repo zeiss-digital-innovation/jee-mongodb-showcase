@@ -49,7 +49,20 @@ builder.Services.AddSingleton(sp =>
 builder.Services.AddScoped<IPointOfInterestService, PointOfInterestService>();
 
 // Add controllers (existing app uses controllers elsewhere)
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddNewtonsoftJson(options =>
+    {
+        // Verwende Newtonsoft.Json als Workaround für .NET 10 RC JSON Serialization Bug
+        options.SerializerSettings.DateTimeZoneHandling = Newtonsoft.Json.DateTimeZoneHandling.Utc;
+        options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
+    });
+
+// Alternative JSON-Serializer für Integration Tests
+builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+{
+    options.SerializerOptions.DefaultBufferSize = 16384;
+    options.SerializerOptions.WriteIndented = false;
+});
 
 builder.Services.AddCors(options =>
 {

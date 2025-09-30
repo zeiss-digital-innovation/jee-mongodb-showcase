@@ -3,7 +3,7 @@ using Xunit;
 
 namespace DotNetMongoDbBackend.Tests.Tests;
 
-public class SimpleIntegrationTests
+public class PointOfInterestControllerIntegrationTests
 {
     [Fact]
     public void ApiController_ShouldBeInstantiable()

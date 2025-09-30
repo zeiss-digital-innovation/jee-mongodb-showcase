@@ -252,7 +252,7 @@ public class PointOfInterestControllerTests
     {
         // Arrange
         var updatePoi = new PointOfInterest { Name = "Updated POI", Category = "restaurant" };
-        _mockService.Setup(s => s.UpdatePoiAsync("999", It.IsAny<PointOfInterest>())).ReturnsAsync((PointOfInterest?)null);
+        _mockService.Setup(s => s.UpdatePoiAsync("999", It.IsAny<PointOfInterest>())).ReturnsAsync((PointOfInterest)null);
 
         // Act
         var result = await _controller.UpdatePoi("999", updatePoi);
