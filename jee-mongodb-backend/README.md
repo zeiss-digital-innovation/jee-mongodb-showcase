@@ -1,4 +1,7 @@
-# Demo REST backend using Jakarta Enterprise technology.
+# REST backend using Jakarta Enterprise technology.
+
+This is a simple REST backend using Jakarta Enterprise technology. It provides a REST API to manage POIs (points of
+interest). The data is stored in a MongoDB database.
 
 ## Dependencies and environment
 
@@ -10,7 +13,8 @@
 
 ### MongoDB
 
-- REST backend uses MongoDB as data provider.
+- REST backend uses MongoDB as data provider. Uses [Morphia Object Mapper](http://mongodb.github.io/morphia/) to work
+  with the database.
 - The default connection settings are host=localhost, port=27017, database=demo_campus.
   You can set different settings by supplying a custom `/src/main/webapp/META-INF/microprofile-config.properties` file.
   See the `microprofile-config.properties.template` file.
