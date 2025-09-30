@@ -53,7 +53,7 @@ public class PointOfInterest
     {
         if (!string.IsNullOrEmpty(Id))
         {
-            Href = $"/api/pois/{Id}";
+            Href = $"/geoservice/rest/pois/{Id}";
         }
     }
 }

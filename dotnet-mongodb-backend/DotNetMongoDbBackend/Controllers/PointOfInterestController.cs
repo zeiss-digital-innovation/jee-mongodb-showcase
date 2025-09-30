@@ -10,7 +10,7 @@ namespace DotNetMongoDbBackend.Controllers;
 /// Kompatible API mit JEE und Spring Boot Backend
 /// </summary>
 [ApiController]
-[Route("api")]
+[Route("geoservice/rest")]
 public class PointOfInterestController : ControllerBase
 {
     private readonly IPointOfInterestService _poiService;
@@ -23,7 +23,7 @@ public class PointOfInterestController : ControllerBase
     }
 
     /// <summary>
-    /// GET /api/pois - Alle POIs abrufen
+    /// GET /geoservice/rest/poi - Alle POIs abrufen
     /// </summary>
     /// <param name="category">Filtert nach Kategorie</param>
     /// <param name="search">Volltext-Suche in Name, Adresse und Tags</param>
@@ -32,7 +32,7 @@ public class PointOfInterestController : ControllerBase
     /// <param name="lng">Longitude für geografische Suche</param>
     /// <param name="radius">Radius in Kilometern für geografische Suche</param>
     /// <returns>Liste der POIs</returns>
-    [HttpGet("pois")]
+    [HttpGet("poi")]
     public async Task<ActionResult<List<PointOfInterest>>> GetAllPois(
         [FromQuery] string? category = null,
         [FromQuery] string? search = null,
@@ -77,11 +77,11 @@ public class PointOfInterestController : ControllerBase
     }
 
     /// <summary>
-    /// GET /api/pois/{id} - POI nach ID abrufen
+    /// GET /geoservice/rest/poi/{id} - POI nach ID abrufen
     /// </summary>
     /// <param name="id">MongoDB ObjectId des POI</param>
     /// <returns>POI oder 404 wenn nicht gefunden</returns>
-    [HttpGet("pois/{id}")]
+    [HttpGet("poi/{id}")]
     public async Task<ActionResult<PointOfInterest>> GetPoiById([Required] string id)
     {
         try
@@ -105,11 +105,11 @@ public class PointOfInterestController : ControllerBase
     }
 
     /// <summary>
-    /// POST /api/pois - Neuen POI erstellen
+    /// POST /geoservice/rest/poi - Neuen POI erstellen
     /// </summary>
     /// <param name="poi">POI-Daten</param>
     /// <returns>Erstellter POI mit generierter ID</returns>
-    [HttpPost("pois")]
+    [HttpPost("poi")]
     public async Task<ActionResult<PointOfInterest>> CreatePoi([FromBody] PointOfInterest poi)
     {
         try
@@ -137,12 +137,12 @@ public class PointOfInterestController : ControllerBase
     }
 
     /// <summary>
-    /// PUT /api/pois/{id} - POI aktualisieren
+    /// PUT /geoservice/rest/poi/{id} - POI aktualisieren
     /// </summary>
     /// <param name="id">MongoDB ObjectId des POI</param>
     /// <param name="poi">Aktualisierte POI-Daten</param>
     /// <returns>Aktualisierter POI oder 404 wenn nicht gefunden</returns>
-    [HttpPut("pois/{id}")]
+    [HttpPut("poi/{id}")]
     public async Task<ActionResult<PointOfInterest>> UpdatePoi([Required] string id, [FromBody] PointOfInterest poi)
     {
         try
@@ -176,11 +176,11 @@ public class PointOfInterestController : ControllerBase
     }
 
     /// <summary>
-    /// DELETE /api/pois/{id} - POI löschen
+    /// DELETE /geoservice/rest/poi/{id} - POI löschen
     /// </summary>
     /// <param name="id">MongoDB ObjectId des POI</param>
     /// <returns>204 bei Erfolg oder 404 wenn nicht gefunden</returns>
-    [HttpDelete("pois/{id}")]
+    [HttpDelete("poi/{id}")]
     public async Task<ActionResult> DeletePoi([Required] string id)
     {
         try
