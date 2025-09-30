@@ -36,3 +36,6 @@ Run `npm start` for serving the app and using it with a browser of your choice.
 ### Build distribution for environment
 
 Run `npm run gulp` to build to dist directory
+
+## License
+This project is licensed under the terms of the MIT license.
