@@ -1,35 +1,44 @@
 version: "3.8"
+
 services:
+  # .NET Backend Service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dotnet-mongodb-backend
+    ports:
+      - "5000:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - MongoSettings__ConnectionString=mongodb://mongodb:27017
+      - MongoSettings__Database=demo_campus
+      - MongoSettings__Collections__Pois=points_of_interest
+    depends_on:
+      - mongodb
+    networks:
+      - demo-campus
+    restart: unless-stopped
+
+  # MongoDB Service (wie im JEE-Backend verwendet)
   mongodb:
-    image: mongo:latest
+    image: mongodb/mongodb-community-server:latest
     container_name: mongodb
     ports:
       - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=demo_campus
     volumes:
       - mongo-data:/data/db
-  backend:
-    build: "."
-    container_name: "dotnet-mongodb-backend"
-    ports:
-      - "5000:80"
-      - "5001:443"
-    environment:
-      - "ASPNETCORE_URLS=https://+:443;http://+:80"
-      - "ASPNETCORE_HTTPS_PORT=5001"
-      - "ASPNETCORE_Kestrel__Certificates__Default__Password=YourPassword123"
-      - "ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx"
-      - "MongoSettings__ConnectionString=mongodb://mongodb:27017"
-      - "MongoSettings__Database=demo_campus"
-      - "MongoSettings__Collections__Pois=points_of_interest"
-    volumes:
-      - ./certs:/https:ro
-    depends_on:
-      - mongodb
-    healthcheck:
-      test: ["CMD", "curl", "-k", "-f", "https://localhost:443/geoservice/rest/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    networks:
+      - demo-campus
+    restart: unless-stopped
 
 volumes:
-  mongo-data: {}
+  mongo-data:
+    driver: local
+
+networks:
+  demo-campus:
+    driver: bridge

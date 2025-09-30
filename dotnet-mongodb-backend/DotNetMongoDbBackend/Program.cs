@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using DotNetMongoDbBackend.Configurations;
@@ -6,27 +7,26 @@ using DotNetMongoDbBackend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Fallback falls ASPNETCORE_URLS nicht gesetzt ist
-if (string.IsNullOrEmpty(builder.Configuration["ASPNETCORE_URLS"]))
-{
-    builder.WebHost.UseUrls("https://+:443;http://+:80");
-}
-
-// HTTPS-Redirection für alle Umgebungen aktivieren
-builder.Services.AddHttpsRedirection(options =>
-{
-    options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
-    options.HttpsPort = 5001;
-});
+// URLs-Konfiguration
+builder.WebHost.UseUrls("http://+:80");
 
 // Bind Mongo settings
 builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("MongoSettings"));
 
-// Register MongoClient as singleton
+// Register MongoClient mit optimierten Timeouts für .NET 9
 builder.Services.AddSingleton<IMongoClient>(sp =>
 {
     var cfg = sp.GetRequiredService<IOptions<MongoSettings>>().Value;
-    return new MongoClient(cfg.ConnectionString);
+    var mongoSettings = MongoClientSettings.FromConnectionString(cfg.ConnectionString);
+
+    // Optimierte Connection-Settings für .NET 9
+    mongoSettings.ServerSelectionTimeout = TimeSpan.FromSeconds(5);
+    mongoSettings.ConnectTimeout = TimeSpan.FromSeconds(5);
+    mongoSettings.SocketTimeout = TimeSpan.FromSeconds(5);
+    mongoSettings.MaxConnectionPoolSize = 10;
+    mongoSettings.MinConnectionPoolSize = 1;
+
+    return new MongoClient(mongoSettings);
 });
 
 // Register IMongoDatabase
@@ -48,27 +48,19 @@ builder.Services.AddSingleton(sp =>
 // Register PointOfInterestService
 builder.Services.AddScoped<IPointOfInterestService, PointOfInterestService>();
 
-// Add controllers (existing app uses controllers elsewhere)
+// Add controllers mit Newtonsoft.Json für .NET 9
 builder.Services.AddControllers()
     .AddNewtonsoftJson(options =>
     {
-        // Verwende Newtonsoft.Json als Workaround für .NET 10 RC JSON Serialization Bug
         options.SerializerSettings.DateTimeZoneHandling = Newtonsoft.Json.DateTimeZoneHandling.Utc;
         options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
     });
-
-// Alternative JSON-Serializer für Integration Tests
-builder.Services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
-{
-    options.SerializerOptions.DefaultBufferSize = 16384;
-    options.SerializerOptions.WriteIndented = false;
-});
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngular", policy =>
     {
-        policy.WithOrigins("http://localhost:4200", "https://localhost:4200") // HTTP und HTTPS für Angular
+        policy.WithOrigins("http://localhost:4200", "https://localhost:4200")
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
@@ -76,13 +68,9 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// HTTPS-Redirection für alle Umgebungen aktivieren (nicht nur Development)
-app.UseHttpsRedirection();
-
 app.UseCors("AllowAngular");
 app.MapControllers();
 
 await app.RunAsync();
 
-// Expose Program for integration tests that use WebApplicationFactory<Program>
 public partial class Program { protected Program() { } }

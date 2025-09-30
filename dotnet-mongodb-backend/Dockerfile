@@ -1,31 +1,19 @@
-# Build Stage
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+# Dockerfile für .NET 9
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Copy project file and restore dependencies
 COPY DotNetMongoDbBackend/DotNetMongoDbBackend.csproj DotNetMongoDbBackend/
 RUN dotnet restore DotNetMongoDbBackend/DotNetMongoDbBackend.csproj
 
-# Copy source code and build
+# Copy source code and publish
 COPY DotNetMongoDbBackend/ DotNetMongoDbBackend/
 WORKDIR /src/DotNetMongoDbBackend
-RUN dotnet build -c Release -o /app/build
+RUN dotnet publish -c Release -o /app/publish
 
-# Publish Stage
-FROM build AS publish
-RUN dotnet publish -c Release -o /app/publish --no-restore
-
-# Runtime Stage
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
-COPY --from=publish /app/publish .
-
-# Set environment variables
+COPY --from=build /app/publish .
 ENV ASPNETCORE_URLS=http://+:80
-ENV ASPNETCORE_ENVIRONMENT=Production
-
-# Expose port
 EXPOSE 80
-
-# Start application
 ENTRYPOINT ["dotnet", "DotNetMongoDbBackend.dll"]

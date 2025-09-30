@@ -2,35 +2,56 @@
 REM MongoDB Detection und Conditional Deployment Script für Windows
 REM Prüft ob MongoDB bereits läuft und startet entsprechende docker-compose Konfiguration
 
-echo 🔍 Prüfe ob MongoDB bereits läuft...
+echo Pruefe ob MongoDB bereits laeuft...
 
-REM Prüfe lokale MongoDB (Port 27017)
+REM Pruefe ob demo-campus Netzwerk existiert
+docker network ls | findstr "demo-campus" >nul
+if %errorlevel% neq 0 (
+    echo Erstelle demo-campus Netzwerk...
+    docker network create demo-campus
+)
+
+REM Pruefe lokale MongoDB (Port 27017)
 netstat -an | findstr "27017" >nul
 if %errorlevel% equ 0 (
-    echo ✅ MongoDB läuft bereits auf localhost:27017
-    echo 🚀 Starte Backend mit externer MongoDB...
+    echo MongoDB laeuft bereits auf localhost:27017
+    echo Pruefe ob MongoDB-Container im demo-campus Netzwerk laeuft...
 
-    REM Setze Umgebungsvariable für externe MongoDB
-    set MONGO_CONNECTION_STRING=mongodb://host.docker.internal:27017
-
-    REM Starte nur Backend (ohne MongoDB Service)
-    docker-compose -f docker-compose.external-mongo.yml up --build
+    docker ps --filter "name=mongodb" --format "{{.Names}}" | findstr "mongodb" >nul
+    if %errorlevel% equ 0 (
+        echo MongoDB-Container gefunden - verbinde mit demo-campus Netzwerk falls noetig
+        docker network connect demo-campus mongodb 2>nul
+        echo Starte Backend mit vorhandenem MongoDB-Container...
+        docker-compose -f docker-compose.external-mongo.yml down 2>nul
+        docker-compose -f docker-compose.external-mongo.yml up --build -d
+    ) else (
+        echo Externe MongoDB gefunden - starte Backend mit host.docker.internal...
+        REM Fallback fuer externe MongoDB
+        set TEMP_MONGO_CONNECTION=mongodb://host.docker.internal:27017
+        docker-compose -f docker-compose.external-mongo.yml down 2>nul
+        docker-compose -f docker-compose.external-mongo.yml up --build -d
+    )
 
 ) else (
-    REM Prüfe ob MongoDB-Container läuft
-    docker ps --format "table {{.Names}}" | findstr "mongodb" >nul
-    if %errorlevel% equ 0 (
-        echo ✅ MongoDB-Container läuft bereits
-        echo 🚀 Starte Backend mit vorhandenem MongoDB-Container...
-
-        REM Starte nur Backend
-        docker-compose -f docker-compose.external-mongo.yml up --build
-
-    ) else (
-        echo ❌ Keine MongoDB gefunden
-        echo 🚀 Starte komplettes System Backend + MongoDB...
-
-        REM Starte mit lokaler MongoDB
-        docker-compose -f docker-compose.local.yml --profile local-db up --build
-    )
+    echo Keine MongoDB gefunden - starte komplettes System...
+    docker-compose down 2>nul
+    docker-compose up --build -d
 )
+
+echo.
+echo Warte auf Services...
+timeout /t 15 /nobreak >nul
+
+echo.
+echo Pruefe Backend Status...
+docker ps --filter "name=dotnet-mongodb-backend" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+
+echo.
+echo Deployment abgeschlossen!
+echo Backend ist verfuegbar unter: http://localhost:5000
+echo API-Endpunkte: http://localhost:5000/geoservice/poi
+echo Health Check: http://localhost:5000/geoservice/health
+echo MongoDB ist verfuegbar unter: mongodb://localhost:27017
+echo.
+echo Um Logs zu sehen: docker logs dotnet-mongodb-backend -f
+echo Zum Stoppen: docker-compose down

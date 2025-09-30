@@ -1,44 +1,51 @@
-version: "3.8"
+version: '3.8'
+
 services:
+  # .NET Backend Service
   backend:
-    build: "."
-    container_name: "dotnet-mongodb-backend"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dotnet-mongodb-backend
     ports:
       - "5000:80"
       - "5001:443"
     environment:
-      - "ASPNETCORE_URLS=https://+:443;http://+:80"
-      - "ASPNETCORE_HTTPS_PORT=5001"
-      - "ASPNETCORE_Kestrel__Certificates__Default__Password=YourPassword123"
-      - "ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx"
-      - "MongoSettings__ConnectionString=${MONGO_CONNECTION_STRING:-mongodb://mongodb:27017}"
-      - "MongoSettings__Database=demo_campus"
-      - "MongoSettings__Collections__Pois=points_of_interest"
-    volumes:
-      - ./certs:/https:ro
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80;https://+:443
+      - MongoSettings__ConnectionString=mongodb://mongodb:27017
+      - MongoSettings__Database=demo_campus
+      - MongoSettings__Collections__Pois=points_of_interest
     depends_on:
       - mongodb
-    healthcheck:
-      test: ["CMD", "curl", "-k", "-f", "https://localhost:443/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    networks:
+      - backend-network
+    restart: unless-stopped
+    volumes:
+      - ./DotNetMongoDbBackend:/app/src
+    profiles:
+      - local-db
 
-  # MongoDB Service - nur starten wenn nicht extern vorhanden
+  # MongoDB Service
   mongodb:
-    image: mongo:latest
+    image: mongo:7.0
     container_name: mongodb
     ports:
       - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=demo_campus
     volumes:
       - mongo-data:/data/db
+    networks:
+      - backend-network
+    restart: unless-stopped
     profiles:
       - local-db
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
 volumes:
-  mongo-data: {}
+  mongo-data:
+    driver: local
+
+networks:
+  backend-network:
+    driver: bridge

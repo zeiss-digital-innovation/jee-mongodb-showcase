@@ -32,5 +32,13 @@ else
     echo "🚀 Starte komplettes System (Backend + MongoDB)..."
 
     # Starte mit lokaler MongoDB
-    docker-compose -f docker-compose.local.yml --profile local-db up --build
+    docker-compose up --build
 fi
+
+echo ""
+echo "Deployment abgeschlossen!"
+echo "Backend ist verfügbar unter: http://localhost:5000"
+echo "MongoDB ist verfügbar unter: mongodb://localhost:27017"
+echo ""
+echo "Um Logs zu sehen: docker-compose logs -f"
+echo "Zum Stoppen: docker-compose down"
