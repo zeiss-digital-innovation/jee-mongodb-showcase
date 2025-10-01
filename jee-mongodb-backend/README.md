@@ -3,13 +3,33 @@
 This is a simple REST backend using Jakarta Enterprise technology. It provides a REST API to manage POIs (points of
 interest). The data is stored in a MongoDB database.
 
-## Dependencies and environment
+## Table of Contents
+
+- [Quickstart](#quickstart)
+- [Prerequisites](#prerequisites)
+- [Build](#build)
+- [Run](#run)
+- [Troubleshooting](#troubleshooting)
+- [REST API Endpoints](#rest-api-endpoints)
+
+## Quickstart
+
+These steps will get a local demo running with a MongoDB available on http://localhost:27017 (for configuring other
+endpoints see the following sections).
+
+1. Build the project with `mvn clean package`
+2. Build the Docker image with `docker build -t demo-campus-jee-backend .`
+4. Run the backend with `docker run --name demo-campus-jee-backend -p 8080:8080 demo-campus-jee-backend`
+5. Access the API with this sample
+   request http://localhost:8080/geoservice/poi?lat=51.0490455&lon=13.7383389&radius=100&expand=details
+
+## Prerequisites
 
 ### Java
 
 - Java 21
-- Jakarta Enterprise
-- Wildfly Application Server Version 37
+- Maven 3.9
+- Wildfly Application Server Version 37 or Docker (for containerization)
 
 ### MongoDB
 
@@ -20,14 +40,23 @@ interest). The data is stored in a MongoDB database.
   See the `microprofile-config.properties.template` file.
 - As this is only a small demo application, there is currently no support for authentication with MongoDB. So it only
   works with a MongoDB instance without any authentication necessary (default after install).
+- see also the [MongoDB README](../MongoDB/README.md) for a docker-compose setup.
 
-## Build with Maven
+## Build
 
-- Use `mvn package` to create a `war` file for deployment.
-- Deploy the service to a running Wildfly using `mvn install`. Setup Wildfly credentials and hostname in the ~
+- Use the Maven build `mvn clean package` to create a `war` file for deployment.
+
+## Run
+
+You can run the application in two ways:
+
+### Deploy to existing Wildfly
+
+- Setup Wildfly credentials and hostname in the ~
   /.m2/settings.xml. For this set `wildfly.deploy.username`, `wildfly.deploy.password` and `wildfly.deploy.hostname`.
+- Use the Maven build `mvn clean install` to deploy the war file to a running Wildfly instance.
 
-## Docker
+### Docker
 
 After building the Java project you can use the Dockerfile provided in the repository to create an image. The image will
 then contain:
@@ -35,7 +64,7 @@ then contain:
 - Wildfly 37.0.1.Final-jdk21
 - Latest build from the folder /target/
 
-### Build the Docker image
+#### Build the Docker image
 
 In the root folder (contains the Dockerfile) execute the following:
 
@@ -45,13 +74,72 @@ docker build -t demo-campus-jee-backend .
 
 This command builds the Docker image and tags it as demo-campus-jee-backend.
 
-After building the image, setup a network and run a container using the following command:
+#### Docker network
+
+If you run MongoDB with the provided docker configuration (see `../MongoDB/README.md`), the container will use a
+docker network `demo-campus`. Then you need to set the MongoDB host in the
+`/src/main/webapp/META-INF/microprofile-config.properties` file to `mongodb-demo-campus` (the name of the MongoDB
+container) and run the
+backend container in the same network.
+
+You can check if the network already exists with:
 
 ```bash
-docker network create demo-campus 
+docker network inspect demo-campus
+```
+
+If it does not exist, create it with:
+
+```bash
+docker network create demo-campus
+```
+
+To run the backend container with the network, use:
+
+```bash
 docker run --network demo-campus --name demo-campus-jee-backend -p 8080:8080 demo-campus-jee-backend
 ```
 
-The network is necessary if you want to connect the backend to a MongoDB running in another container. See below for
-more.
+If you don't need the network, simply run the container without the `--network` option:
 
+```bash
+docker run --name demo-campus-jee-backend -p 8080:8080 demo-campus-jee-backend
+``` 
+
+## Troubleshooting
+
+- Port conflicts: Make sure ports 8080 and 27017 are not used by other services.
+- Network issues: When using Docker for MongoDB and Wildfly ensure both containers are running in the same Docker
+  network.
+- Build errors: Make sure the WAR file exists in the target directory before building the Docker image.
+
+## REST API Endpoints
+
+This backend exposes the following main REST endpoints:
+
+### Get Points of Interest
+
+- **Endpoint:** `GET /geoservice/poi`
+- **Description:** Returns a list of points of interest (POIs) near a given location.
+- **Parameters:**
+    - `lat` (required): Latitude of the center point
+    - `lon` (required): Longitude of the center point
+    - `radius` (optional): Search radius in meters (default: 100)
+    - `expand` (optional): If set to `details`, includes detailed information
+- **Example request:**
+  ```http
+  GET http://localhost:8080/geoservice/poi?lat=51.0490455&lon=13.7383389&radius=100&expand=details
+  ```
+- **Example response:**
+  ```json
+  [
+    {
+      "href": "http://localhost:8080/geoservice/poi/68daa16c2dae92ecfb8823a6",
+      "details": "Carl Zeiss Digital Innovation GmbH, Fritz-Foerster-Platz 2, 01069 Dresden",
+      "location": {
+        "type": "Point",
+        "coordinates": [13.7383389, 51.0490455]
+      }
+    }
+  ]
+  ```
