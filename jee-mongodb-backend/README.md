@@ -11,6 +11,7 @@ interest). The data is stored in a MongoDB database.
 - [Run](#run)
 - [Troubleshooting](#troubleshooting)
 - [REST API Endpoints](#rest-api-endpoints)
+- [Third‑party Licenses](#third-party-licenses)
 
 ## Quickstart
 
@@ -55,6 +56,10 @@ You can run the application in two ways:
 - Setup Wildfly credentials and hostname in the ~
   /.m2/settings.xml. For this set `wildfly.deploy.username`, `wildfly.deploy.password` and `wildfly.deploy.hostname`.
 - Use the Maven build `mvn clean install` to deploy the war file to a running Wildfly instance.
+- Access the API with this sample
+  request http://localhost:8080/zdi-geo-service/api/poi?lat=51.0490455&lon=13.7383389&radius=100&expand=details
+- If you want to access the Swagger UI, start your Wildfly with the standalone-microprofile.xml configuration then after
+  deployment you can assess it with http://localhost:8080/zdi-geo-service/swagger/
 
 ### Docker
 
@@ -97,13 +102,13 @@ docker network create demo-campus
 To run the backend container with the network, use:
 
 ```bash
-docker run --network demo-campus --name demo-campus-jee-backend -p 8080:8080 demo-campus-jee-backend
+docker run -d --network demo-campus --name demo-campus-jee-backend -p 8080:8080 demo-campus-jee-backend
 ```
 
 If you don't need the network, simply run the container without the `--network` option:
 
 ```bash
-docker run --name demo-campus-jee-backend -p 8080:8080 demo-campus-jee-backend
+docker run -d --name demo-campus-jee-backend -p 8080:8080 demo-campus-jee-backend
 ``` 
 
 ## Troubleshooting
@@ -143,3 +148,15 @@ This backend exposes the following main REST endpoints:
     }
   ]
   ```
+
+## Third‑party Licenses
+
+### Swagger UI Integration
+
+This project uses [https://github.com/swagger-api/swagger-ui](Swagger UI) to provide interactive API documentation.
+
+- Swagger UI (distribution from the `dist` folder) is included in the `src/main/webapp/swagger` directory and is
+  distributed under
+  the [https://www.apache.org/licenses/LICENSE-2.0](Apache License Version 2.0).
+- The original `LICENSE` and `NOTICE` files from the Swagger UI project are included in the same directory and are
+  packaged into the built WAR; they remain under the Apache License 2.0.
