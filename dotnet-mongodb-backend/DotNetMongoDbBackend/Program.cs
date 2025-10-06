@@ -4,8 +4,17 @@ using MongoDB.Driver;
 using DotNetMongoDbBackend.Configurations;
 using DotNetMongoDbBackend.Models;
 using DotNetMongoDbBackend.Services;
+using Microsoft.Extensions.Logging.Console;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Konfiguration des Loggings mit benutzerdefinierten Zeitformat (aktualisiert für .NET 9)
+builder.Logging.ClearProviders();
+builder.Logging.AddSimpleConsole(options =>
+{
+    options.TimestampFormat = "ddMMyy HH:mm ";
+    options.IncludeScopes = false;
+});
 
 // URLs-Konfiguration - einheitlich Port 8080 mit korrekter Container-Bindung
 if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")

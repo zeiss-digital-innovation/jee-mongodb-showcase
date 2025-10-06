@@ -39,30 +39,47 @@ public class PointOfInterestController : ControllerBase
         [FromQuery] int? limit = null,
         [FromQuery] double? lat = null,
         [FromQuery] double? lng = null,
+        [FromQuery] double? lon = null,  // Alternative für Frontend-Kompatibilität
         [FromQuery] double? radius = null)
     {
         try
         {
             List<PointOfInterest> pois;
 
-            // Geografische Suche
-            if (lat.HasValue && lng.HasValue)
+            // Normalisiere lon/lng Parameter
+            double? longitude = lng ?? lon;
+
+            _logger.LogInformation("GetAllPois aufgerufen: lat={Lat}, lng={Lng}, lon={Lon}, radius={Radius}",
+                lat, lng, lon, radius);
+
+            // WICHTIG: Geografische Suche hat Priorität (wie in JEE-Referenz)
+            if (lat.HasValue && longitude.HasValue)
             {
-                pois = await _poiService.GetNearbyPoisAsync(lng.Value, lat.Value, radius ?? 10.0);
+                var radiusKm = radius ?? 10.0; // Default 10km wie JEE
+                _logger.LogInformation("Führe geografische Suche durch: lat={Lat}, lng={Lng}, radius={Radius}km",
+                    lat, longitude, radiusKm);
+
+                pois = await _poiService.GetNearbyPoisAsync(longitude.Value, lat.Value, radiusKm);
+
+                _logger.LogInformation("Geografische Suche abgeschlossen: {Count} POIs gefunden im Radius {Radius}km",
+                    pois.Count, radiusKm);
             }
             // Kategorie-Filter
             else if (!string.IsNullOrWhiteSpace(category))
             {
+                _logger.LogInformation("Führe Kategorie-Filter durch: {Category}", category);
                 pois = await _poiService.GetPoisByCategoryAsync(category);
             }
             // Volltext-Suche
             else if (!string.IsNullOrWhiteSpace(search))
             {
+                _logger.LogInformation("Führe Volltext-Suche durch: {Search}, limit={Limit}", search, limit);
                 pois = await _poiService.SearchPoisAsync(search, limit);
             }
-            // Alle POIs
+            // Alle POIs (nur als letzter Fallback)
             else
             {
+                _logger.LogWarning("Fallback: Alle POIs abgerufen (keine Filter angegeben) - dies kann sehr langsam sein!");
                 pois = await _poiService.GetAllPoisAsync();
             }
 
