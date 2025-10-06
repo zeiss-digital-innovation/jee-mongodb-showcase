@@ -20,31 +20,31 @@ public class PointOfInterest
     [JsonPropertyName("href")]
     public string? Href { get; set; }
 
-    [BsonElement("name")]
-    [JsonPropertyName("name")]
-    [Required(ErrorMessage = "Name ist erforderlich")]
-    [StringLength(100, ErrorMessage = "Name darf maximal 100 Zeichen lang sein")]
-    public string Name { get; set; } = string.Empty;
-
     [BsonElement("category")]
     [JsonPropertyName("category")]
-    [Required(ErrorMessage = "Kategorie ist erforderlich")]
-    [StringLength(50, ErrorMessage = "Kategorie darf maximal 50 Zeichen lang sein")]
-    public string Category { get; set; } = string.Empty;
+    public string? Category { get; set; }
+
+    [BsonElement("details")]
+    [JsonPropertyName("details")]
+    public string? Details { get; set; }
 
     [BsonElement("location")]
     [JsonPropertyName("location")]
-    [Required(ErrorMessage = "Location ist erforderlich")]
-    public Location Location { get; set; } = new();
+    public Location? Location { get; set; }
+
+    // Optionale Felder die möglicherweise nicht in allen Dokumenten vorhanden sind
+    [BsonElement("name")]
+    [JsonPropertyName("name")]
+    public string? Name { get; set; }
 
     [BsonElement("address")]
     [JsonPropertyName("address")]
-    [StringLength(200, ErrorMessage = "Adresse darf maximal 200 Zeichen lang sein")]
     public string? Address { get; set; }
 
     [BsonElement("tags")]
     [JsonPropertyName("tags")]
-    public List<string> Tags { get; set; } = new();
+    [BsonIgnoreIfNull]
+    public List<string>? Tags { get; set; }
 
     /// <summary>
     /// Generiert die HREF-URL für diesen POI (kompatibel mit JEE Backend)

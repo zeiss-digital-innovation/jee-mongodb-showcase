@@ -17,10 +17,23 @@ public class PointOfInterestService : IPointOfInterestService
 
     public PointOfInterestService(IMongoDatabase database, IOptions<MongoSettings> mongoSettings, ILogger<PointOfInterestService> logger)
     {
-        _poisCollection = database.GetCollection<PointOfInterest>(mongoSettings.Value.Collections.Pois);
+        // DIREKTER FIX: Verwende die bestätigte Collection explizit
+        _poisCollection = database.GetCollection<PointOfInterest>("point_of_interest");
         _logger = logger;
         
-        _logger.LogInformation("PointOfInterestService initialisiert mit Collection: {CollectionName}", mongoSettings.Value.Collections.Pois);
+        _logger.LogInformation("PointOfInterestService initialisiert mit Collection: point_of_interest (HARDCODED FIX)");
+        _logger.LogInformation("MongoDB Database: {DatabaseName}", database.DatabaseNamespace.DatabaseName);
+
+        // Teste sofort die Collection-Verbindung
+        try
+        {
+            var testCount = _poisCollection.CountDocuments(FilterDefinition<PointOfInterest>.Empty);
+            _logger.LogInformation("MongoDB Test erfolgreich: {Count} Dokumente in Collection 'point_of_interest' gefunden", testCount);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "FEHLER bei MongoDB Verbindungstest für Collection 'point_of_interest'");
+        }
 
         // Erstelle 2dsphere Index für geografische Suchen
         CreateIndexes();

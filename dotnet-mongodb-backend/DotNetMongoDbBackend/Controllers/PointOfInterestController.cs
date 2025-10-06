@@ -257,17 +257,56 @@ public class PointOfInterestController : ControllerBase
     }
 
     /// <summary>
-    /// GET /geoservice/pois - Kompatibilitäts-Endpunkt für Frontend (Plural)
+    /// GET /geoservice/debug - Debug-Endpunkt für MongoDB-Verbindung
     /// </summary>
-    [HttpGet("pois")]
-    public async Task<ActionResult<List<PointOfInterest>>> GetAllPoisPlural(
-        [FromQuery] string? category = null,
-        [FromQuery] string? search = null,
-        [FromQuery] int? limit = null,
-        [FromQuery] double? lat = null,
-        [FromQuery] double? lng = null,
-        [FromQuery] double? radius = null)
+    [HttpGet("debug")]
+    public async Task<ActionResult<object>> DebugMongoConnection()
     {
-        return await GetAllPois(category, search, limit, lat, lng, radius);
+        try
+        {
+            var debugInfo = new
+            {
+                ServiceInjected = _poiService != null,
+                CollectionTest = "wird getestet...",
+                TotalCount = 0,
+                ToiletCount = 0,
+                Error = (string?)null
+            };
+
+            if (_poiService != null)
+            {
+                try
+                {
+                    var allPois = await _poiService.GetAllPoisAsync();
+                    var toiletPois = await _poiService.GetPoisByCategoryAsync("toilet");
+
+                    debugInfo = new
+                    {
+                        ServiceInjected = true,
+                        CollectionTest = "erfolgreich",
+                        TotalCount = allPois.Count,
+                        ToiletCount = toiletPois.Count,
+                        Error = (string?)null
+                    };
+                }
+                catch (Exception ex)
+                {
+                    debugInfo = new
+                    {
+                        ServiceInjected = true,
+                        CollectionTest = "fehlgeschlagen",
+                        TotalCount = 0,
+                        ToiletCount = 0,
+                        Error = ex.Message
+                    };
+                }
+            }
+
+            return Ok(debugInfo);
+        }
+        catch (Exception ex)
+        {
+            return Ok(new { Error = ex.Message, StackTrace = ex.StackTrace });
+        }
     }
 }
