@@ -55,14 +55,16 @@ public class PointOfInterestController : ControllerBase
             // WICHTIG: Geografische Suche hat Priorität (wie in JEE-Referenz)
             if (lat.HasValue && longitude.HasValue)
             {
-                var radiusKm = radius ?? 10.0; // Default 10km wie JEE
-                _logger.LogInformation("Führe geografische Suche durch: lat={Lat}, lng={Lng}, radius={Radius}km",
-                    lat, longitude, radiusKm);
+                var radiusMeters = radius ?? 10000.0; // Default 10km (10000m) wie JEE
+                var radiusKm = radiusMeters / 1000.0; // Konvertiere Meter zu Kilometer
+
+                _logger.LogInformation("Führe geografische Suche durch: lat={Lat}, lng={Lng}, radius={Radius}m ({RadiusKm}km)",
+                    lat, longitude, radiusMeters, radiusKm);
 
                 pois = await _poiService.GetNearbyPoisAsync(longitude.Value, lat.Value, radiusKm);
 
-                _logger.LogInformation("Geografische Suche abgeschlossen: {Count} POIs gefunden im Radius {Radius}km",
-                    pois.Count, radiusKm);
+                _logger.LogInformation("Geografische Suche abgeschlossen: {Count} POIs gefunden im Radius {Radius}m ({RadiusKm}km)",
+                    pois.Count, radiusMeters, radiusKm);
             }
             // Kategorie-Filter
             else if (!string.IsNullOrWhiteSpace(category))
