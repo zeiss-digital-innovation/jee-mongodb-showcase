@@ -6,11 +6,11 @@ Dieses **.NET Backend** ist Teil des MongoDB Workshop-Projekts und bietet eine h
 
 ## 🛠 Technologie-Stack
 
-- **.NET 10** - Neueste .NET Version
+- **.NET 9** - Aktuelle .NET Version
 - **ASP.NET Core** - High-Performance Web Framework
 - **MongoDB.Driver 3.5.0** - Offizieller MongoDB C# Driver
-- **Swashbuckle** - OpenAPI/Swagger Integration
-- **System.Text.Json** - Native JSON Serialization
+- **Newtonsoft.Json 13.0.3** - JSON Serialization
+- **Microsoft.AspNetCore.OpenApi** - OpenAPI/Swagger Integration
 - **Built-in Dependency Injection** - .NET DI Container
 - **xUnit** - Testing Framework
 
@@ -120,12 +120,12 @@ dotnet run -c Release
 ```json
 {
   "_id": "ObjectId",
-  "href": "/api/pois/{id}",
+  "href": "/geoservice/poi/{id}",
   "name": "POI Name",
   "category": "restaurant|pharmacy|parking|etc",
   "location": {
-    "longitude": 13.7373,
-    "latitude": 51.0504
+    "type": "Point",
+    "coordinates": [13.7373, 51.0504]
   },
   "address": "Straße 123, 01067 Dresden",
   "tags": ["tag1", "tag2"]
@@ -137,19 +137,24 @@ dotnet run -c Release
 ### appsettings.json
 ```json
 {
-  "ConnectionStrings": {
-    "MongoDB": "mongodb://localhost:27017"
-  },
-  "MongoDB": {
-    "DatabaseName": "mongodbws"
-  },
   "Logging": {
     "LogLevel": {
       "Default": "Information",
-      "DotNetMongoDbBackend": "Debug"
+      "Microsoft.AspNetCore": "Warning"
+    },
+    "Console": {
+      "TimestampFormat": "ddMMyy HH:mm ",
+      "IncludeScopes": false
     }
   },
-  "Urls": "http://localhost:8080"
+  "AllowedHosts": "*",
+  "MongoSettings": {
+    "ConnectionString": "mongodb://localhost:27017",
+    "Database": "demo_campus",
+    "Collections": {
+      "Pois": "point_of_interest"
+    }
+  }
 }
 ```
 
@@ -283,13 +288,13 @@ dotnet run --launch-profile https
 
 ## 🆚 Backend Vergleich
 
-| Feature | JEE Backend |  **.NET Backend** |
-|---------|-------------|------------|------------------|
-| Framework | Java EE 8 |  **ASP.NET Core** |
-| Language | Java 17 |  **C# 12** |
+| Feature | JEE Backend | **.NET Backend** |
+|---------|-------------|------------------|
+| Framework | Java EE 8 | **ASP.NET Core** |
+| Language | Java 17 | **C# 12** |
 | Port | 8080 | **8080** |
-| Runtime | JVM |  **.NET Runtime** |
-| Startup | ~5-10s |  **~1-2s** |
+| Runtime | JVM | **.NET Runtime** |
+| Startup | ~5-10s | **~1-2s** |
 | Memory | ~100MB | **~30MB** |
 | Performance | Good | **Excellent** |
 | Async Support | Limited | **Native** |
@@ -336,9 +341,9 @@ var pipeline = new BsonDocument[]
 
 ```dockerfile
 # Dockerfile erstellen
-FROM mcr.microsoft.com/dotnet/aspnet:10.0
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
-COPY bin/Release/net10.0/publish/ .
+COPY bin/Release/net9.0/publish/ .
 EXPOSE 8080
 ENTRYPOINT ["dotnet", "DotNetMongoDbBackend.dll"]
 ```
