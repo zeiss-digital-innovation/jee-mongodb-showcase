@@ -12,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Logging.ClearProviders();
 builder.Logging.AddSimpleConsole(options =>
 {
-    options.TimestampFormat = "ddMMyy HH:mm ";
+    options.TimestampFormat = "dd.MM.yy HH:mm ";
     options.IncludeScopes = false;
 });
 

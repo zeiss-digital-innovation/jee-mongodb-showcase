@@ -316,7 +316,7 @@ public class PointOfInterestController : ControllerBase
                         CollectionTest = "fehlgeschlagen",
                         TotalCount = 0,
                         ToiletCount = 0,
-                        Error = ex.Message
+                        Error = (string?) ex.Message
                     };
                 }
             }
