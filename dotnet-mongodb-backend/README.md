@@ -29,23 +29,23 @@ Dieses **.NET Backend** ist Teil des MongoDB Workshop-Projekts und bietet eine h
 
 ### API Endpoints
 ```
-GET  /api/pois                    - Alle POIs (mit Query-Parametern)
-GET  /api/pois/{id}              - POI nach ID
-POST /api/pois                   - Neuen POI erstellen
-PUT  /api/pois/{id}              - POI aktualisieren
-DELETE /api/pois/{id}            - POI löschen
-GET  /api/categories             - Alle verfügbaren Kategorien
-GET  /api/stats/category/{cat}   - Statistiken für Kategorie
-GET  /api/health                 - Health Check
-GET  /                           - Service Status
+GET  /geoservice/poi                    - Alle POIs (mit Query-Parametern)
+GET  /geoservice/poi/{id}              - POI nach ID
+POST /geoservice/poi                   - Neuen POI erstellen
+PUT  /geoservice/poi/{id}              - POI aktualisieren
+DELETE /geoservice/poi/{id}            - POI löschen
+GET  /geoservice/categories            - Alle verfügbaren Kategorien
+GET  /geoservice/stats/category/{cat}  - Statistiken für Kategorie
+GET  /geoservice/health                - Health Check
+GET  /geoservice/debug                 - Debug-Informationen
 ```
 
-### Query Parameter für /api/pois
+### Query Parameter für /geoservice/poi
 - `category` - Filtert nach Kategorie
 - `search` - Volltext-Suche in Name, Adresse, Tags
 - `limit` - Maximal zurückzugebende Ergebnisse
-- `lat` & `lng` - Geografische Suche (Koordinaten)
-- `radius` - Radius in Kilometern (Standard: 10km)
+- `lat` & `lng` (oder `lon`) - Geografische Suche (Koordinaten)
+- `radius` - Radius in Metern (wird automatisch zu km konvertiert)
 
 ## 🚀 Installation & Start
 
@@ -110,10 +110,10 @@ dotnet run -c Release
 ```
 
 ### Server-URLs
-- **API Base URL**: http://localhost:8082
-- **Swagger UI**: http://localhost:8082/swagger
-- **Health Check**: http://localhost:8082/api/health
-- **Service Status**: http://localhost:8082/
+- **API Base URL**: http://localhost:8080/geoservice
+- **Health Check**: http://localhost:8080/geoservice/health
+- **Debug-Informationen**: http://localhost:8080/geoservice/debug
+- **Swagger UI**: http://localhost:8080/swagger (falls aktiviert)
 
 ## 📊 MongoDB Schema
 
@@ -149,7 +149,7 @@ dotnet run -c Release
       "DotNetMongoDbBackend": "Debug"
     }
   },
-  "Urls": "http://localhost:8082"
+  "Urls": "http://localhost:8080"
 }
 ```
 
@@ -170,27 +170,27 @@ dotnet watch test
 
 ### Alle POIs abrufen
 ```bash
-curl http://localhost:8082/api/pois
+curl http://localhost:8080/geoservice/poi
 ```
 
 ### POIs nach Kategorie filtern
 ```bash
-curl "http://localhost:8082/api/pois?category=restaurant"
+curl "http://localhost:8080/geoservice/poi?category=restaurant"
 ```
 
 ### Geografische Suche
 ```bash
-curl "http://localhost:8082/api/pois?lat=51.0504&lng=13.7373&radius=5"
+curl "http://localhost:8080/geoservice/poi?lat=51.0504&lng=13.7373&radius=2000"
 ```
 
 ### Volltext-Suche
 ```bash
-curl "http://localhost:8082/api/pois?search=Apotheke&limit=10"
+curl "http://localhost:8080/geoservice/poi?search=Apotheke&limit=10"
 ```
 
 ### Neuen POI erstellen
 ```bash
-curl -X POST http://localhost:8082/api/pois \
+curl -X POST http://localhost:8080/geoservice/poi \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Test Restaurant",
@@ -228,13 +228,13 @@ DotNetMongoDbBackend/
 ```typescript
 // Environment Configuration
 export const environment = {
-  apiUrl: 'http://localhost:8082/api'
+  apiBaseUrl: 'http://localhost:8080/geoservice'
 };
 ```
 
 ### Mit anderen Backends
 - Port 8080: JEE Backend
-- Port 8082: **.NET Backend** (dieser)
+- Port 8080: **.NET Backend** (dieser)
 
 ## 📈 Performance Highlights
 
@@ -287,7 +287,7 @@ dotnet run --launch-profile https
 |---------|-------------|------------|------------------|
 | Framework | Java EE 8 |  **ASP.NET Core** |
 | Language | Java 17 |  **C# 12** |
-| Port | 8080 | **8082** |
+| Port | 8080 | **8080** |
 | Runtime | JVM |  **.NET Runtime** |
 | Startup | ~5-10s |  **~1-2s** |
 | Memory | ~100MB | **~30MB** |
@@ -339,7 +339,7 @@ var pipeline = new BsonDocument[]
 FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY bin/Release/net10.0/publish/ .
-EXPOSE 8082
+EXPOSE 8080
 ENTRYPOINT ["dotnet", "DotNetMongoDbBackend.dll"]
 ```
 
@@ -347,7 +347,7 @@ ENTRYPOINT ["dotnet", "DotNetMongoDbBackend.dll"]
 # Docker Build & Run
 dotnet publish -c Release
 docker build -t dotnet-mongodb-backend .
-docker run -p 8082:8082 dotnet-mongodb-backend
+docker run -p 8080:8080 dotnet-mongodb-backend
 ```
 
 ## 🎯 Nächste Schritte
