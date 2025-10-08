@@ -2,7 +2,7 @@
 
 ## 🚀 Überblick
 
-Dieses **.NET Backend** ist Teil des MongoDB Workshop-Projekts und bietet eine hochperformante, moderne REST API für die Verwaltung von Points of Interest (POIs). Es ist vollständig kompatibel mit dem Angular Frontend und bietet die gleiche API-Struktur wie das JEE und Spring Boot Backend.
+Dieses **.NET Backend** ist Teil des MongoDB Workshop-Projekts und bietet eine hochperformante, moderne REST API für die Verwaltung von Points of Interest (POIs). Es ist vollständig kompatibel mit dem Angular Frontend und bietet die gleiche API-Struktur wie das JEE Backend.
 
 ## 🛠 Technologie-Stack
 
@@ -234,7 +234,6 @@ export const environment = {
 
 ### Mit anderen Backends
 - Port 8080: JEE Backend
-- Port 8081: Spring Boot Backend
 - Port 8082: **.NET Backend** (dieser)
 
 ## 📈 Performance Highlights
@@ -284,16 +283,16 @@ dotnet run --launch-profile https
 
 ## 🆚 Backend Vergleich
 
-| Feature | JEE Backend | Spring Boot | **.NET Backend** |
-|---------|-------------|-------------|------------------|
-| Framework | Java EE 8 | Spring Boot 3.2 | **ASP.NET Core** |
-| Language | Java 17 | Java 17 | **C# 12** |
-| Port | 8080 | 8081 | **8082** |
-| Runtime | JVM | JVM | **.NET Runtime** |
-| Startup | ~5-10s | ~3-5s | **~1-2s** |
-| Memory | ~100MB | ~80MB | **~30MB** |
-| Performance | Good | Very Good | **Excellent** |
-| Async Support | Limited | Good | **Native** |
+| Feature | JEE Backend |  **.NET Backend** |
+|---------|-------------|------------|------------------|
+| Framework | Java EE 8 |  **ASP.NET Core** |
+| Language | Java 17 |  **C# 12** |
+| Port | 8080 | **8082** |
+| Runtime | JVM |  **.NET Runtime** |
+| Startup | ~5-10s |  **~1-2s** |
+| Memory | ~100MB | **~30MB** |
+| Performance | Good | **Excellent** |
+| Async Support | Limited | **Native** |
 
 ## 🎯 C# Specific Features
 
