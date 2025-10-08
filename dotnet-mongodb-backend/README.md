@@ -50,10 +50,50 @@ GET  /                           - Service Status
 ## 🚀 Installation & Start
 
 ### Voraussetzungen
-- .NET 10 SDK oder höher
+- .NET 9 SDK oder höher
 - MongoDB läuft auf localhost:27017
 
-### Projekt starten
+### 🎯 Schnellstart (Empfohlen)
+
+#### Automatisches Docker-Deployment
+```bash
+# Windows - Intelligente MongoDB-Erkennung
+.\deploy.bat
+
+# Linux/macOS - Intelligente MongoDB-Erkennung  
+chmod +x deploy.sh
+./deploy.sh
+```
+
+Die Deploy-Skripte erkennen automatisch:
+- ✅ Vorhandene MongoDB-Container
+- ✅ Externe MongoDB-Installationen
+- ✅ Netzwerk-Konfigurationen
+- ✅ Optimale docker-compose Datei
+
+### 🐳 Docker-Deployment-Optionen
+
+#### 1. Komplettes System (Backend + MongoDB)
+```bash
+# Startet eigene MongoDB + Backend
+docker-compose up --build -d
+```
+
+#### 2. Nur Backend (externe MongoDB)
+```bash
+# Nutzt vorhandene MongoDB
+docker-compose -f docker-compose.external-mongo.yml up --build -d
+```
+
+#### 3. Development Mode
+```bash
+# Development mit Hot Reload
+docker-compose -f docker-compose.local.yml up --build
+```
+
+### 💻 Lokale Entwicklung (ohne Docker)
+
+#### Projekt starten
 ```bash
 # In das Projekt-Verzeichnis wechseln
 cd dotnet-mongodb-backend/DotNetMongoDbBackend
