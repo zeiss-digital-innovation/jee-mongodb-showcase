@@ -4,8 +4,6 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetMongoDbBackend", "DotNetMongoDbBackend\DotNetMongoDbBackend.csproj", "{25E89279-1DC7-5FF3-2078-343073083450}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MongoDbTest", "MongoDbTest\MongoDbTest.csproj", "{6D5D4519-5009-CC5A-1AFD-8C405A71F3ED}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetMongoDbBackend.Tests", "tests\DotNetMongoDbBackend.Tests.csproj", "{278863BD-56AE-068C-9A48-8665A1567AC1}"
 EndProject
 Global
