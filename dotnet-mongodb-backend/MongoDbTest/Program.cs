@@ -13,7 +13,8 @@ namespace MongoDbTest
             Console.WriteLine("=== MongoDB Direct Test ===");
 
             var connectionString = "mongodb://localhost:27017";
-            var databaseName = "demo_campus";
+            var databaseName = "demo-campus";
+            var collectionName = "point-of-interest"; // Korrekte Collection mit Bindestrich
 
             try
             {
@@ -22,6 +23,7 @@ namespace MongoDbTest
 
                 Console.WriteLine($"Connection: {connectionString}");
                 Console.WriteLine($"Database: {databaseName}");
+                Console.WriteLine($"Collection: {collectionName}");
 
                 // Liste alle Collections auf
                 var collections = await database.ListCollectionNamesAsync();
@@ -32,38 +34,37 @@ namespace MongoDbTest
                     Console.WriteLine($"- {coll}");
                 }
 
-                // Test verschiedene Collection-Namen
-                Console.WriteLine("\n=== Testing different collection names ===");
+                // Test korrekte Collection
+                Console.WriteLine("\n=== Testing correct collection ===");
 
-                // Test 1: point_of_interest (singular)
                 try
                 {
-                    var collection1 = database.GetCollection<BsonDocument>("point_of_interest");
-                    var count1 = await collection1.CountDocumentsAsync(new BsonDocument());
-                    Console.WriteLine($"Collection 'point_of_interest' (singular): {count1} documents");
+                    var collection = database.GetCollection<BsonDocument>(collectionName);
+                    var count = await collection.CountDocumentsAsync(new BsonDocument());
+                    Console.WriteLine($"Collection '{collectionName}': {count} documents");
 
-                    if (count1 > 0)
+                    if (count > 0)
                     {
                         // Test TOILET (korrekte Schreibweise) statt toilette
                         var toiletFilter = Builders<BsonDocument>.Filter.Eq("category", "toilet");
-                        var toiletCount = await collection1.CountDocumentsAsync(toiletFilter);
+                        var toiletCount = await collection.CountDocumentsAsync(toiletFilter);
                         Console.WriteLine($"  - Documents with category 'toilet': {toiletCount}");
 
-                        var toiletteFilter1 = Builders<BsonDocument>.Filter.Eq("category", "toilette");
-                        var toiletteCount1 = await collection1.CountDocumentsAsync(toiletteFilter1);
-                        Console.WriteLine($"  - Documents with category 'toilette': {toiletteCount1}");
+                        var toiletteFilter = Builders<BsonDocument>.Filter.Eq("category", "toilette");
+                        var toiletteCount = await collection.CountDocumentsAsync(toiletteFilter);
+                        Console.WriteLine($"  - Documents with category 'toilette': {toiletteCount}");
 
                         // Test andere Kategorien
                         var healthFilter = Builders<BsonDocument>.Filter.Eq("category", "health");
-                        var healthCount = await collection1.CountDocumentsAsync(healthFilter);
+                        var healthCount = await collection.CountDocumentsAsync(healthFilter);
                         Console.WriteLine($"  - Documents with category 'health': {healthCount}");
 
                         var cashFilter = Builders<BsonDocument>.Filter.Eq("category", "cash");
-                        var cashCount = await collection1.CountDocumentsAsync(cashFilter);
+                        var cashCount = await collection.CountDocumentsAsync(cashFilter);
                         Console.WriteLine($"  - Documents with category 'cash': {cashCount}");
 
                         // Zeige alle verfügbaren Kategorien
-                        var distinctCategories = await collection1.DistinctAsync<string>("category", new BsonDocument());
+                        var distinctCategories = await collection.DistinctAsync<string>("category", new BsonDocument());
                         var categoriesList = await distinctCategories.ToListAsync();
                         Console.WriteLine($"  - Available categories ({categoriesList.Count}):");
                         foreach (var cat in categoriesList.Take(10))
@@ -76,36 +77,17 @@ namespace MongoDbTest
                         }
 
                         // Zeige erste Dokument
-                        var firstDoc1 = await collection1.Find(new BsonDocument()).FirstOrDefaultAsync();
-                        if (firstDoc1 != null)
+                        var firstDoc = await collection.Find(new BsonDocument()).FirstOrDefaultAsync();
+                        if (firstDoc != null)
                         {
                             Console.WriteLine($"  - First document structure:");
-                            Console.WriteLine($"    {firstDoc1.ToJson()}");
+                            Console.WriteLine($"    {firstDoc.ToJson()}");
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error accessing 'point_of_interest': {ex.Message}");
-                }
-
-                // Test 2: points_of_interest (plural)
-                try
-                {
-                    var collection2 = database.GetCollection<BsonDocument>("points_of_interest");
-                    var count2 = await collection2.CountDocumentsAsync(new BsonDocument());
-                    Console.WriteLine($"Collection 'points_of_interest' (plural): {count2} documents");
-
-                    if (count2 > 0)
-                    {
-                        var toiletteFilter2 = Builders<BsonDocument>.Filter.Eq("category", "toilette");
-                        var toiletteCount2 = await collection2.CountDocumentsAsync(toiletteFilter2);
-                        Console.WriteLine($"  - Documents with category 'toilette': {toiletteCount2}");
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error accessing 'points_of_interest': {ex.Message}");
+                    Console.WriteLine($"Error accessing '{collectionName}': {ex.Message}");
                 }
 
                 Console.WriteLine("\n=== Test completed ===");

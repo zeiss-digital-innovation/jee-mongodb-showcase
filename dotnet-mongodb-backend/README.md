@@ -150,9 +150,9 @@ dotnet run -c Release
   "AllowedHosts": "*",
   "MongoSettings": {
     "ConnectionString": "mongodb://localhost:27017",
-    "Database": "demo_campus",
+    "Database": "demo-campus",
     "Collections": {
-      "Pois": "point_of_interest"
+      "Pois": "point-of-interest"
     }
   }
 }

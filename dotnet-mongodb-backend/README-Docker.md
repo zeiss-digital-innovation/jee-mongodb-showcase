@@ -204,8 +204,8 @@ docker volume prune
 ```bash
 # MongoDB-Verbindung
 MONGO_CONNECTION_STRING="mongodb://localhost:27017"
-MongoSettings__Database="demo_campus"
-MongoSettings__Collections__Pois="points_of_interest"
+MongoSettings__Database="demo-campus"
+MongoSettings__Collections__Pois="point-of-interest"
 
 # ASP.NET Core
 ASPNETCORE_ENVIRONMENT="Production"
@@ -326,7 +326,7 @@ services:
 ### Production-Deployment
 ```bash
 # Sichere MongoDB-Verbindung
-export MONGO_CONNECTION_STRING="mongodb://user:password@mongodb:27017/demo_campus?authSource=admin"
+export MONGO_CONNECTION_STRING="mongodb://user:password@mongodb:27017/demo-campus?authSource=admin"
 
 # HTTPS aktivieren
 export ASPNETCORE_URLS="https://+:443;http://+:80"

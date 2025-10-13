@@ -14,8 +14,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:80;https://+:443
       - MongoSettings__ConnectionString=mongodb://mongodb:27017
-      - MongoSettings__Database=demo_campus
-      - MongoSettings__Collections__Pois=points_of_interest
+      - MongoSettings__Database=demo-campus
+      - MongoSettings__Collections__Pois=point-of-interest
     depends_on:
       - mongodb
     networks:
@@ -33,7 +33,7 @@ services:
     ports:
       - "27017:27017"
     environment:
-      - MONGO_INITDB_DATABASE=demo_campus
+      - MONGO_INITDB_DATABASE=demo-campus
     volumes:
       - mongo-data:/data/db
     networks:

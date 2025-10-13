@@ -13,8 +13,8 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - DOTNET_RUNNING_IN_CONTAINER=true
       - MongoSettings__ConnectionString=mongodb://mongodb:27017
-      - MongoSettings__Database=demo_campus
-      - MongoSettings__Collections__Pois=points_of_interest
+      - MongoSettings__Database=demo-campus
+      - MongoSettings__Collections__Pois=point-of-interest
     networks:
       - demo-campus
     restart: unless-stopped
