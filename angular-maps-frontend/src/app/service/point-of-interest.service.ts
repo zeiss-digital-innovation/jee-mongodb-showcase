@@ -25,6 +25,14 @@ export class PointOfInterestService {
         return this.http.get<PointOfInterest[]>(`/poi?lat=${latitude}&lon=${longitude}&radius=${radius}&expand=details`);
     }
 
+    /**
+     * Create a new point of interest on the backend
+     * The BaseUrlInterceptor will prepend the configured base URL.
+     */
+    createPointOfInterest(point: PointOfInterest): Observable<PointOfInterest> {
+        return this.http.post<PointOfInterest>(`/poi`, point);
+    }
+
 }
 
 // Use this function to work with mock data (i.e. without a running backend).

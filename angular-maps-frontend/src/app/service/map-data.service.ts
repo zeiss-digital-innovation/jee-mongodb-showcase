@@ -22,7 +22,7 @@ export class MapDataService {
 
         var iconImg: string;
 
-        switch (poi.category) {
+        switch (poi.category.toLowerCase()) {
             case 'restaurant':
                 iconImg =
                     `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-fork-knife" viewBox="0 0 16 16">
