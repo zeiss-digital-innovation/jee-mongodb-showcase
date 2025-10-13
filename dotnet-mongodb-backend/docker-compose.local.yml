@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # .NET Backend Service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dotnet-mongodb-backend
+    ports:
+      - "5000:80"
+      - "5001:443"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80;https://+:443
+      - MongoSettings__ConnectionString=mongodb://mongodb:27017
+      - MongoSettings__Database=demo-campus
+      - MongoSettings__Collections__Pois=point-of-interest
+    depends_on:
+      - mongodb
+    networks:
+      - backend-network
+    restart: unless-stopped
+    volumes:
+      - ./DotNetMongoDbBackend:/app/src
+    profiles:
+      - local-db
+
+  # MongoDB Service
+  mongodb:
+    image: mongo:7.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=demo-campus
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - backend-network
+    restart: unless-stopped
+    profiles:
+      - local-db
+
+volumes:
+  mongo-data:
+    driver: local
+
+networks:
+  backend-network:
+    driver: bridge

@@ -6,8 +6,8 @@
 ## Prerequisites
 The backend(s) use the following database configuration:
 - database: `demo-campus`
-- collection: `point_of_interest`
-- The collection needs at least the following index (besides the default `_id_` index): `db.point_of_interest.createIndex( { location : "2dsphere" } )`
+- collection: `point-of-interest`
+- The collection needs at least the following index (besides the default `_id_` index): `db.point-of-interest.createIndex( { location : "2dsphere" } )`
 
 ## Docker Setup
 
@@ -22,7 +22,7 @@ docker-compose up -d
 This will:
 - Start MongoDB 8.0.13 on port 27017
 - Create the `demo-campus` database  
-- Create the `point_of_interest` collection
+- Create the `point-of-interest` collection
 - Add the required 2dsphere index for location-based queries
 - Insert sample data (optional)
 - Create a network named exactly `demo-campus` (not prefixed with project name)
@@ -77,10 +77,10 @@ use demo-campus
 show collections
 
 // Verify the 2dsphere index exists
-db.point_of_interest.getIndexes()
+db['point-of-interest'].getIndexes()
 
 // Check sample data (if inserted)
-db.point_of_interest.find().pretty()
+db['point-of-interest'].find().pretty()
 ```
 
 ## Useful Commands

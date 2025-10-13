@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  # .NET Backend Service
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dotnet-mongodb-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - MongoSettings__ConnectionString=mongodb://mongodb:27017
+      - MongoSettings__Database=demo-campus
+      - MongoSettings__Collections__Pois=point-of-interest
+    depends_on:
+      - mongodb
+    networks:
+      - demo-campus
+    restart: unless-stopped
+
+  # MongoDB Service (wie im JEE-Backend verwendet)
+  mongodb:
+    image: mongodb/mongodb-community-server:latest
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=demo-campus
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - demo-campus
+    restart: unless-stopped
+
+volumes:
+  mongo-data:
+    driver: local
+
+networks:
+  demo-campus:
+    driver: bridge

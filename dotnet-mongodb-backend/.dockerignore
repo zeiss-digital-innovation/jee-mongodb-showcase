@@ -1,0 +1,74 @@
+
+# Build artifacts
+ # Kompilierte .NET Binärdateien (Debug/Release)
+bin/
+# Temporäre Build-Objekte, Zwischendateien
+obj/
+# dotnet publish Output-Ordner
+publish/
+# Visual Studio Cache und Configurationsdateien
+.vs/
+# Benutzerspezifische Projekteinstellungen
+*.user
+# Visual Studio Solution User Options
+*.suo
+# Lokale Umgebungsdateien (Secrets)
+.env
+# Locale Entwicklungsumgebungsdateien
+.env.local
+
+# .NET specific files
+*.csproj.user
+*.dbmdl
+*.pdb
+*.cache
+*.log
+*.vspscc
+*.vssscc
+*.sln.docstates
+*.ncrunch*
+*.userosscache
+*.swp
+*.swo
+~
+.vscode/
+.idea/
+*.Dotsettings
+*.Dotsettings.user
+
+#NuGet Packages
+packages/
+*.nupkg
+.nuget/
+*.snupkg
+
+# Test results
+TestResults/
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+*.testsettings
+*.runsettings
+
+
+# Docker files
+Dockerfile*
+docker-compose*
+docker-compose.override*
+docker-compose.*.yml
+*.md
+README*
+
+# Node.js files
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+.DS_Store
+Thumbs.db
