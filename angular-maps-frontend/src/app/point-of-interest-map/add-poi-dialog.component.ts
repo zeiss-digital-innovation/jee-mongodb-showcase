@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -30,6 +30,7 @@ import { FormsModule } from '@angular/forms';
           <button class="btn btn-secondary" type="button" (click)="onCancel()">Cancel</button>
           <button class="btn btn-primary" type="button" (click)="onSave()">Save</button>
         </div>
+        <div class="shortcut-hint" aria-hidden="true">Esc to cancel · Enter to save</div>
       </div>
     </div>
   `,
@@ -50,6 +51,13 @@ import { FormsModule } from '@angular/forms';
       border-radius: 6px;
       width: 320px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+    .shortcut-hint {
+      margin-top: 8px;
+      text-align: right;
+      color: rgba(0,0,0,0.55);
+      font-size: 12px;
+      user-select: none;
     }
     `
   ]
@@ -78,5 +86,25 @@ export class AddPoiDialogComponent implements OnInit {
 
   onCancel(): void {
     this.cancel.emit();
+  }
+
+  // keyboard shortcuts: Esc -> cancel, Enter -> save (but ignore Enter when typing in textarea)
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardEvent(event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.onCancel();
+      return;
+    }
+
+    if (event.key === 'Enter') {
+      const target = event.target as HTMLElement | null;
+      // if focus is inside a textarea, let Enter insert a newline
+      if (target && target.tagName && target.tagName.toLowerCase() === 'textarea') {
+        return;
+      }
+      event.preventDefault();
+      this.onSave();
+    }
   }
 }
