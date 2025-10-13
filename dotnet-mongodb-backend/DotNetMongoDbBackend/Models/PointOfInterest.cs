@@ -35,6 +35,7 @@ public class PointOfInterest
     // Optionale Felder die möglicherweise nicht in allen Dokumenten vorhanden sind
     [BsonElement("name")]
     [JsonPropertyName("name")]
+    [BsonIgnoreIfNull]
     public string? Name { get; set; }
 
     [BsonElement("address")]
@@ -119,10 +120,10 @@ public class Location
         if (other == null) return double.MaxValue;
 
         const double earthRadiusKm = 6371.0;
-        
+
         var dLat = DegreesToRadians(other.Latitude - Latitude);
         var dLon = DegreesToRadians(other.Longitude - Longitude);
-        
+
         var lat1 = DegreesToRadians(Latitude);
         var lat2 = DegreesToRadians(other.Latitude);
 
