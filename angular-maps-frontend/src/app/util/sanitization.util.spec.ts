@@ -23,13 +23,21 @@ describe('Sanitizer', () => {
         expect(out2.category).toBe('other');
     });
 
-    it('collapses whitespace and limits length', () => {
+    it('keeps newline whitespace', () => {
+        const poi: PointOfInterest = { href: '', category: 'cat', details: `  first line\nsecond line    `, location: { coordinates: [0, 0], type: 'Point' } };
+        const out = s.sanitizePoint(poi);
+        expect(out.details.length).toBeLessThanOrEqual(2000);
+        expect(out.details).toContain('first line\nsecond line');
+    });
+
+    it('collapses non newline whitespace and limits length', () => {
         const long = 'a'.repeat(3000);
         const poi: PointOfInterest = { href: '', category: 'cat', details: `  multiple\n\tspaces  ${long}`, location: { coordinates: [0, 0], type: 'Point' } };
         const out = s.sanitizePoint(poi);
         expect(out.details.length).toBeLessThanOrEqual(2000);
-        expect(out.details).not.toContain('\n');
+        expect(out.details).not.toContain('\t');
     });
+
 
     it('normalizes coordinates to numbers', () => {
         const poi: any = { href: '', category: 'cat', details: '', location: { coordinates: ['13.7', '51.05'], type: 'Point' } };

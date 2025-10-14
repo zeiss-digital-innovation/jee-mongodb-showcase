@@ -1,11 +1,14 @@
 import { MapDataService } from './map-data.service';
 import { PointOfInterest } from '../model/point_of_interest';
+import { Sanitizer } from '../util/sanitization.util';
 
 describe('MapDataService', () => {
     let service: MapDataService;
+    let sanitizer: Sanitizer;
 
     beforeEach(() => {
-        service = new MapDataService();
+        sanitizer = new Sanitizer();
+        service = new MapDataService(sanitizer);
     });
 
     describe('formatForLink', () => {

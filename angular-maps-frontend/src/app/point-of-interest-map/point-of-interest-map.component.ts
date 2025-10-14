@@ -42,7 +42,6 @@ export class PointOfInterestMapComponent implements OnInit {
 
   constructor(private poiService: PointOfInterestService, private mapDataService: MapDataService,
     private appRef: ApplicationRef, private injector: EnvironmentInjector) {
-    //
   }
 
   ngOnInit(): void {
@@ -76,7 +75,8 @@ export class PointOfInterestMapComponent implements OnInit {
 
       // event.latlng is provided by Leaflet on contextmenu
       const coords = (event as any).latlng || this.map!.mouseEventToLatLng((event as any).originalEvent);
-      console.log('Right-click (contextmenu) at:', coords);
+      // enable for debugging
+      //console.log('Right-click (contextmenu) at:', coords);
       this.addMarkerAt(coords.lat, coords.lng);
     });
 

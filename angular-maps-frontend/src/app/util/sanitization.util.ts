@@ -6,15 +6,19 @@ import { sanitizeCategory, DEFAULT_POI_CATEGORY } from "../model/poi-categories"
     providedIn: "root"
 })
 export class Sanitizer {
+
+    readonly maxHref = 200;
+    readonly maxPhone = 50;
+    readonly maxText = 2000;
+
     // Basic client-side sanitization to reduce risk of sending harmful text to the backend or
     // having it rendered unsafely elsewhere. This is not a substitute for server-side validation.
     sanitizePoint(point: PointOfInterest): PointOfInterest {
-        const maxDetails = 2000;
 
         const sanitized: PointOfInterest = {
-            href: this.sanitizeText(point.href || '', 200),
+            href: this.sanitizeText(point.href || '', this.maxHref),
             category: sanitizeCategory(point.category) as any || DEFAULT_POI_CATEGORY,
-            details: this.sanitizeText(point.details || '', maxDetails),
+            details: this.sanitizeText(point.details || '', this.maxText),
             location: {
                 type: (point.location && point.location.type) ? point.location.type : 'Point',
                 coordinates: Array.isArray(point.location?.coordinates) ? [
@@ -31,8 +35,11 @@ export class Sanitizer {
     sanitizeText(s: string | undefined, maxLen: number): string {
         if (!s) return '';
         let t = s.trim();
-        // collapse whitespace
-        t = t.replace(/\s+/g, ' ');
+
+        // normalize newlines to \n
+        t = t.replace(/\r\n/g, '\n');
+        // collapse whitespace but let newlines remain
+        t = t.replace(/[^\S\r\n]+/g, ' ');
         // limit length
         if (t.length > maxLen) t = t.substring(0, maxLen);
         // escape HTML special chars to avoid accidental rendering later
@@ -43,4 +50,12 @@ export class Sanitizer {
             .replace(/'/g, '&#39;');
         return t;
     };
+
+    /**
+     * Very small URL whitelist check - only allow http/https or www. prefixes.
+     */
+    isSafeUrl(url: string): boolean {
+        if (!url) return false;
+        return /^https?:\/\//i.test(url) || /^www\./i.test(url);
+    }
 }

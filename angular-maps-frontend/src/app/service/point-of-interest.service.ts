@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { PointOfInterest } from '../model/point_of_interest';
-import { Sanitizer } from '../util/sanitization.util'
+import { Sanitizer } from '../util/sanitization.util';
 
 @Injectable({
     providedIn: "root"
