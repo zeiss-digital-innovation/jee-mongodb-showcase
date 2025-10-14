@@ -46,17 +46,6 @@ public class PointOfInterest
     [JsonPropertyName("tags")]
     [BsonIgnoreIfNull]
     public List<string>? Tags { get; set; }
-
-    /// <summary>
-    /// Generiert die HREF-URL für diesen POI (kompatibel mit JEE Backend)
-    /// </summary>
-    public void GenerateHref()
-    {
-        if (!string.IsNullOrEmpty(Id))
-        {
-            Href = $"/geoservice/poi/{Id}";
-        }
-    }
 }
 
 /// <summary>

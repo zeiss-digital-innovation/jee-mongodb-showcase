@@ -1,10 +1,8 @@
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using DotNetMongoDbBackend.Configurations;
 using DotNetMongoDbBackend.Models;
 using DotNetMongoDbBackend.Services;
-using Microsoft.Extensions.Logging.Console;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -85,6 +83,9 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Serve the application under a base path so the base URL ends with /zdi-geo-service/app
+app.UsePathBase("/zdi-geo-service/app");
 
 app.UseCors("AllowAngular");
 app.MapControllers();

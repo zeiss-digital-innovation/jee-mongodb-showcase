@@ -10,16 +10,18 @@ namespace DotNetMongoDbBackend.Controllers;
 /// Kompatible API mit JEE und Spring Boot Backend
 /// </summary>
 [ApiController]
-[Route("geoservice")]
+[Route("poi")]
 public class PointOfInterestController : ControllerBase
 {
     private readonly IPointOfInterestService _poiService;
     private readonly ILogger<PointOfInterestController> _logger;
+    private readonly LinkGenerator _linkGenerator;
 
-    public PointOfInterestController(IPointOfInterestService poiService, ILogger<PointOfInterestController> logger)
+    public PointOfInterestController(IPointOfInterestService poiService, ILogger<PointOfInterestController> logger, LinkGenerator linkGenerator)
     {
         _poiService = poiService;
         _logger = logger;
+        _linkGenerator = linkGenerator;
     }
 
     /// <summary>
@@ -32,7 +34,7 @@ public class PointOfInterestController : ControllerBase
     /// <param name="lng">Longitude für geografische Suche</param>
     /// <param name="radius">Radius in Kilometern für geografische Suche</param>
     /// <returns>Liste der POIs</returns>
-    [HttpGet("poi")]
+    [HttpGet]
     public async Task<ActionResult<List<PointOfInterest>>> GetAllPois(
         [FromQuery] string? category = null,
         [FromQuery] string? search = null,
@@ -85,6 +87,12 @@ public class PointOfInterestController : ControllerBase
                 pois = await _poiService.GetAllPoisAsync();
             }
 
+            // set absolute href for each poi
+            foreach (var p in pois)
+            {
+                GenerateHref(p);
+            }
+
             _logger.LogInformation("POIs abgerufen: {Count} Ergebnisse", pois.Count);
             return Ok(pois);
         }
@@ -100,13 +108,13 @@ public class PointOfInterestController : ControllerBase
     /// </summary>
     /// <param name="id">MongoDB ObjectId des POI</param>
     /// <returns>POI oder 404 wenn nicht gefunden</returns>
-    [HttpGet("poi/{id}")]
+    [HttpGet("{id}")]
     public async Task<ActionResult<PointOfInterest>> GetPoiById([Required] string id)
     {
         try
         {
             var poi = await _poiService.GetPoiByIdAsync(id);
-            
+
             if (poi == null)
             {
                 _logger.LogWarning("POI nicht gefunden mit ID: {Id}", id);
@@ -114,6 +122,7 @@ public class PointOfInterestController : ControllerBase
             }
 
             _logger.LogInformation("POI abgerufen: {Name} (ID: {Id})", poi.Name, poi.Id);
+            GenerateHref(poi);
             return Ok(poi);
         }
         catch (Exception ex)
@@ -124,11 +133,11 @@ public class PointOfInterestController : ControllerBase
     }
 
     /// <summary>
-    /// POST /geoservice/poi - Neuen POI erstellen
+    /// POST /poi - Create new POI
     /// </summary>
-    /// <param name="poi">POI-Daten</param>
-    /// <returns>Erstellter POI mit generierter ID</returns>
-    [HttpPost("poi")]
+    /// <param name="poi">POI-Data</param>
+    /// <returns>Create POI with ID</returns>
+    [HttpPost]
     public async Task<ActionResult<PointOfInterest>> CreatePoi([FromBody] PointOfInterest poi)
     {
         try
@@ -139,7 +148,8 @@ public class PointOfInterestController : ControllerBase
             }
 
             var createdPoi = await _poiService.CreatePoiAsync(poi);
-            
+            GenerateHref(createdPoi);
+
             _logger.LogInformation("POI erstellt: {Name} (ID: {Id})", createdPoi.Name, createdPoi.Id);
             return CreatedAtAction(nameof(GetPoiById), new { id = createdPoi.Id }, createdPoi);
         }
@@ -161,7 +171,7 @@ public class PointOfInterestController : ControllerBase
     /// <param name="id">MongoDB ObjectId des POI</param>
     /// <param name="poi">Aktualisierte POI-Daten</param>
     /// <returns>Aktualisierter POI oder 404 wenn nicht gefunden</returns>
-    [HttpPut("poi/{id}")]
+    [HttpPut("{id}")]
     public async Task<ActionResult<PointOfInterest>> UpdatePoi([Required] string id, [FromBody] PointOfInterest poi)
     {
         try
@@ -172,7 +182,7 @@ public class PointOfInterestController : ControllerBase
             }
 
             var updatedPoi = await _poiService.UpdatePoiAsync(id, poi);
-            
+
             if (updatedPoi == null)
             {
                 _logger.LogWarning("POI nicht gefunden für Update mit ID: {Id}", id);
@@ -199,13 +209,13 @@ public class PointOfInterestController : ControllerBase
     /// </summary>
     /// <param name="id">MongoDB ObjectId des POI</param>
     /// <returns>204 bei Erfolg oder 404 wenn nicht gefunden</returns>
-    [HttpDelete("poi/{id}")]
+    [HttpDelete("{id}")]
     public async Task<ActionResult> DeletePoi([Required] string id)
     {
         try
         {
             var deleted = await _poiService.DeletePoiAsync(id);
-            
+
             if (!deleted)
             {
                 _logger.LogWarning("POI nicht gefunden zum Löschen mit ID: {Id}", id);
@@ -229,10 +239,11 @@ public class PointOfInterestController : ControllerBase
     [HttpGet("categories")]
     public async Task<ActionResult<List<string>>> GetAvailableCategories()
     {
+        // FIXME: move to separate controller
         try
         {
             var categories = await _poiService.GetAvailableCategoriesAsync();
-            
+
             _logger.LogInformation("Kategorien abgerufen: {Count} verfügbare Kategorien", categories.Count);
             return Ok(categories);
         }
@@ -251,10 +262,11 @@ public class PointOfInterestController : ControllerBase
     [HttpGet("stats/category/{category}")]
     public async Task<ActionResult<long>> GetCategoryCount([Required] string category)
     {
+        // FIXME: move to separate controller
         try
         {
             var count = await _poiService.CountByCategoryAsync(category);
-            
+
             _logger.LogInformation("Kategorie-Statistik abgerufen: {Category} hat {Count} POIs", category, count);
             return Ok(count);
         }
@@ -316,7 +328,7 @@ public class PointOfInterestController : ControllerBase
                         CollectionTest = "fehlgeschlagen",
                         TotalCount = 0,
                         ToiletCount = 0,
-                        Error = (string?) ex.Message
+                        Error = (string?)ex.Message
                     };
                 }
             }
@@ -326,6 +338,25 @@ public class PointOfInterestController : ControllerBase
         catch (Exception ex)
         {
             return Ok(new { Error = ex.Message, StackTrace = ex.StackTrace });
+        }
+    }
+
+    /// <summary>
+    /// Generates the absolute HREF for a given PointOfInterest and sets it in the Href property.
+    /// </summary>
+    private void GenerateHref(PointOfInterest pointOfInterestoi)
+    {
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(pointOfInterestoi.Id))
+            {
+                var uri = _linkGenerator?.GetUriByAction(HttpContext, action: nameof(GetPoiById), controller: "PointOfInterest", values: new { id = pointOfInterestoi.Id });
+                pointOfInterestoi.Href = uri;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error generating HREF for POI with ID: {Id}", pointOfInterestoi.Id);
         }
     }
 }
