@@ -19,10 +19,12 @@ export class MapDataService {
      * @returns Popup content.
      */
     getMarkerPopupFor(poi: PointOfInterest): string {
+        if (!poi) return '';
 
         var iconImg: string;
+        const category = (poi.category || '').toLowerCase();
 
-        switch (poi.category.toLowerCase()) {
+        switch (category) {
             case 'restaurant':
                 iconImg =
                     `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-fork-knife" viewBox="0 0 16 16">
@@ -109,25 +111,42 @@ export class MapDataService {
                     ``;
         }
 
-        var details = poi.details;
-
-        if (details) {
-            // split with regex matching either ", " or "\n"
-            var detailChunks = details.split(/, |\n/);
-
-            detailChunks.forEach((chunk, index) => {
-                chunk = this.formatForLink(chunk);
-                chunk = this.formatForPhone(chunk);
-
-                detailChunks[index] = chunk;
+        // sanitize and format details: only allow safe links, escape other text, format phones
+        const rawDetails = poi.details || '';
+        let details = '';
+        if (rawDetails) {
+            const detailChunks = rawDetails.split(/, |\n/).map(s => (s || '').trim()).filter(s => s.length > 0);
+            const formatted = detailChunks.map(chunk => {
+                if (this.isSafeUrl(chunk)) {
+                    // reuse the helper which escapes and builds the anchor
+                    return this.formatForLink(chunk);
+                }
+                // phone formatting will include escaped text
+                return this.formatForPhone(chunk);
             });
-
-            details = detailChunks.join('<br>');
+            details = formatted.join('<br>');
         }
 
         iconImg += `<br>${details}`;
 
-        return iconImg
+        return iconImg;
+    }
+
+    private escapeHtml(text: string): string {
+        if (text == null) return '';
+        return text.replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    /**
+     * Very small URL whitelist check - only allow http/https or www. prefixes.
+     */
+    private isSafeUrl(url: string): boolean {
+        if (!url) return false;
+        return /^https?:\/\//i.test(url) || /^www\./i.test(url);
     }
 
     /**
@@ -157,11 +176,12 @@ export class MapDataService {
      * @returns Formatted text
      */
     formatForLink(text: string): string {
-        let urlFormat = text.trim();
-        if (urlFormat.startsWith("http") || urlFormat.startsWith("www.")) {
-            urlFormat = `<a href="${urlFormat}" target="_blank" rel="noopener">Link</a>`;
+        const t = (text || '').trim();
+        if (this.isSafeUrl(t)) {
+            const href = t.toLowerCase().startsWith('http') ? t : `https://${t}`;
+            return `<a href="${this.escapeHtml(href)}" target="_blank" rel="noopener">${this.escapeHtml(href)}</a>`;
         }
-        return urlFormat;
+        return this.escapeHtml(t);
     }
 
     /**
@@ -170,16 +190,19 @@ export class MapDataService {
      * @returns Formatted text
      */
     formatForPhone(text: string): string {
-        let phoneFormat = text.trim();
+        const raw = (text || '').trim();
+        if (!raw) return '';
 
-        if (phoneFormat.startsWith("+49")) {
-            phoneFormat = this.iconPhone + ' ' + phoneFormat;
+        if (raw.startsWith('+49')) {
+            return this.iconPhone + ' ' + this.escapeHtml(raw);
         }
 
-        if (phoneFormat.startsWith("Tel.:")) {
-            phoneFormat = phoneFormat.replace("Tel.:", this.iconPhone);
+        if (raw.startsWith('Tel.:')) {
+            const num = raw.replace('Tel.:', '').trim();
+            return this.iconPhone + ' ' + this.escapeHtml(num);
         }
-        return phoneFormat;
+
+        return this.escapeHtml(raw);
     }
 
 }

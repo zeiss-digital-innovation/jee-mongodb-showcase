@@ -5,6 +5,7 @@ import * as L from 'leaflet';
 import { MapDataService } from '../service/map-data.service';
 import { CommonModule } from '@angular/common';
 import { ApplicationRef, createComponent, EnvironmentInjector } from '@angular/core';
+import { POI_CATEGORIES } from '../model/poi-categories';
 import { AddPoiDialogComponent } from './add-poi-dialog.component';
 
 // Fix for default markers in Leaflet with Angular
@@ -33,7 +34,6 @@ L.Marker.prototype.options.icon = iconDefault;
 export class PointOfInterestMapComponent implements OnInit {
 
   pointsOfInterest: PointOfInterest[] = [];
-  categories: string[] = ['Restaurant', 'Cash', 'Supermarket', 'Post', 'Lodging', 'Police', 'Toilet', 'Coffee', 'Parking', 'Gas Station', 'Company', 'Pharmacy'];
   map: L.Map | undefined;
 
   latitudeDefault = 51.0504;
@@ -101,7 +101,7 @@ export class PointOfInterestMapComponent implements OnInit {
     // set inputs before attaching the view so CD picks them up
     compRef.instance.latitude = latitude;
     compRef.instance.longitude = longitude;
-    compRef.instance.categories = this.categories;
+    compRef.instance.categories = POI_CATEGORIES as unknown as string[];
 
     // attach the component view to the application so change detection runs
     this.appRef.attachView(compRef.hostView);
