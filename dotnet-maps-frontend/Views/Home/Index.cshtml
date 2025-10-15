@@ -1,0 +1,33 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome to Point of Interest Maps</h1>
+    <p>Explore points of interest on an interactive map or browse them in a list.</p>
+    
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-map me-2"></i>Map View
+                    </h5>
+                    <p class="card-text">View points of interest on an interactive map with Leaflet.js</p>
+                    <a asp-controller="Map" asp-action="Index" class="btn btn-primary">Open Map</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-list me-2"></i>List View
+                    </h5>
+                    <p class="card-text">Browse points of interest in a structured list format</p>
+                    <a asp-controller="PointOfInterest" asp-action="Index" class="btn btn-success">Open List</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

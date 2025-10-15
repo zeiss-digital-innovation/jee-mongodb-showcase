@@ -1,0 +1,69 @@
+@model List<DotNetMapsFrontend.Models.PointOfInterest>
+@{
+    ViewData["Title"] = "Point of Interest List";
+}
+
+<div class="container mt-4">
+    <h2>Points of Interest</h2>
+    
+    @if (Model != null && Model.Any())
+    {
+        <div class="row">
+            @foreach (var poi in Model)
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card">
+                        <div class="card-header d-flex align-items-center">
+                            <i class="bi @GetCategoryIcon(poi.Category) me-2"></i>
+                            <strong>@poi.Category.ToUpperInvariant()</strong>
+                        </div>
+                        <div class="card-body">
+                            @if (!string.IsNullOrEmpty(poi.Details))
+                            {
+                                @foreach (var line in poi.Details.Split('\n'))
+                                {
+                                    if (!string.IsNullOrWhiteSpace(line))
+                                    {
+                                        <p class="card-text small">@line</p>
+                                    }
+                                }
+                            }
+                            <small class="text-muted">
+                                Location: @poi.Location.Latitude.ToString("F5"), @poi.Location.Longitude.ToString("F5")
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            No points of interest found.
+        </div>
+    }
+</div>
+
+@functions {
+    string GetCategoryIcon(string category)
+    {
+        return category?.ToLower() switch
+        {
+            "restaurant" => "bi-cup-hot",
+            "cash" => "bi-credit-card",
+            "supermarket" => "bi-shop",
+            "post" => "bi-mailbox",
+            "lodging" => "bi-house",
+            "police" => "bi-shield-check",
+            "toilet" => "bi-person-standing",
+            "coffee" => "bi-cup-hot",
+            "parking" => "bi-car-front",
+            "gas station" => "bi-fuel-pump",
+            "company" => "bi-building",
+            "pharmacy" => "bi-plus-square",
+            _ => "bi-geo-alt"
+        };
+    }
+}

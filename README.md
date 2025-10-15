@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](#license)
 [![Project status](https://img.shields.io/badge/status-demo-orange.svg)](#)
 
-This repository is a demo application used for an internal campus showing the usage of MongoDBs geospatial index capabilities. The database stores points of interest (POI) that are shown on a map on an Angular website. The website itself calls a backend service that connects to the MongoDB database. To show different ways of working with MongoDB, backends with different technologies are included in the repo.
+This repository is a demo application used for an internal campus showing the usage of MongoDBs geospatial index capabilities. The database stores points of interest (POI) that are shown on a map on frontend websites. The websites call backend services that connect to the MongoDB database. To show different ways of working with MongoDB, both multiple backend technologies (.NET Core, JEE/Jakarta) and frontend technologies (Angular, ASP.NET Core MVC) are included in the repo.
 
 ## Table of Contents
 - [Quickstart](#quickstart)
@@ -34,8 +34,9 @@ These steps will get a local demo running (frontend + example backend + local Mo
 2. Start a backend and the frontend:
    - See each subproject README for exact commands and ports (examples below).
 
-3. Open the frontend in your browser (typical Angular dev server):
-  - http://localhost:4200
+3. Open a frontend in your browser:
+   - Angular frontend: http://localhost:4200  
+   - ASP.NET Core frontend: http://localhost:4200 (same port for consistency)
 
 <figure style="text-align:center;">
   <a href="angular-maps-frontend/public/media/screenshots/angular_frontend_screenshot.png" target="_blank" rel="noopener">
@@ -50,44 +51,68 @@ These steps will get a local demo running (frontend + example backend + local Mo
 
 ## Prerequisites
 - Docker & Docker Compose (when using the provided Docker files).
-- Node.js (for the Angular frontend).
-- npm / yarn
-- Java 21+ and Maven (for the JEE / Spring backend and the testdata generator)
-- .NET SDK (for the DOTNET backend)
+- Node.js (for the Angular frontend) and npm/yarn
+- Java 21+ and Maven (for the JEE backend and the testdata generator)  
+- .NET 9.0 SDK (for the .NET backend and ASP.NET Core frontend)
 
-Its not neccessary to have the Java & .NET - select the backend of your choice.
+Its not necessary to have all technologies - select the frontend and backend of your choice.
 
 ## Run the demo (fast path — suggested)
+
+### Choose Your Stack
+This demo offers multiple technology combinations:
+
+**Frontend Options:**
+- **Angular** (`angular-maps-frontend/`) - SPA with TypeScript
+- **ASP.NET Core MVC** (`dotnet-maps-frontend/`) - Server-side rendering with Razor
+
+**Backend Options:**  
+- **JEE/Jakarta** (`jee-mongodb-backend/`) - Traditional enterprise Java
+- **.NET Core** (`dotnet-mongodb-backend/`) - Modern C# async API
+
+### Quick Start Steps
 - Start MongoDB:
   - PowerShell:
     ```
-    docker-compose -f [docker-compose.yml](http://_vscodecontentref_/7) up -d
+    cd MongoDB
+    docker-compose up -d
     ```
-- Run the JEE backend (example):
-  - From `jee-mongodb-backend`:
+- Run a backend (choose one):
+  - **JEE Backend** (example):
     ```
     cd jee-mongodb-backend
     mvn clean package
     # deployment will depend on how the JEE war is executed; see the sub-README
     ```
-- Run the Angular frontend:
-  - From `angular-maps-frontend`:
+  - **OR .NET Backend**:
+    ```
+    cd dotnet-mongodb-backend  
+    dotnet run
+    ```
+- Run a frontend (choose one):
+  - **Angular Frontend**:
     ```
     cd angular-maps-frontend
     npm install
     npm start
     ```
-- Open http://localhost:4200 and interact with the map.
+  - **OR ASP.NET Core Frontend**:
+    ```
+    cd dotnet-maps-frontend
+    dotnet run
+    # Access at: http://localhost:4200/Map
+    ```
 
 Note: exact ports and steps vary by backend. See the subproject READMEs for full, correct commands.
 
 ## Subprojects / Layout
 
 - `angular-maps-frontend/` — Angular app that displays POIs on a map and calls the backend for POIs near the current map center. See `angular-maps-frontend/README.md`.
+- `dotnet-maps-frontend/` — ASP.NET Core MVC app providing the same functionality as the Angular frontend. Interactive maps with Leaflet.js and Bootstrap UI. See `dotnet-maps-frontend/README.md`.
 - `jee-mongodb-backend/` — Jakarta (JEE) backend service. Contains REST endpoints and mapping to MongoDB.
+- `dotnet-mongodb-backend/` — .NET Core backend service with MongoDB integration. High-performance async REST API. See `dotnet-mongodb-backend/README.md`.
 - `MongoDB/` — Docker + compose configuration and initialization scripts. Use this to run a local MongoDB instance.
 - `testdata-generation/` — Java tool to parse GPX files and POST POIs to a running backend to populate test data.
-- `/* other planned backends */` — placeholders for .NET and Spring Boot backends.
 
 ## Test data
 
