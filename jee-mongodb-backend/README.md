@@ -22,7 +22,7 @@ endpoints see the following sections).
 2. Build the Docker image with `docker build -t demo-campus-jee-backend .`
 4. Run the backend with `docker run --name demo-campus-jee-backend -p 8080:8080 demo-campus-jee-backend`
 5. Access the API with this sample
-   request http://localhost:8080/geoservice/poi?lat=51.0490455&lon=13.7383389&radius=100&expand=details
+   request http://localhost:8080/zdi-geo-service/api/poi?lat=51.0490455&lon=13.7383389&radius=100&expand=details
 
 ## Prerequisites
 
@@ -124,7 +124,7 @@ This backend exposes the following main REST endpoints:
 
 ### Get Points of Interest
 
-- **Endpoint:** `GET /geoservice/poi`
+- **Endpoint:** `GET /zdi-geo-service/api/poi`
 - **Description:** Returns a list of points of interest (POIs) near a given location.
 - **Parameters:**
     - `lat` (required): Latitude of the center point
@@ -133,13 +133,13 @@ This backend exposes the following main REST endpoints:
     - `expand` (optional): If set to `details`, includes detailed information
 - **Example request:**
   ```http
-  GET http://localhost:8080/geoservice/poi?lat=51.0490455&lon=13.7383389&radius=100&expand=details
+  GET http://localhost:8080/zdi-geo-service/api/poi?lat=51.0490455&lon=13.7383389&radius=100&expand=details
   ```
 - **Example response:**
   ```json
   [
     {
-      "href": "http://localhost:8080/geoservice/poi/68daa16c2dae92ecfb8823a6",
+      "href": "http://localhost:8080/zdi-geo-service/api/poi/68daa16c2dae92ecfb8823a6",
       "details": "Carl Zeiss Digital Innovation GmbH, Fritz-Foerster-Platz 2, 01069 Dresden",
       "location": {
         "type": "Point",
