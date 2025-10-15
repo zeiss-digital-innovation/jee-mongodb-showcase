@@ -1,5 +1,6 @@
 import { Injectable } from "@angular/core";
 import { PointOfInterest } from "../model/point_of_interest";
+import { Sanitizer } from '../util/sanitization.util';
 
 /**
  * Service for map related data (i.e. popup content) and calculations.
@@ -8,6 +9,8 @@ import { PointOfInterest } from "../model/point_of_interest";
     providedIn: 'root'
 })
 export class MapDataService {
+
+    constructor(private sanitizer: Sanitizer) { }
 
     private iconPhone = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-telephone" viewBox="0 0 16 16">
   <path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.6 17.6 0 0 0 4.168 6.608 17.6 17.6 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.68.68 0 0 0-.58-.122l-2.19.547a1.75 1.75 0 0 1-1.657-.459L5.482 8.062a1.75 1.75 0 0 1-.46-1.657l.548-2.19a.68.68 0 0 0-.122-.58zM1.884.511a1.745 1.745 0 0 1 2.612.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.68.68 0 0 0 .178.643l2.457 2.457a.68.68 0 0 0 .644.178l2.189-.547a1.75 1.75 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.6 18.6 0 0 1-7.01-4.42 18.6 18.6 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877z"/>
@@ -19,10 +22,12 @@ export class MapDataService {
      * @returns Popup content.
      */
     getMarkerPopupFor(poi: PointOfInterest): string {
+        if (!poi) return '';
 
         var iconImg: string;
+        const category = (poi.category || '').toLowerCase();
 
-        switch (poi.category) {
+        switch (category) {
             case 'restaurant':
                 iconImg =
                     `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-fork-knife" viewBox="0 0 16 16">
@@ -109,26 +114,30 @@ export class MapDataService {
                     ``;
         }
 
-        var details = poi.details;
-
-        if (details) {
-            // split with regex matching either ", " or "\n"
-            var detailChunks = details.split(/, |\n/);
-
-            detailChunks.forEach((chunk, index) => {
-                chunk = this.formatForLink(chunk);
-                chunk = this.formatForPhone(chunk);
-
-                detailChunks[index] = chunk;
+        // sanitize and format details: only allow safe links, escape other text, format phones
+        const rawDetails = poi.details || '';
+        let details = '';
+        if (rawDetails) {
+            const detailChunks = rawDetails.split(/, |\n/).map(s => (s || '').trim()).filter(s => s.length > 0);
+            const formatted = detailChunks.map(chunk => {
+                if (this.sanitizer.isSafeUrl(chunk)) {
+                    // reuse the helper which escapes and builds the anchor
+                    return this.formatForLink(chunk);
+                }
+                // phone formatting will include escaped text
+                return this.formatForPhone(chunk);
             });
-
-            details = detailChunks.join('<br>');
+            details = formatted.join('<br>');
         }
 
         iconImg += `<br>${details}`;
 
-        return iconImg
+        return iconImg;
     }
+
+
+
+
 
     /**
      * Determines the search radius for points of interest based on the current zoom level.
@@ -157,11 +166,13 @@ export class MapDataService {
      * @returns Formatted text
      */
     formatForLink(text: string): string {
-        let urlFormat = text.trim();
-        if (urlFormat.startsWith("http") || urlFormat.startsWith("www.")) {
-            urlFormat = `<a href="${urlFormat}" target="_blank" rel="noopener">Link</a>`;
+        const t = (text || '').trim();
+        if (this.sanitizer.isSafeUrl(t)) {
+            const href = t.toLowerCase().startsWith('http') ? t : `https://${t}`;
+            const sanitizedHref = this.sanitizer.sanitizeText(href, this.sanitizer.maxHref);
+            return `<a href="${sanitizedHref}" target="_blank" rel="noopener">${sanitizedHref}</a>`;
         }
-        return urlFormat;
+        return this.sanitizer.sanitizeText(t, this.sanitizer.maxText);
     }
 
     /**
@@ -170,16 +181,19 @@ export class MapDataService {
      * @returns Formatted text
      */
     formatForPhone(text: string): string {
-        let phoneFormat = text.trim();
+        const raw = (text || '').trim();
+        if (!raw) return '';
 
-        if (phoneFormat.startsWith("+49")) {
-            phoneFormat = this.iconPhone + ' ' + phoneFormat;
+        if (raw.startsWith('+49')) {
+            return this.iconPhone + ' ' + this.sanitizer.sanitizeText(raw, this.sanitizer.maxPhone);
         }
 
-        if (phoneFormat.startsWith("Tel.:")) {
-            phoneFormat = phoneFormat.replace("Tel.:", this.iconPhone);
+        if (raw.startsWith('Tel.:')) {
+            const num = raw.replace('Tel.:', '').trim();
+            return this.iconPhone + ' ' + this.sanitizer.sanitizeText(num, this.sanitizer.maxPhone);
         }
-        return phoneFormat;
+
+        return this.sanitizer.sanitizeText(raw, this.sanitizer.maxText);
     }
 
 }

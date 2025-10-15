@@ -8,3 +8,11 @@
     height: 500px;
     width: 100%;
 }
+
+.shortcut-hint {
+    margin-top: 8px;
+    text-align: right;
+    color: rgba(0, 0, 0, 0.55);
+    font-size: 12px;
+    user-select: none;
+}

@@ -21,7 +21,7 @@ public class PointOfInterestService : IPointOfInterestService
         var collectionName = mongoSettings.Value.Collections.Pois;
         _poisCollection = database.GetCollection<PointOfInterest>(collectionName);
         _logger = logger;
-        
+
         _logger.LogInformation("PointOfInterestService initialisiert mit Collection: {CollectionName}", collectionName);
         _logger.LogInformation("MongoDB Database: {DatabaseName}", database.DatabaseNamespace.DatabaseName);
 
@@ -89,7 +89,7 @@ public class PointOfInterestService : IPointOfInterestService
         try
         {
             var filter = Builders<PointOfInterest>.Filter.Regex(
-                p => p.Category, 
+                p => p.Category,
                 new BsonRegularExpression(category, "i")
             );
 
@@ -117,17 +117,17 @@ public class PointOfInterestService : IPointOfInterestService
             }
 
             var nameFilter = Builders<PointOfInterest>.Filter.Regex(
-                p => p.Name, 
+                p => p.Name,
                 new BsonRegularExpression(searchTerm, "i")
             );
 
             var addressFilter = Builders<PointOfInterest>.Filter.Regex(
-                p => p.Address, 
+                p => p.Address,
                 new BsonRegularExpression(searchTerm, "i")
             );
 
             var tagsFilter = Builders<PointOfInterest>.Filter.AnyEq(
-                p => p.Tags, 
+                p => p.Tags,
                 searchTerm
             );
 
@@ -164,7 +164,7 @@ public class PointOfInterestService : IPointOfInterestService
             var geoWithinFilter = Builders<PointOfInterest>.Filter.GeoWithinCenterSphere(
                 p => p.Location,
                 longitude,
-                latitude, 
+                latitude,
                 radiusInRadians
             );
 
@@ -187,11 +187,11 @@ public class PointOfInterestService : IPointOfInterestService
         try
         {
             ValidatePoi(poi);
-            
+
             poi.Id = null; // Neue ObjectId wird automatisch generiert
             await _poisCollection.InsertOneAsync(poi);
             poi.GenerateHref();
-            
+
             _logger.LogInformation("POI erstellt: {Name} (ID: {Id})", poi.Name, poi.Id);
             return poi;
         }
@@ -248,7 +248,7 @@ public class PointOfInterestService : IPointOfInterestService
             }
 
             var result = await _poisCollection.DeleteOneAsync(p => p.Id == id);
-            
+
             if (result.DeletedCount > 0)
             {
                 _logger.LogInformation("POI gelöscht mit ID: {Id}", id);
@@ -294,7 +294,7 @@ public class PointOfInterestService : IPointOfInterestService
         try
         {
             var filter = Builders<PointOfInterest>.Filter.Regex(
-                p => p.Category, 
+                p => p.Category,
                 new BsonRegularExpression(category, "i")
             );
 
@@ -313,22 +313,22 @@ public class PointOfInterestService : IPointOfInterestService
     private static void ValidatePoi(PointOfInterest poi)
     {
         if (poi == null)
-            throw new ArgumentNullException(nameof(poi), "POI darf nicht null sein");
+            throw new ArgumentNullException(nameof(poi), "POI must not be null.");
 
-        if (string.IsNullOrWhiteSpace(poi.Name))
-            throw new ArgumentException("POI Name ist erforderlich");
+        if (string.IsNullOrWhiteSpace(poi.Details))
+            throw new ArgumentException("POI Details required.");
 
         if (string.IsNullOrWhiteSpace(poi.Category))
-            throw new ArgumentException("POI Kategorie ist erforderlich");
+            throw new ArgumentException("POI Category required.");
 
         if (poi.Location == null)
-            throw new ArgumentException("POI Location ist erforderlich");
+            throw new ArgumentException("POI Location required.");
 
         if (poi.Location.Latitude < -90 || poi.Location.Latitude > 90)
-            throw new ArgumentException("Latitude muss zwischen -90 und 90 liegen");
+            throw new ArgumentException("Latitude must be between -90 and 90.");
 
         if (poi.Location.Longitude < -180 || poi.Location.Longitude > 180)
-            throw new ArgumentException("Longitude muss zwischen -180 und 180 liegen");
+            throw new ArgumentException("Longitude must be between -180 and 180.");
     }
 
     /// <summary>

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 import { PointOfInterestListComponent } from './point-of-interest-list.component';
 
@@ -8,9 +9,9 @@ describe('PointOfInterestListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PointOfInterestListComponent]
+      imports: [PointOfInterestListComponent, HttpClientTestingModule]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(PointOfInterestListComponent);
     component = fixture.componentInstance;

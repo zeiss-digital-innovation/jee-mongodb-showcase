@@ -3,13 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { PointOfInterest } from '../model/point_of_interest';
+import { Sanitizer } from '../util/sanitization.util';
 
 @Injectable({
     providedIn: "root"
 })
 export class PointOfInterestService {
 
-    constructor(private http: HttpClient) { }
+    constructor(private http: HttpClient, private sanitizer: Sanitizer) { }
 
     /**
      * Retrieves all points of interest from the backend REST service
@@ -24,6 +25,17 @@ export class PointOfInterestService {
         // Note: The BaseUrlInterceptor will prepend the base URL
         return this.http.get<PointOfInterest[]>(`/poi?lat=${latitude}&lon=${longitude}&radius=${radius}&expand=details`);
     }
+
+    /**
+     * Create a new point of interest on the backend
+     * The BaseUrlInterceptor will prepend the configured base URL.
+     */
+    createPointOfInterest(point: PointOfInterest): Observable<PointOfInterest> {
+        const sanitized = this.sanitizer.sanitizePoint(point);
+        return this.http.post<PointOfInterest>(`/poi`, sanitized);
+    }
+
+
 
 }
 

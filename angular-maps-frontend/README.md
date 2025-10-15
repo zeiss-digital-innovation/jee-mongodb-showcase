@@ -1,4 +1,4 @@
-# Angular Maps Frontend
+# Angular Frontend
 
 ## Dependencies and environment
 
