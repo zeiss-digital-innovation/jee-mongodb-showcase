@@ -14,6 +14,7 @@ public class PointOfInterest
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
     [JsonPropertyName("_id")]
+    [JsonIgnore]
     public string? Id { get; set; }
 
     [BsonElement("href")]
@@ -22,6 +23,7 @@ public class PointOfInterest
 
     [BsonElement("category")]
     [JsonPropertyName("category")]
+    [Required(ErrorMessage = "Category is required")]
     public string? Category { get; set; }
 
     [BsonElement("details")]
@@ -46,17 +48,6 @@ public class PointOfInterest
     [JsonPropertyName("tags")]
     [BsonIgnoreIfNull]
     public List<string>? Tags { get; set; }
-
-    /// <summary>
-    /// Generiert die HREF-URL für diesen POI (kompatibel mit JEE Backend)
-    /// </summary>
-    public void GenerateHref()
-    {
-        if (!string.IsNullOrEmpty(Id))
-        {
-            Href = $"/geoservice/poi/{Id}";
-        }
-    }
 }
 
 /// <summary>
@@ -70,13 +61,13 @@ public class Location
 
     [BsonElement("coordinates")]
     [JsonPropertyName("coordinates")]
-    [Required(ErrorMessage = "Coordinates sind erforderlich")]
+    [Required(ErrorMessage = "Coordinates are required")]
     public double[] Coordinates { get; set; } = new double[2];
 
     // Convenience Properties für bessere API-Kompatibilität
     [BsonIgnore]
-    [JsonPropertyName("longitude")]
-    [Range(-180.0, 180.0, ErrorMessage = "Longitude muss zwischen -180 und 180 liegen")]
+    [JsonIgnore]
+    [Range(-180.0, 180.0, ErrorMessage = "Longitude must be between -180 and 180")]
     public double Longitude
     {
         get => Coordinates.Length > 0 ? Coordinates[0] : 0;
@@ -88,8 +79,8 @@ public class Location
     }
 
     [BsonIgnore]
-    [JsonPropertyName("latitude")]
-    [Range(-90.0, 90.0, ErrorMessage = "Latitude muss zwischen -90 und 90 liegen")]
+    [JsonIgnore]
+    [Range(-90.0, 90.0, ErrorMessage = "Latitude must be between -90 and 90")]
     public double Latitude
     {
         get => Coordinates.Length > 1 ? Coordinates[1] : 0;

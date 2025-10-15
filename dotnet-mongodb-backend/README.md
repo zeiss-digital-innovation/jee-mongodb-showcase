@@ -29,18 +29,18 @@ Dieses **.NET Backend** ist Teil des MongoDB Workshop-Projekts und bietet eine h
 
 ### API Endpoints
 ```
-GET  /geoservice/poi                    - Alle POIs (mit Query-Parametern)
-GET  /geoservice/poi/{id}              - POI nach ID
-POST /geoservice/poi                   - Neuen POI erstellen
-PUT  /geoservice/poi/{id}              - POI aktualisieren
-DELETE /geoservice/poi/{id}            - POI löschen
-GET  /geoservice/categories            - Alle verfügbaren Kategorien
-GET  /geoservice/stats/category/{cat}  - Statistiken für Kategorie
-GET  /geoservice/health                - Health Check
-GET  /geoservice/debug                 - Debug-Informationen
+GET  /zdi-geo-service/api/poi                    - Alle POIs (mit Query-Parametern)
+GET  /zdi-geo-service/api/poi/{id}              - POI nach ID
+POST /zdi-geo-service/api/poi                   - Neuen POI erstellen
+PUT  /zdi-geo-service/api/poi/{id}              - POI aktualisieren
+DELETE /zdi-geo-service/api/poi/{id}            - POI löschen
+GET  /zdi-geo-service/api/categories            - Alle verfügbaren Kategorien
+GET  /zdi-geo-service/api/stats/category/{cat}  - Statistiken für Kategorie
+GET  /zdi-geo-service/api/health                - Health Check
+GET  /zdi-geo-service/api/debug                 - Debug-Informationen
 ```
 
-### Query Parameter für /geoservice/poi
+### Query Parameter für /zdi-geo-service/api/poi
 - `category` - Filtert nach Kategorie
 - `search` - Volltext-Suche in Name, Adresse, Tags
 - `limit` - Maximal zurückzugebende Ergebnisse
@@ -110,17 +110,17 @@ dotnet run -c Release
 ```
 
 ### Server-URLs
-- **API Base URL**: http://localhost:8080/geoservice
-- **Health Check**: http://localhost:8080/geoservice/health
-- **Debug-Informationen**: http://localhost:8080/geoservice/debug
-- **Swagger UI**: http://localhost:8080/swagger (falls aktiviert)
+- **API Base URL**: http://localhost:8080/zdi-geo-service/api
+- **Health Check**: http://localhost:8080/zdi-geo-service/api/health
+- **Debug-Informationen**: http://localhost:8080/zdi-geo-service/api/debug
+- **Swagger UI**: http://localhost:8080/zdi-geo-service/swagger (only active in development mode)
 
 ## 📊 MongoDB Schema
 
 ```json
 {
   "_id": "ObjectId",
-  "href": "/geoservice/poi/{id}",
+  "href": "/zdi-geo-service/api/poi/{id}",
   "name": "POI Name",
   "category": "restaurant|pharmacy|parking|etc",
   "location": {
@@ -175,27 +175,27 @@ dotnet watch test
 
 ### Alle POIs abrufen
 ```bash
-curl http://localhost:8080/geoservice/poi
+curl http://localhost:8080/zdi-geo-service/api/poi
 ```
 
 ### POIs nach Kategorie filtern
 ```bash
-curl "http://localhost:8080/geoservice/poi?category=restaurant"
+curl "http://localhost:8080/zdi-geo-service/api/poi?category=restaurant"
 ```
 
 ### Geografische Suche
 ```bash
-curl "http://localhost:8080/geoservice/poi?lat=51.0504&lng=13.7373&radius=2000"
+curl "http://localhost:8080/zdi-geo-service/api/poi?lat=51.0504&lng=13.7373&radius=2000"
 ```
 
 ### Volltext-Suche
 ```bash
-curl "http://localhost:8080/geoservice/poi?search=Apotheke&limit=10"
+curl "http://localhost:8080/zdi-geo-service/api/poi?search=Apotheke&limit=10"
 ```
 
 ### Neuen POI erstellen
 ```bash
-curl -X POST http://localhost:8080/geoservice/poi \
+curl -X POST http://localhost:8080/zdi-geo-service/api/poi \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Test Restaurant",
@@ -233,7 +233,7 @@ DotNetMongoDbBackend/
 ```typescript
 // Environment Configuration
 export const environment = {
-  apiBaseUrl: 'http://localhost:8080/geoservice'
+  apiBaseUrl: 'http://localhost:8080/zdi-geo-service/api'
 };
 ```
 
@@ -370,3 +370,14 @@ docker run -p 8080:8080 dotnet-mongodb-backend
 **Erstellt für den ZDI MongoDB Workshop** 🚀
 
 *Powered by .NET & MongoDB* ⚡
+
+## ⚠️ Hosting behind a reverse proxy / forwarded headers
+
+If you run this app behind a reverse proxy (NGINX, Traefik, Apache, cloud load balancer, etc.), the original scheme (http/https) and the original client IP are typically forwarded via X-Forwarded-For and X-Forwarded-Proto headers. To ensure absolute URL generation (LinkGenerator) and PathBase handling use the original scheme/host, the app config includes forwarded headers middleware.
+
+Important notes:
+- The app config enables X-Forwarded-For and X-Forwarded-Proto handling. For security, restrict forwarding sources in production by setting KnownProxies or KnownNetworks (see comments in `Program.cs`).
+- If your proxy terminates TLS, make sure the proxy sets X-Forwarded-Proto to `https` so generated links use https.
+- Example (NGINX):
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header X-Forwarded-Proto $scheme;

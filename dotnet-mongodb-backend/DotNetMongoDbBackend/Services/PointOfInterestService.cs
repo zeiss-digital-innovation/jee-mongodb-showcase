@@ -47,9 +47,7 @@ public class PointOfInterestService : IPointOfInterestService
     {
         try
         {
-            var pois = await _poisCollection.Find(_ => true).ToListAsync();
-            pois.ForEach(poi => poi.GenerateHref());
-            return pois;
+            return await _poisCollection.Find(_ => true).ToListAsync();
         }
         catch (Exception ex)
         {
@@ -70,9 +68,7 @@ public class PointOfInterestService : IPointOfInterestService
                 return null;
             }
 
-            var poi = await _poisCollection.Find(p => p.Id == id).FirstOrDefaultAsync();
-            poi?.GenerateHref();
-            return poi;
+            return await _poisCollection.Find(p => p.Id == id).FirstOrDefaultAsync();
         }
         catch (Exception ex)
         {
@@ -93,9 +89,7 @@ public class PointOfInterestService : IPointOfInterestService
                 new BsonRegularExpression(category, "i")
             );
 
-            var pois = await _poisCollection.Find(filter).ToListAsync();
-            pois.ForEach(poi => poi.GenerateHref());
-            return pois;
+            return await _poisCollection.Find(filter).ToListAsync();
         }
         catch (Exception ex)
         {
@@ -140,9 +134,7 @@ public class PointOfInterestService : IPointOfInterestService
                 query = query.Limit(limit.Value);
             }
 
-            var pois = await query.ToListAsync();
-            pois.ForEach(poi => poi.GenerateHref());
-            return pois;
+            return await query.ToListAsync();
         }
         catch (Exception ex)
         {
@@ -168,9 +160,7 @@ public class PointOfInterestService : IPointOfInterestService
                 radiusInRadians
             );
 
-            var pois = await _poisCollection.Find(geoWithinFilter).ToListAsync();
-            pois.ForEach(poi => poi.GenerateHref());
-            return pois;
+            return await _poisCollection.Find(geoWithinFilter).ToListAsync();
         }
         catch (Exception ex)
         {
@@ -190,7 +180,6 @@ public class PointOfInterestService : IPointOfInterestService
 
             poi.Id = null; // Neue ObjectId wird automatisch generiert
             await _poisCollection.InsertOneAsync(poi);
-            poi.GenerateHref();
 
             _logger.LogInformation("POI erstellt: {Name} (ID: {Id})", poi.Name, poi.Id);
             return poi;
@@ -224,7 +213,6 @@ public class PointOfInterestService : IPointOfInterestService
                 return null;
             }
 
-            poi.GenerateHref();
             _logger.LogInformation("POI aktualisiert: {Name} (ID: {Id})", poi.Name, poi.Id);
             return poi;
         }

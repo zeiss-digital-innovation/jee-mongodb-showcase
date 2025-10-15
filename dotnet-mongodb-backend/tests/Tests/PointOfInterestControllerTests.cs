@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
@@ -99,7 +101,8 @@ public class PointOfInterestControllerTests
     public async Task GetAllPois_WithGeographicSearch_ShouldCallGetNearbyPois()
     {
         // Arrange
-        double lat = 49.0, lng = 8.4, radius = 10.0;
+        double lat = 49.0, lng = 8.4, radius = 10.0; // radius provided in meters
+        var expectedRadiusKm = radius / 1000.0; // controller converts meters to km
         var nearbyPois = new List<PointOfInterest>
         {
             new PointOfInterest
@@ -109,14 +112,20 @@ public class PointOfInterestControllerTests
             }
         };
 
-        _mockService.Setup(s => s.GetNearbyPoisAsync(lng, lat, radius))
-                   .ReturnsAsync(nearbyPois);
+        _mockService.Setup(s => s.GetNearbyPoisAsync(
+            It.Is<double>(lon => Math.Abs(lon - lng) < 1e-6),
+            It.Is<double>(la => Math.Abs(la - lat) < 1e-6),
+            It.Is<double>(r => Math.Abs(r - expectedRadiusKm) < 1e-6)))
+               .ReturnsAsync(nearbyPois);
 
         // Act
         var result = await _controller.GetAllPois(lat: lat, lng: lng, radius: radius);
 
         // Assert
-        _mockService.Verify(s => s.GetNearbyPoisAsync(lng, lat, radius), Times.Once);
+        _mockService.Verify(s => s.GetNearbyPoisAsync(
+            It.Is<double>(lon => Math.Abs(lon - lng) < 1e-6),
+            It.Is<double>(la => Math.Abs(la - lat) < 1e-6),
+            It.Is<double>(r => Math.Abs(r - expectedRadiusKm) < 1e-6)), Times.Once);
         var actionResult = Assert.IsType<ActionResult<List<PointOfInterest>>>(result);
         var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
         var returnedPois = Assert.IsType<List<PointOfInterest>>(okResult.Value);
@@ -351,5 +360,39 @@ public class PointOfInterestControllerTests
         var statusResult = Assert.IsType<ObjectResult>(actionResult.Result);
         Assert.Equal(500, statusResult.StatusCode);
         Assert.Contains("Interner Serverfehler", statusResult.Value?.ToString());
+    }
+
+    [Fact]
+    public async Task GetPoiById_ShouldPopulateHref_WhenLinkGeneratorProvided()
+    {
+        // Arrange
+        var testPoi = new PointOfInterest { Id = "abc", Name = "Href Test POI", Category = "test" };
+        _mockService.Setup(s => s.GetPoiByIdAsync("abc")).ReturnsAsync(testPoi);
+
+        // Provide a mocked LinkGenerator that returns a fixed absolute URL for the action
+        // Use a derived controller that overrides GenerateHref to avoid mocking LinkGenerator overloads
+        var controllerWithLink = new TestPoiController(_mockService.Object, _mockLogger.Object);
+
+        // Act
+        var result = await controllerWithLink.GetPoiById("abc");
+
+        // Assert
+        var actionResult = Assert.IsType<ActionResult<PointOfInterest>>(result);
+        var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+        var returnedPoi = Assert.IsType<PointOfInterest>(okResult.Value);
+        Assert.Equal("http://example/zdi-geo-service/api/poi/abc", returnedPoi.Href);
+    }
+
+    private class TestPoiController : PointOfInterestController
+    {
+        public TestPoiController(IPointOfInterestService service, ILogger<PointOfInterestController> logger)
+            : base(service, logger, null)
+        {
+        }
+
+        protected override void GenerateHref(PointOfInterest p)
+        {
+            p.Href = "http://example/zdi-geo-service/api/poi/abc";
+        }
     }
 }

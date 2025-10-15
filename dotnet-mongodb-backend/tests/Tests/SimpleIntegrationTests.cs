@@ -20,7 +20,7 @@ public class SimpleIntegrationTests : IClassFixture<WebApplicationFactory<Progra
         var client = _factory.CreateClient();
 
         // Act
-        var response = await client.GetAsync("/geoservice/poi");
+        var response = await client.GetAsync("/zdi-geo-service/api/poi");
 
         // Assert
         response.EnsureSuccessStatusCode();
@@ -35,7 +35,7 @@ public class SimpleIntegrationTests : IClassFixture<WebApplicationFactory<Progra
         var client = _factory.CreateClient();
 
         // Act
-        var response = await client.GetAsync("/geoservice/poi?category=restaurant");
+        var response = await client.GetAsync("/zdi-geo-service/api/poi?category=restaurant");
 
         // Assert
         response.EnsureSuccessStatusCode();
@@ -50,7 +50,7 @@ public class SimpleIntegrationTests : IClassFixture<WebApplicationFactory<Progra
         var client = _factory.CreateClient();
 
         // Act
-        var response = await client.GetAsync("/geoservice/poi?lat=49.0&lng=8.4&radius=10");
+        var response = await client.GetAsync("/zdi-geo-service/api/poi?lat=49.0&lng=8.4&radius=10");
 
         // Assert
         response.EnsureSuccessStatusCode();
@@ -65,7 +65,7 @@ public class SimpleIntegrationTests : IClassFixture<WebApplicationFactory<Progra
         var client = _factory.CreateClient();
 
         // Act
-        var response = await client.GetAsync("/geoservice/health");
+        var response = await client.GetAsync("/zdi-geo-service/api/poi/health");
 
         // Assert
         response.EnsureSuccessStatusCode();
