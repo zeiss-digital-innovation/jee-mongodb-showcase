@@ -101,7 +101,8 @@ public class PointOfInterestControllerTests
     public async Task GetAllPois_WithGeographicSearch_ShouldCallGetNearbyPois()
     {
         // Arrange
-        double lat = 49.0, lng = 8.4, radius = 10.0;
+        double lat = 49.0, lng = 8.4, radius = 10.0; // radius provided in meters
+        var expectedRadiusKm = radius / 1000.0; // controller converts meters to km
         var nearbyPois = new List<PointOfInterest>
         {
             new PointOfInterest
@@ -111,14 +112,20 @@ public class PointOfInterestControllerTests
             }
         };
 
-        _mockService.Setup(s => s.GetNearbyPoisAsync(lng, lat, radius))
-                   .ReturnsAsync(nearbyPois);
+        _mockService.Setup(s => s.GetNearbyPoisAsync(
+            It.Is<double>(lon => Math.Abs(lon - lng) < 1e-6),
+            It.Is<double>(la => Math.Abs(la - lat) < 1e-6),
+            It.Is<double>(r => Math.Abs(r - expectedRadiusKm) < 1e-6)))
+               .ReturnsAsync(nearbyPois);
 
         // Act
         var result = await _controller.GetAllPois(lat: lat, lng: lng, radius: radius);
 
         // Assert
-        _mockService.Verify(s => s.GetNearbyPoisAsync(lng, lat, radius), Times.Once);
+        _mockService.Verify(s => s.GetNearbyPoisAsync(
+            It.Is<double>(lon => Math.Abs(lon - lng) < 1e-6),
+            It.Is<double>(la => Math.Abs(la - lat) < 1e-6),
+            It.Is<double>(r => Math.Abs(r - expectedRadiusKm) < 1e-6)), Times.Once);
         var actionResult = Assert.IsType<ActionResult<List<PointOfInterest>>>(result);
         var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
         var returnedPois = Assert.IsType<List<PointOfInterest>>(okResult.Value);

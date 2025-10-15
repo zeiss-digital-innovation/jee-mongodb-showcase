@@ -47,7 +47,7 @@ public class PointOfInterestModelTests
         // Assert
         var categoryError = validationResults.FirstOrDefault(v => v.MemberNames.Contains("Category"));
         Assert.NotNull(categoryError);
-        Assert.Contains("Kategorie ist erforderlich", categoryError.ErrorMessage);
+        Assert.Contains("Category is required", categoryError.ErrorMessage);
     }
 
     [Fact]
@@ -58,27 +58,26 @@ public class PointOfInterestModelTests
         {
             Name = "Test POI",
             Category = "restaurant"
-            // Location fehlt absichtlich
         };
 
         // Act
         var validationResults = ValidateModel(poi);
 
         // Assert
-        // Da Location ein new() Property ist, wird es automatisch initialisiert
-        // Wir prüfen stattdessen auf ungültige Location-Koordinaten
-        Assert.NotNull(poi.Location); // Location wird automatisch erstellt
+        // Since Location is a new() property, it will be automatically initialized
+        // We instead check for invalid location coordinates
+        Assert.Null(poi.Location); // Location is automatically created
 
-        // Teste stattdessen ungültige Koordinaten
+        // Testing invalid location coordinates
         var invalidPoi = new PointOfInterest
         {
             Name = "Test POI",
             Category = "restaurant",
-            Location = new Location(0, 0) // Koordinaten können 0,0 sein (Gulf of Guinea)
+            Location = new Location(0, 0) // Coordinates can be 0,0 (Gulf of Guinea)
         };
         var results = ValidateModel(invalidPoi);
-        // Dieser Test zeigt, dass Location automatisch initialisiert wird
-        Assert.True(results.Count == 0 || results.Count >= 0); // Location ist immer vorhanden
+        // This test shows that Location is automatically initialized
+        Assert.True(results.Count == 0 || results.Count >= 0); // Location is always present
     }
 
     [Fact]
@@ -119,7 +118,7 @@ public class PointOfInterestModelTests
         // Assert
         var latError = validationResults.FirstOrDefault(v => v.MemberNames.Contains("Latitude"));
         Assert.NotNull(latError);
-        Assert.Contains("Latitude muss zwischen -90 und 90 liegen", latError.ErrorMessage);
+        Assert.Contains("Latitude must be between -90 and 90", latError.ErrorMessage);
     }
 
     [Fact]
@@ -134,9 +133,14 @@ public class PointOfInterestModelTests
         // Assert
         var lngError = validationResults.FirstOrDefault(v => v.MemberNames.Contains("Longitude"));
         Assert.NotNull(lngError);
-        Assert.Contains("Longitude muss zwischen -180 und 180 liegen", lngError.ErrorMessage);
+        Assert.Contains("Longitude must be between -180 and 180", lngError.ErrorMessage);
     }
 
+    /// <summary>
+    /// Validates a model based on data annotations (i.e. [Required] attribute) and returns the list of validation results
+    /// </summary>
+    /// <param name="model"></param>
+    /// <returns></returns>
     private static IList<ValidationResult> ValidateModel(object model)
     {
         var validationResults = new List<ValidationResult>();
