@@ -49,14 +49,14 @@ The application can be configured via `appsettings.json`:
 ```json
 {
   "PointOfInterestApi": {
-    "BaseUrl": "http://localhost:8080/geoservice"
+    "BaseUrl": "http://localhost:8080/zdi-geo-service/api"
   }
 }
 ```
 
 **Port Configuration**: The application runs on port 4200 (same as Angular frontend) for consistency. This is configured in `Properties/launchSettings.json`.
 
-**Backend Integration**: Connects to MongoDB .NET Backend on `/geoservice/poi` endpoint.
+**Backend Integration**: Connects to MongoDB .NET/JEE Backend on `/zdi-geo-service/api/poi` endpoint.
 
 ## Running the Application
 
@@ -79,7 +79,7 @@ The application can be configured via `appsettings.json`:
 
 The application connects to the MongoDB backend REST API with optimized parameter usage:
 
-- **Backend Endpoint**: `http://localhost:8080/geoservice/poi` (MongoDB .NET Backend)
+- **Backend Endpoint**: `http://localhost:8080/zdi-geo-service/api/poi` (MongoDB .NET/JEE Backend)
 - **API Parameters**: 
   - `lat` - Latitude coordinate (required for location-based search)
   - `lon` - Longitude coordinate (required for location-based search)  
@@ -97,7 +97,7 @@ The application connects to the MongoDB backend REST API with optimized paramete
 - **Zoom ≥ 14**: 1,000m radius (detailed view)
 
 ### Backend Compatibility:
-- ✅ **MongoDB .NET Backend**: Full parameter support (`/geoservice/poi?lat=X&lon=Y&radius=Z&expand=details`)
+- ✅ **MongoDB .NET Backend**: Full parameter support (`/zdi-geo-service/api/poi?lat=X&lon=Y&radius=Z&expand=details`)
 - ❌ **JEE Backend**: Different endpoint structure (not compatible out-of-the-box)
 
 ### Performance Benefits:
