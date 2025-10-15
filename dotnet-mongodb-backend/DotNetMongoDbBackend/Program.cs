@@ -87,6 +87,8 @@ builder.Services.AddCors(options =>
     });
 });
 
+var serviceBase = builder.Configuration.GetValue<string>("ServiceBase");
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -96,6 +98,11 @@ builder.Services.AddSwaggerGen(c =>
         Description = "API for managing Points of Interest (POI)",
         Version = "v1"
     });
+    // Add server information so the Swagger UI uses the correct API base (including '/api')
+    if (!string.IsNullOrWhiteSpace(serviceBase))
+    {
+        c.AddServer(new Microsoft.OpenApi.Models.OpenApiServer { Url = $"/{serviceBase}/api" });
+    }
 });
 
 // Forwarded Headers: configure support for X-Forwarded-For / X-Forwarded-Proto when hosting behind a reverse proxy
@@ -109,8 +116,6 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 });
 
 var app = builder.Build();
-
-var serviceBase = builder.Configuration.GetValue<string>("ServiceBase");
 
 // Apply forwarded headers before modifying PathBase so PathBase and generated URLs reflect original host/proto
 app.UseForwardedHeaders();
