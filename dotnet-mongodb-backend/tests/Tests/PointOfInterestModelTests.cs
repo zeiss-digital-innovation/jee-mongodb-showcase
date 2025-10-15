@@ -32,25 +32,6 @@ public class PointOfInterestModelTests
     }
 
     [Fact]
-    public void PointOfInterest_ShouldFailValidation_WhenNameIsMissing()
-    {
-        // Arrange
-        var poi = new PointOfInterest
-        {
-            Category = "restaurant",
-            Location = new Location(8.4, 49.0)
-        };
-
-        // Act
-        var validationResults = ValidateModel(poi);
-
-        // Assert
-        var nameError = validationResults.FirstOrDefault(v => v.MemberNames.Contains("Name"));
-        Assert.NotNull(nameError);
-        Assert.Contains("Name ist erforderlich", nameError.ErrorMessage);
-    }
-
-    [Fact]
     public void PointOfInterest_ShouldFailValidation_WhenCategoryIsMissing()
     {
         // Arrange

@@ -66,12 +66,15 @@ builder.Services.AddSingleton(sp =>
 // Register PointOfInterestService
 builder.Services.AddScoped<IPointOfInterestService, PointOfInterestService>();
 
-// Add controllers mit Newtonsoft.Json für .NET 9
+// Use System.Text.Json for controller JSON (preferred for performance and default in .NET)
 builder.Services.AddControllers()
-    .AddNewtonsoftJson(options =>
+    .AddJsonOptions(opts =>
     {
-        options.SerializerSettings.DateTimeZoneHandling = Newtonsoft.Json.DateTimeZoneHandling.Utc;
-        options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
+        // Use camelCase in JSON output to match typical JS clients
+        opts.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        // Ignore null values to reduce payload size (equivalent to NullValueHandling.Ignore)
+        opts.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+        // Note: System.Text.Json uses ISO-8601 for DateTime. If you need custom DateTime handling, add a converter here.
     });
 
 builder.Services.AddCors(options =>

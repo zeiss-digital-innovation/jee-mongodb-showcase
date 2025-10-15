@@ -14,6 +14,7 @@ public class PointOfInterest
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
     [JsonPropertyName("_id")]
+    [JsonIgnore]
     public string? Id { get; set; }
 
     [BsonElement("href")]
@@ -64,7 +65,7 @@ public class Location
 
     // Convenience Properties für bessere API-Kompatibilität
     [BsonIgnore]
-    [JsonPropertyName("longitude")]
+    [JsonIgnore]
     [Range(-180.0, 180.0, ErrorMessage = "Longitude muss zwischen -180 und 180 liegen")]
     public double Longitude
     {
@@ -77,7 +78,7 @@ public class Location
     }
 
     [BsonIgnore]
-    [JsonPropertyName("latitude")]
+    [JsonIgnore]
     [Range(-90.0, 90.0, ErrorMessage = "Latitude muss zwischen -90 und 90 liegen")]
     public double Latitude
     {
