@@ -15,13 +15,33 @@ public class PointOfInterestController : ControllerBase
 {
     private readonly IPointOfInterestService _poiService;
     private readonly ILogger<PointOfInterestController> _logger;
-    private readonly LinkGenerator _linkGenerator;
+    private readonly LinkGenerator? _linkGenerator;
 
-    public PointOfInterestController(IPointOfInterestService poiService, ILogger<PointOfInterestController> logger, LinkGenerator linkGenerator)
+    public PointOfInterestController(IPointOfInterestService poiService, ILogger<PointOfInterestController> logger, LinkGenerator? linkGenerator = null)
     {
         _poiService = poiService;
         _logger = logger;
         _linkGenerator = linkGenerator;
+    }
+
+    /// <summary>
+    /// Encapsulates URL generation for a POI so tests can override behavior without mocking LinkGenerator.
+    /// Default implementation sets the Href property using LinkGenerator when available.
+    /// </summary>
+    protected virtual void GenerateHref(PointOfInterest p)
+    {
+        try
+        {
+            if (p != null && !string.IsNullOrWhiteSpace(p.Id))
+            {
+                var uri = _linkGenerator?.GetUriByAction(HttpContext, action: nameof(GetPoiById), controller: "PointOfInterest", values: new { id = p.Id });
+                p.Href = uri;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Fehler beim Generieren des href für POI mit ID: {Id}", p?.Id);
+        }
     }
 
     /// <summary>
@@ -341,22 +361,5 @@ public class PointOfInterestController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Generates the absolute HREF for a given PointOfInterest and sets it in the Href property.
-    /// </summary>
-    private void GenerateHref(PointOfInterest pointOfInterestoi)
-    {
-        try
-        {
-            if (!string.IsNullOrWhiteSpace(pointOfInterestoi.Id))
-            {
-                var uri = _linkGenerator?.GetUriByAction(HttpContext, action: nameof(GetPoiById), controller: "PointOfInterest", values: new { id = pointOfInterestoi.Id });
-                pointOfInterestoi.Href = uri;
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Error generating HREF for POI with ID: {Id}", pointOfInterestoi.Id);
-        }
-    }
+    
 }

@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
@@ -351,5 +353,39 @@ public class PointOfInterestControllerTests
         var statusResult = Assert.IsType<ObjectResult>(actionResult.Result);
         Assert.Equal(500, statusResult.StatusCode);
         Assert.Contains("Interner Serverfehler", statusResult.Value?.ToString());
+    }
+
+    [Fact]
+    public async Task GetPoiById_ShouldPopulateHref_WhenLinkGeneratorProvided()
+    {
+        // Arrange
+        var testPoi = new PointOfInterest { Id = "abc", Name = "Href Test POI", Category = "test" };
+        _mockService.Setup(s => s.GetPoiByIdAsync("abc")).ReturnsAsync(testPoi);
+
+        // Provide a mocked LinkGenerator that returns a fixed absolute URL for the action
+        // Use a derived controller that overrides GenerateHref to avoid mocking LinkGenerator overloads
+        var controllerWithLink = new TestPoiController(_mockService.Object, _mockLogger.Object);
+
+        // Act
+        var result = await controllerWithLink.GetPoiById("abc");
+
+        // Assert
+        var actionResult = Assert.IsType<ActionResult<PointOfInterest>>(result);
+        var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+        var returnedPoi = Assert.IsType<PointOfInterest>(okResult.Value);
+        Assert.Equal("http://example/zdi-geo-service/api/poi/abc", returnedPoi.Href);
+    }
+
+    private class TestPoiController : PointOfInterestController
+    {
+        public TestPoiController(IPointOfInterestService service, ILogger<PointOfInterestController> logger)
+            : base(service, logger, null)
+        {
+        }
+
+        protected override void GenerateHref(PointOfInterest p)
+        {
+            p.Href = "http://example/zdi-geo-service/api/poi/abc";
+        }
     }
 }

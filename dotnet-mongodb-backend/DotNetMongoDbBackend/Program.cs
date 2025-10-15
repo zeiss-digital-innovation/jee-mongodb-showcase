@@ -3,6 +3,8 @@ using MongoDB.Driver;
 using DotNetMongoDbBackend.Configurations;
 using DotNetMongoDbBackend.Models;
 using DotNetMongoDbBackend.Services;
+using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -82,13 +84,63 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Poi Service API",
+        Description = "API for managing Points of Interest (POI)",
+        Version = "v1"
+    });
+});
+
+// Forwarded Headers: configure support for X-Forwarded-For / X-Forwarded-Proto when hosting behind a reverse proxy
+// This is important so LinkGenerator and URL generation use the original scheme/host forwarded by the proxy.
+// Note: for security, restrict KnownProxies/KnownNetworks in production instead of allowing all.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    // Example: options.KnownProxies.Add(IPAddress.Parse("10.0.0.100"));
+    // Example: options.KnownNetworks.Add(new IPNetwork(IPAddress.Parse("10.0.0.0"), 24));
+});
+
 var app = builder.Build();
 
-// Serve the application under a base path so the base URL ends with /zdi-geo-service/app
-app.UsePathBase("/zdi-geo-service/app");
+var serviceBase = builder.Configuration.GetValue<string>("ServiceBase");
+
+// Apply forwarded headers before modifying PathBase so PathBase and generated URLs reflect original host/proto
+app.UseForwardedHeaders();
+
+// Serve the application under a base path so the base URL starts with /{serviceBase}
+// Map the API controllers under /api so final API base becomes /{serviceBase}/api
+app.UsePathBase($"/{serviceBase}");
+
+if (app.Environment.IsDevelopment())
+{
+    // Swagger JSON will be available under the application PathBase + /swagger/v1/swagger.json
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        // Serve the UI at {PathBase}/swagger (RoutePrefix defaults to "swagger")
+        c.SwaggerEndpoint($"/{serviceBase}/swagger/v1/swagger.json", "Poi Service API V1");
+        c.RoutePrefix = "swagger"; // explicit for clarity
+    });
+}
 
 app.UseCors("AllowAngular");
-app.MapControllers();
+
+// Map all controllers under the /api path so they are reachable at {PathBase}/api/...
+app.Map("/api", apiApp =>
+{
+    // Important: configure the branch to use routing and map controllers
+    apiApp.UseRouting();
+    apiApp.UseCors("AllowAngular");
+    apiApp.UseEndpoints(endpoints =>
+    {
+        endpoints.MapControllers();
+    });
+});
 
 await app.RunAsync();
 
