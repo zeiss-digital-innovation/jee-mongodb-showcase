@@ -14,7 +14,7 @@ import org.bson.types.ObjectId;
  *
  * @author Andreas Post
  */
-@Entity(value = "point_of_interest", useDiscriminator = false)
+@Entity(value = "point-of-interest", useDiscriminator = false)
 @Indexes({@Index(fields = {@Field(value = "location", type = IndexType.GEO2DSPHERE)}),
         @Index(fields = {@Field(value = "category")})})
 public class PointOfInterestEntity {
@@ -40,8 +40,7 @@ public class PointOfInterestEntity {
     }
 
     /**
-     * @param id
-     *            the id to set
+     * @param id the id to set
      */
     public void setId(ObjectId id) {
         this.id = id;
@@ -55,8 +54,7 @@ public class PointOfInterestEntity {
     }
 
     /**
-     * @param category
-     *            the category to set
+     * @param category the category to set
      */
     public void setCategory(String category) {
         this.category = category;
@@ -70,8 +68,7 @@ public class PointOfInterestEntity {
     }
 
     /**
-     * @param details
-     *            the details to set
+     * @param details the details to set
      */
     public void setDetails(String details) {
         this.details = details;
@@ -85,8 +82,7 @@ public class PointOfInterestEntity {
     }
 
     /**
-     * @param location
-     *            the location to set
+     * @param location the location to set
      */
     public void setLocation(GeoPoint location) {
         this.location = location;
