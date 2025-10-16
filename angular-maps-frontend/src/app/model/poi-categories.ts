@@ -2,18 +2,22 @@
 // Keep this file minimal and immutable so other modules can import stable data.
 
 export const POI_CATEGORIES = [
-    'restaurant',
-    'cafe',
-    'bar',
-    'park',
-    'museum',
-    'hotel',
-    'shop',
-    'library',
-    'pharmacy',
-    'hospital',
     'atm',
+    'bar',
+    'cash',
+    'coffee',
+    'hospital',
+    'library',
+    'lodging',
+    'museum',
+    'park',
     'parking',
+    'pharmacy',
+    'police',
+    'restaurant',
+    'shop',
+    'supermarket',
+    'toilet',
     'other'
 ] as const;
 

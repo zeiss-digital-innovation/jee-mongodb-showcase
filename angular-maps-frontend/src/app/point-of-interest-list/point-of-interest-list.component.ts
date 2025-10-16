@@ -1,9 +1,12 @@
 import { Component, OnInit } from '@angular/core';
+import { ApplicationRef, createComponent, EnvironmentInjector } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PointOfInterestService } from '../service/point-of-interest.service';
 import { PointOfInterest } from '../model/point_of_interest';
+import { POI_CATEGORIES } from '../model/poi-categories';
 import { FormatDetailsPipe } from '../pipe/format-details-pipe';
+import { PoiDialogComponent } from '../poi-dialog/poi-dialog.component';
 
 @Component({
   selector: 'app-point-of-interest-list',
@@ -24,7 +27,7 @@ export class PointOfInterestListComponent implements OnInit {
 
   pointsOfInterest: PointOfInterest[] = [];
 
-  constructor(private poiService: PointOfInterestService) { }
+  constructor(private poiService: PointOfInterestService, private appRef: ApplicationRef, private injector: EnvironmentInjector) { }
 
   ngOnInit(): void {
     // Example coordinates and radius
@@ -59,8 +62,47 @@ export class PointOfInterestListComponent implements OnInit {
   }
 
   editPoi(point: PointOfInterest): void {
-    // Implement edit functionality here
-    console.log('Edit POI:', point);
+    // create and attach the Angular dialog component to the document
+    const compRef = createComponent(PoiDialogComponent, { environmentInjector: this.injector });
+    // set inputs before attaching the view so CD picks them up
+    compRef.instance.details = point.details;
+    compRef.instance.categories = POI_CATEGORIES as unknown as string[];
+    compRef.instance.category = point.category;
+
+    // attach the component view to the application so change detection runs
+    this.appRef.attachView(compRef.hostView);
+    compRef.changeDetectorRef.detectChanges();
+
+    const el = compRef.location.nativeElement as HTMLElement;
+    // attach to body so that CSS position:fixed backdrop works
+    document.body.appendChild(el);
+
+    const cleanupComponent = () => {
+      try {
+        if (el && el.parentNode) el.parentNode.removeChild(el);
+      } catch (e) {
+        // ignore
+      }
+      try {
+        this.appRef.detachView(compRef.hostView);
+      } catch (e) {
+        // ignore
+      }
+      try {
+        compRef.destroy();
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    compRef.instance.cancel.subscribe(() => {
+      cleanupComponent();
+    });
+
+    compRef.instance.save.subscribe(({ category, details }) => {
+      console.log(`Saving changes to POI ${point.href}: category=${category}, details=${details}`);
+      cleanupComponent();
+    });
   }
 
   deletePoi(point: PointOfInterest): void {

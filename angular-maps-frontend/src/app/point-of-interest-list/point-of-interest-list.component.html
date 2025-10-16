@@ -36,7 +36,7 @@
                 <td>{{ poi.category | titlecase }}</td>
                 <td [innerHTML]="poi.details | formatDetails"></td>
                 <td>
-                    <button type="button" class="btn btn-sm btn-primary" (click)="editPoi(poi)" disabled>Edit</button>
+                    <button type="button" class="btn btn-sm btn-primary" (click)="editPoi(poi)">Edit</button>
                     &nbsp;
                     <button type="button" class="btn btn-sm btn-danger" (click)="deletePoi(poi)">Delete</button>
                 </td>
