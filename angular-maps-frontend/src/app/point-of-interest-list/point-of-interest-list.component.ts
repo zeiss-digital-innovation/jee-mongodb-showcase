@@ -16,7 +16,7 @@ export class PointOfInterestListComponent implements OnInit {
 
   latitudeDefault = 51.0504;
   longitudeDefault = 13.7373;
-  radiusDefault = 2000; // in meters
+  radiusDefault = 1000; // in meters
 
   latitude: number = this.latitudeDefault;
   longitude: number = this.longitudeDefault;
@@ -28,9 +28,9 @@ export class PointOfInterestListComponent implements OnInit {
 
   ngOnInit(): void {
     // Example coordinates and radius
-    const latitude = 51.0504; // Replace with actual latitude
-    const longitude = 13.7373; // Replace with actual longitude
-    const radius = 1000; // Replace with actual radius in meters
+    const latitude = this.latitudeDefault; // Replace with actual latitude
+    const longitude = this.longitudeDefault; // Replace with actual longitude
+    const radius = this.radiusDefault; // Replace with actual radius in meters
 
     this.poiService.getPointsOfInterest(latitude, longitude, radius)
       .subscribe(points => {
