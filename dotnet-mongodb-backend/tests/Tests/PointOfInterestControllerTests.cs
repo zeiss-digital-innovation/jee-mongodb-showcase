@@ -327,40 +327,6 @@ public class PointOfInterestControllerTests
     }
 
     [Fact]
-    public async Task GetAvailableCategories_ShouldReturnOk_WithCategoriesList()
-    {
-        // Arrange
-        var categories = new List<string> { "restaurant", "museum", "park" };
-        _mockService.Setup(s => s.GetAvailableCategoriesAsync()).ReturnsAsync(categories);
-
-        // Act
-        var result = await _controller.GetAvailableCategories();
-
-        // Assert
-        var actionResult = Assert.IsType<ActionResult<List<string>>>(result);
-        var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-        var returnedCategories = Assert.IsType<List<string>>(okResult.Value);
-        Assert.Equal(3, returnedCategories.Count);
-        Assert.Contains("restaurant", returnedCategories);
-    }
-
-    [Fact]
-    public async Task GetCategoryCount_ShouldReturnOk_WithCount()
-    {
-        // Arrange
-        _mockService.Setup(s => s.CountByCategoryAsync("restaurant")).ReturnsAsync(42);
-
-        // Act
-        var result = await _controller.GetCategoryCount("restaurant");
-
-        // Assert
-        var actionResult = Assert.IsType<ActionResult<long>>(result);
-        var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-        var count = Assert.IsType<long>(okResult.Value);
-        Assert.Equal(42, count);
-    }
-
-    [Fact]
     public void HealthCheck_ShouldReturnOk_WithMessage()
     {
         // Act

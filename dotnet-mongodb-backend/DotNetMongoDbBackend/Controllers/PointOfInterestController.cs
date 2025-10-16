@@ -267,50 +267,6 @@ public class PointOfInterestController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// GET /api/categories - Get all available categories
-    /// </summary>
-    /// <returns>List of available categories</returns>
-    [HttpGet("categories")]
-    public async Task<ActionResult<List<string>>> GetAvailableCategories()
-    {
-        // FIXME: move to separate controller
-        try
-        {
-            var categories = await _poiService.GetAvailableCategoriesAsync();
-
-            _logger.LogInformation("Categories retrieved: {Count} available categories", categories.Count);
-            return Ok(categories);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving available categories");
-            return StatusCode(500, "Internal server error retrieving categories");
-        }
-    }
-
-    /// <summary>
-    /// GET /api/stats/category/{category} - Statistics for category
-    /// </summary>
-    /// <param name="category">Category name</param>
-    /// <returns>Number of POIs in category</returns>
-    [HttpGet("stats/category/{category}")]
-    public async Task<ActionResult<long>> GetCategoryCount([Required] string category)
-    {
-        // FIXME: move to separate controller
-        try
-        {
-            var count = await _poiService.CountByCategoryAsync(category);
-
-            _logger.LogInformation("Category statistics retrieved: {Category} has {Count} POIs", category, count);
-            return Ok(count);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving statistics for category: {Category}", category);
-            return StatusCode(500, "Internal server error retrieving category statistics");
-        }
-    }
 
     /// <summary>
     /// GET /api/health - Health Check Endpoint
