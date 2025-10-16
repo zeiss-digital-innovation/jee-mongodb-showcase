@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Konfiguration des Loggings mit benutzerdefinierten Zeitformat (aktualisiert für .NET 9)
+// Configure logging with custom timestamp format (updated for .NET 9)
 builder.Logging.ClearProviders();
 builder.Logging.AddSimpleConsole(options =>
 {
@@ -16,28 +16,28 @@ builder.Logging.AddSimpleConsole(options =>
     options.IncludeScopes = false;
 });
 
-// URLs-Konfiguration - einheitlich Port 8080 mit korrekter Container-Bindung
+// URL configuration - unified port 8080 with correct container binding
 if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true")
 {
-    // Container: Bindung an alle Interfaces
+    // Container: Bind to all interfaces
     builder.WebHost.UseUrls("http://0.0.0.0:8080");
 }
 else
 {
-    // Lokal: localhost-Bindung
+    // Local: Bind to localhost
     builder.WebHost.UseUrls("http://localhost:8080");
 }
 
 // Bind Mongo settings
 builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("MongoSettings"));
 
-// Register MongoClient mit optimierten Timeouts für .NET 9
+// Register MongoClient with optimized timeouts for .NET 9
 builder.Services.AddSingleton<IMongoClient>(sp =>
 {
     var cfg = sp.GetRequiredService<IOptions<MongoSettings>>().Value;
     var mongoSettings = MongoClientSettings.FromConnectionString(cfg.ConnectionString);
 
-    // Optimierte Connection-Settings für .NET 9
+    // Optimized connection settings for .NET 9
     mongoSettings.ServerSelectionTimeout = TimeSpan.FromSeconds(5);
     mongoSettings.ConnectTimeout = TimeSpan.FromSeconds(5);
     mongoSettings.SocketTimeout = TimeSpan.FromSeconds(5);

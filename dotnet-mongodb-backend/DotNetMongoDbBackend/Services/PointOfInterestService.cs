@@ -7,8 +7,8 @@ using MongoDB.Bson;
 namespace DotNetMongoDbBackend.Services;
 
 /// <summary>
-/// Service für Point of Interest Business Logic
-/// Kompatibel mit JEE und Spring Boot Backend APIs
+/// Service for Point of Interest Business Logic
+/// Compatible with JEE and Spring Boot Backend APIs
 /// </summary>
 public class PointOfInterestService : IPointOfInterestService
 {
@@ -17,31 +17,31 @@ public class PointOfInterestService : IPointOfInterestService
 
     public PointOfInterestService(IMongoDatabase database, IOptions<MongoSettings> mongoSettings, ILogger<PointOfInterestService> logger)
     {
-        // Verwende die zentrale Konfiguration aus MongoSettings
+        // Use central configuration from MongoSettings
         var collectionName = mongoSettings.Value.Collections.Pois;
         _poisCollection = database.GetCollection<PointOfInterest>(collectionName);
         _logger = logger;
 
-        _logger.LogInformation("PointOfInterestService initialisiert mit Collection: {CollectionName}", collectionName);
+        _logger.LogInformation("PointOfInterestService initialized with Collection: {CollectionName}", collectionName);
         _logger.LogInformation("MongoDB Database: {DatabaseName}", database.DatabaseNamespace.DatabaseName);
 
-        // Teste sofort die Collection-Verbindung
+        // Test collection connection immediately
         try
         {
             var testCount = _poisCollection.CountDocuments(FilterDefinition<PointOfInterest>.Empty);
-            _logger.LogInformation("MongoDB Test erfolgreich: {Count} Dokumente in Collection '{CollectionName}' gefunden", testCount, collectionName);
+            _logger.LogInformation("MongoDB test successful: {Count} documents found in Collection '{CollectionName}'", testCount, collectionName);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "FEHLER bei MongoDB Verbindungstest für Collection '{CollectionName}'", collectionName);
+            _logger.LogError(ex, "ERROR during MongoDB connection test for Collection '{CollectionName}'", collectionName);
         }
 
-        // Erstelle 2dsphere Index für geografische Suchen
+        // Create 2dsphere index for geographic searches
         CreateIndexes();
     }
 
     /// <summary>
-    /// Alle POIs abrufen
+    /// Get all POIs
     /// </summary>
     public async Task<List<PointOfInterest>> GetAllPoisAsync()
     {
@@ -51,13 +51,13 @@ public class PointOfInterestService : IPointOfInterestService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fehler beim Abrufen aller POIs");
+            _logger.LogError(ex, "Error retrieving all POIs");
             throw;
         }
     }
 
     /// <summary>
-    /// POI nach ID suchen
+    /// Find POI by ID
     /// </summary>
     public async Task<PointOfInterest?> GetPoiByIdAsync(string id)
     {
@@ -72,13 +72,13 @@ public class PointOfInterestService : IPointOfInterestService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fehler beim Abrufen des POI mit ID: {Id}", id);
+            _logger.LogError(ex, "Error retrieving POI with ID: {Id}", id);
             throw;
         }
     }
 
     /// <summary>
-    /// POIs nach Kategorie filtern
+    /// Filter POIs by category
     /// </summary>
     public async Task<List<PointOfInterest>> GetPoisByCategoryAsync(string category)
     {
@@ -93,13 +93,13 @@ public class PointOfInterestService : IPointOfInterestService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fehler beim Abrufen der POIs für Kategorie: {Category}", category);
+            _logger.LogError(ex, "Error retrieving POIs for category: {Category}", category);
             throw;
         }
     }
 
     /// <summary>
-    /// POIs suchen (Name, Address, Tags)
+    /// Search POIs (Name, Address, Tags)
     /// </summary>
     public async Task<List<PointOfInterest>> SearchPoisAsync(string searchTerm, int? limit = null)
     {
@@ -138,20 +138,20 @@ public class PointOfInterestService : IPointOfInterestService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fehler beim Suchen der POIs mit Term: {SearchTerm}", searchTerm);
+            _logger.LogError(ex, "Error searching POIs with term: {SearchTerm}", searchTerm);
             throw;
         }
     }
 
     /// <summary>
-    /// POIs in der Nähe einer geografischen Position finden
+    /// Find POIs near a geographic location
     /// </summary>
     public async Task<List<PointOfInterest>> GetNearbyPoisAsync(double longitude, double latitude, double radiusInKm)
     {
         try
         {
-            // Verwende GeoWithin statt Near für bessere 2dsphere Index Kompatibilität
-            var radiusInRadians = radiusInKm / 6378.1; // Erdradius in km
+            // Use GeoWithin instead of Near for better 2dsphere index compatibility
+            var radiusInRadians = radiusInKm / 6378.1; // Earth radius in km
 
             var geoWithinFilter = Builders<PointOfInterest>.Filter.GeoWithinCenterSphere(
                 p => p.Location,
@@ -164,13 +164,13 @@ public class PointOfInterestService : IPointOfInterestService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fehler beim Abrufen von POIs in der Nähe von ({Longitude}, {Latitude})", longitude, latitude);
+            _logger.LogError(ex, "Error retrieving POIs near ({Longitude}, {Latitude})", longitude, latitude);
             throw;
         }
     }
 
     /// <summary>
-    /// POI erstellen
+    /// Create POI
     /// </summary>
     public async Task<PointOfInterest> CreatePoiAsync(PointOfInterest poi)
     {
@@ -178,21 +178,21 @@ public class PointOfInterestService : IPointOfInterestService
         {
             ValidatePoi(poi);
 
-            poi.Id = null; // Neue ObjectId wird automatisch generiert
+            poi.Id = null; // New ObjectId will be automatically generated
             await _poisCollection.InsertOneAsync(poi);
 
-            _logger.LogInformation("POI erstellt: {Name} (ID: {Id})", poi.Name, poi.Id);
+            _logger.LogInformation("POI created: {Name} (ID: {Id})", poi.Name, poi.Id);
             return poi;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fehler beim Erstellen des POI: {Name}", poi?.Name);
+            _logger.LogError(ex, "Error creating POI: {Name}", poi?.Name);
             throw;
         }
     }
 
     /// <summary>
-    /// POI aktualisieren
+    /// Update POI
     /// </summary>
     public async Task<PointOfInterest?> UpdatePoiAsync(string id, PointOfInterest poi)
     {
@@ -213,18 +213,18 @@ public class PointOfInterestService : IPointOfInterestService
                 return null;
             }
 
-            _logger.LogInformation("POI aktualisiert: {Name} (ID: {Id})", poi.Name, poi.Id);
+            _logger.LogInformation("POI updated: {Name} (ID: {Id})", poi.Name, poi.Id);
             return poi;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fehler beim Aktualisieren des POI mit ID: {Id}", id);
+            _logger.LogError(ex, "Error updating POI with ID: {Id}", id);
             throw;
         }
     }
 
     /// <summary>
-    /// POI löschen
+    /// Delete POI
     /// </summary>
     public async Task<bool> DeletePoiAsync(string id)
     {
@@ -239,7 +239,7 @@ public class PointOfInterestService : IPointOfInterestService
 
             if (result.DeletedCount > 0)
             {
-                _logger.LogInformation("POI gelöscht mit ID: {Id}", id);
+                _logger.LogInformation("POI deleted with ID: {Id}", id);
                 return true;
             }
 
@@ -247,13 +247,13 @@ public class PointOfInterestService : IPointOfInterestService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fehler beim Löschen des POI mit ID: {Id}", id);
+            _logger.LogError(ex, "Error deleting POI with ID: {Id}", id);
             throw;
         }
     }
 
     /// <summary>
-    /// Alle verfügbaren Kategorien abrufen
+    /// Get all available categories
     /// </summary>
     public async Task<List<string>> GetAvailableCategoriesAsync()
     {
@@ -269,13 +269,13 @@ public class PointOfInterestService : IPointOfInterestService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fehler beim Abrufen der verfügbaren Kategorien");
+            _logger.LogError(ex, "Error retrieving available categories");
             throw;
         }
     }
 
     /// <summary>
-    /// Anzahl POIs nach Kategorie
+    /// Count POIs by category
     /// </summary>
     public async Task<long> CountByCategoryAsync(string category)
     {
@@ -290,13 +290,13 @@ public class PointOfInterestService : IPointOfInterestService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fehler beim Zählen der POIs für Kategorie: {Category}", category);
+            _logger.LogError(ex, "Error counting POIs for category: {Category}", category);
             throw;
         }
     }
 
     /// <summary>
-    /// POI-Validierung
+    /// POI validation
     /// </summary>
     private static void ValidatePoi(PointOfInterest poi)
     {
@@ -320,32 +320,32 @@ public class PointOfInterestService : IPointOfInterestService
     }
 
     /// <summary>
-    /// Erstellt notwendige MongoDB-Indizes
+    /// Create required MongoDB indexes
     /// </summary>
     private void CreateIndexes()
     {
         try
         {
-            // 2dsphere Index für geografische Suchen
+            // 2dsphere index for geographic searches
             var locationIndex = Builders<PointOfInterest>.IndexKeys.Geo2DSphere(p => p.Location);
             _poisCollection.Indexes.CreateOne(new CreateIndexModel<PointOfInterest>(locationIndex));
 
-            // Text-Index für Volltext-Suche
+            // Text index for full-text search
             var textIndex = Builders<PointOfInterest>.IndexKeys.Combine(
                 Builders<PointOfInterest>.IndexKeys.Text(p => p.Name),
                 Builders<PointOfInterest>.IndexKeys.Text(p => p.Address)
             );
             _poisCollection.Indexes.CreateOne(new CreateIndexModel<PointOfInterest>(textIndex));
 
-            // Index für Kategorie-Suchen
+            // Index for category searches
             var categoryIndex = Builders<PointOfInterest>.IndexKeys.Ascending(p => p.Category);
             _poisCollection.Indexes.CreateOne(new CreateIndexModel<PointOfInterest>(categoryIndex));
 
-            _logger.LogInformation("MongoDB-Indizes erfolgreich erstellt");
+            _logger.LogInformation("MongoDB indexes created successfully");
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Fehler beim Erstellen der MongoDB-Indizes (können bereits existieren)");
+            _logger.LogWarning(ex, "Error creating MongoDB indexes (they may already exist)");
         }
     }
 }

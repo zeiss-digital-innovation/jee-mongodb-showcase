@@ -1,68 +1,68 @@
 # 🐳 Docker Deployment - .NET MongoDB Backend
 
-## 🚀 Übersicht
+## 🚀 Overview
 
-Dieses .NET Backend kann auf verschiedene Arten mit Docker deployed werden. Die intelligenten Deploy-Skripte erkennen automatisch die MongoDB-Umgebung und wählen die optimale Konfiguration.
+This .NET Backend can be deployed with Docker in various ways. The intelligent deploy scripts automatically detect the MongoDB environment and select the optimal configuration.
 
-## 📋 Deployment-Optionen
+## 📋 Deployment Options
 
-### 1. **Automatisches Deployment (Empfohlen)**
+### 1. **Automatic Deployment (Recommended)**
 
 #### Windows
 ```cmd
-# Automatische MongoDB-Erkennung und Deployment
+# Automatic MongoDB detection and deployment
 .\deploy.bat
 ```
 
 #### Linux/macOS
 ```bash
-# Automatische MongoDB-Erkennung und Deployment
+# Automatic MongoDB detection and deployment
 chmod +x deploy.sh
 ./deploy.sh
 ```
 
-### 2. **Manuelle Docker-Compose Varianten**
+### 2. **Manual Docker-Compose Variants**
 
-#### Komplettes System (Backend + MongoDB)
+#### Complete System (Backend + MongoDB)
 ```bash
-# Startet eigene MongoDB + Backend
+# Starts own MongoDB + Backend
 docker-compose up --build -d
 ```
 
-#### Nur Backend (externe MongoDB)
+#### Backend Only (external MongoDB)
 ```bash
-# Nutzt vorhandene MongoDB
+# Uses existing MongoDB
 docker-compose -f docker-compose.external-mongo.yml up --build -d
 ```
 
 #### Development Mode
 ```bash
-# Development-Konfiguration mit Hot Reload
+# Development configuration with Hot Reload
 docker-compose -f docker-compose.local.yml up --build
 ```
 
-## 🔧 Deploy-Skript Funktionalitäten
+## 🔧 Deploy Script Features
 
-### Intelligente MongoDB-Erkennung
+### Intelligent MongoDB Detection
 
-Die Deploy-Skripte führen automatisch folgende Prüfungen durch:
+The deploy scripts automatically perform the following checks:
 
-1. **Netzwerk-Erstellung**: Erstellt `demo-campus` Netzwerk falls nicht vorhanden
-2. **MongoDB-Port-Check**: Prüft ob Port 27017 belegt ist
-3. **Container-Erkennung**: Sucht nach laufenden MongoDB-Containern
-4. **Automatische Konfiguration**: Wählt passende docker-compose Datei
+1. **Network Creation**: Creates `demo-campus` network if not present
+2. **MongoDB Port Check**: Checks if port 27017 is in use
+3. **Container Detection**: Searches for running MongoDB containers
+4. **Automatic Configuration**: Selects appropriate docker-compose file
 
-### Deployment-Szenarien
+### Deployment Scenarios
 
-| Szenario | MongoDB Status | Verwendete Konfiguration | Verhalten |
-|----------|----------------|---------------------------|-----------|
-| **Keine MongoDB** | Nicht gefunden | `docker-compose.yml` | Startet Backend + eigene MongoDB |
-| **MongoDB Container** | Container läuft | `docker-compose.external-mongo.yml` | Nutzt vorhandenen Container |
-| **Externe MongoDB** | Port 27017 belegt | `docker-compose.external-mongo.yml` | Verbindet mit externer DB |
+| Scenario | MongoDB Status | Used Configuration | Behavior |
+|----------|----------------|-------------------|----------|
+| **No MongoDB** | Not found | `docker-compose.yml` | Starts Backend + own MongoDB |
+| **MongoDB Container** | Container running | `docker-compose.external-mongo.yml` | Uses existing container |
+| **External MongoDB** | Port 27017 in use | `docker-compose.external-mongo.yml` | Connects to external DB |
 
-## 🌐 Container-Konfigurationen
+## 🌐 Container Configurations
 
-### Standard-Konfiguration (`docker-compose.yml`)
+### Standard Configuration (`docker-compose.yml`)
 ```yaml
 services:
   backend:
@@ -76,7 +76,7 @@ services:
     ports: ["27017:27017"]
 ```
 
-### Externe MongoDB (`docker-compose.external-mongo.yml`)
+### External MongoDB (`docker-compose.external-mongo.yml`)
 ```yaml
 services:
   backend:
@@ -98,9 +98,9 @@ services:
       - ./DotNetMongoDbBackend:/app/src
 ```
 
-## 🛠 Manuelle Docker-Befehle
+## 🛠 Manual Docker Commands
 
-### Image bauen
+### Build Image
 ```bash
 # Release Build
 docker build -t dotnet-mongodb-backend .
@@ -109,15 +109,15 @@ docker build -t dotnet-mongodb-backend .
 docker build -t dotnet-mongodb-backend:dev --target development .
 ```
 
-### Container starten
+### Start Container
 ```bash
-# Standard-Konfiguration
+# Standard configuration
 docker run -d --name backend \
   -p 8080:8080 \
   -e MongoSettings__ConnectionString=mongodb://host.docker.internal:27017 \
   dotnet-mongodb-backend
 
-# Mit externer MongoDB
+# With external MongoDB
 docker run -d --name backend \
   -p 8080:8080 \
   --network demo-campus \
@@ -129,220 +129,235 @@ docker run -d --name backend \
 
 ### Container Health Check
 ```bash
-# Health Check Status prüfen
+# Check health check status
 docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
-# Detaillierte Health-Informationen
+# Detailed health information
 docker inspect --format='{{.State.Health.Status}}' dotnet-mongodb-backend
 ```
 
 ### API Health Check
 ```bash
-# Backend Health Check
+# Backend health check
 curl http://localhost:8080/geoservice/health
 
-# Debug-Informationen
+# Debug information
 curl http://localhost:8080/geoservice/debug
 ```
 
 ## 📊 Monitoring & Debugging
 
-### Container-Logs anzeigen
+### View Container Logs
 ```bash
-# Live-Logs verfolgen
+# Follow live logs
 docker logs dotnet-mongodb-backend -f
 
-# Letzte 50 Zeilen
+# Last 50 lines
 docker logs dotnet-mongodb-backend --tail 50
 
-# Logs mit Timestamps
+# Logs with timestamps
 docker logs dotnet-mongodb-backend -t
 ```
 
-### Container-Informationen
+### Container Information
 ```bash
-# Container-Details
+# Container details
 docker inspect dotnet-mongodb-backend
 
-# Netzwerk-Informationen
+# Network information
 docker network inspect demo-campus
 
-# Resource-Verbrauch
+# Resource usage
 docker stats dotnet-mongodb-backend
 ```
 
-## 🔄 Container-Management
+## 🔄 Container Management
 
-### Stoppen und Neustarten
+### Stop and Restart
 ```bash
-# Container stoppen
+# Stop container
 docker-compose down
 
-# Container neustarten
+# Restart container
 docker-compose restart backend
 
-# Komplettes System neu bauen
+# Rebuild complete system
 docker-compose down
 docker-compose up --build -d
 ```
 
-### Daten-Volumes verwalten
+### Manage Data Volumes
 ```bash
-# Volumes anzeigen
+# Show volumes
 docker volume ls
 
-# MongoDB-Daten löschen
+# Delete MongoDB data
 docker volume rm mongo-data
 
-# Alle ungenutzten Volumes löschen
+# Remove all unused volumes
 docker volume prune
 ```
 
-## 🌍 Umgebungsvariablen
+## 🌍 Environment Variables
 
-### Basis-Konfiguration
+### Configuration Options
 ```bash
-# MongoDB-Verbindung
-MONGO_CONNECTION_STRING="mongodb://localhost:27017"
-MongoSettings__Database="demo-campus"
-MongoSettings__Collections__Pois="point-of-interest"
+# MongoDB Connection
+MongoSettings__ConnectionString=mongodb://localhost:27017
 
-# ASP.NET Core
-ASPNETCORE_ENVIRONMENT="Production"
-ASPNETCORE_URLS="http://+:8080"
-DOTNET_RUNNING_IN_CONTAINER="true"
+# Database Name
+MongoSettings__Database=demo-campus
+
+# Collection Name
+MongoSettings__Collections__Pois=point-of-interest
+
+# ASP.NET Environment
+ASPNETCORE_ENVIRONMENT=Production|Development
+
+# Container Detection
+DOTNET_RUNNING_IN_CONTAINER=true
 ```
 
-### Erweiterte Konfiguration
-```bash
-# Logging-Level
-Logging__LogLevel__Default="Information"
-Logging__LogLevel__DotNetMongoDbBackend="Debug"
+## 🔍 Troubleshooting
 
-# MongoDB-Timeouts
-MongoSettings__ConnectionTimeout="5000"
-MongoSettings__ServerSelectionTimeout="5000"
-MongoSettings__SocketTimeout="5000"
+### Port Already in Use
+```bash
+# Find process using port 8080
+netstat -ano | findstr :8080  # Windows
+lsof -i :8080                  # Linux/macOS
+
+# Stop conflicting service
+docker stop $(docker ps -q --filter "publish=8080")
 ```
 
-## 🔗 Netzwerk-Konfiguration
-
-### Demo-Campus Netzwerk
+### MongoDB Connection Failed
 ```bash
-# Netzwerk erstellen
-docker network create demo-campus
+# Check MongoDB container
+docker ps | grep mongo
 
-# Container zum Netzwerk hinzufügen
-docker network connect demo-campus mongodb
-docker network connect demo-campus dotnet-mongodb-backend
+# Test MongoDB connection
+docker exec mongodb mongosh --eval "db.adminCommand('ping')"
 
-# Netzwerk-Details anzeigen
+# Check network connectivity
 docker network inspect demo-campus
 ```
 
-### Port-Mapping
-| Service | Container Port | Host Port | Protokoll |
-|---------|----------------|-----------|-----------|
-| Backend (Prod) | 8080 | 8080 | HTTP |
-| Backend (Dev) | 80, 443 | 5000, 5001 | HTTP, HTTPS |
-| MongoDB | 27017 | 27017 | TCP |
-
-## 🚧 Troubleshooting
-
-### Häufige Probleme
-
-#### MongoDB-Verbindungsfehler
+### Container Restart Loop
 ```bash
-# MongoDB-Status prüfen
-docker ps --filter "name=mongodb"
+# View container logs
+docker logs dotnet-mongodb-backend --tail 100
 
-# Netzwerk-Konnektivität testen
-docker exec dotnet-mongodb-backend curl -f mongodb:27017
+# Check container events
+docker events --filter container=dotnet-mongodb-backend
 
-# MongoDB-Logs überprüfen
-docker logs mongodb
+# Inspect container exit code
+docker inspect dotnet-mongodb-backend --format='{{.State.ExitCode}}'
 ```
 
-#### Port-Konflikte
-```bash
-# Verwendete Ports anzeigen
-netstat -an | findstr 8080  # Windows
-lsof -i :8080              # Linux/macOS
+## 📦 Multi-Stage Build
 
-# Container mit anderem Port starten
-docker run -p 8081:8080 dotnet-mongodb-backend
-```
+The Dockerfile uses multi-stage builds for optimal image size:
 
-#### Build-Probleme
-```bash
-# Cache löschen und neu bauen
-docker system prune -f
-docker-compose build --no-cache backend
-
-# .NET Restore-Probleme beheben
-docker run --rm -v $(pwd):/app mcr.microsoft.com/dotnet/sdk:9.0 dotnet restore /app/DotNetMongoDbBackend
-```
-
-## 📈 Performance-Optimierung
-
-### Multi-Stage Dockerfile
 ```dockerfile
-# Optimierte Dockerfile-Struktur
+# Stage 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
-COPY *.csproj .
-RUN dotnet restore
+COPY . .
+RUN dotnet publish -c Release -o /app/publish
 
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+# Stage 2: Runtime
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
 COPY --from=build /app/publish .
+EXPOSE 8080
 ENTRYPOINT ["dotnet", "DotNetMongoDbBackend.dll"]
 ```
 
-### Resource-Limits
+### Build Stages
+- **build**: Compiles application (SDK image ~500MB)
+- **runtime**: Production image (ASP.NET ~200MB)
+
+## 🚀 Production Deployment
+
+### Best Practices
+```bash
+# Use specific version tags
+docker pull mcr.microsoft.com/dotnet/aspnet:9.0
+
+# Set resource limits
+docker run -d \
+  --memory="512m" \
+  --cpus="1.0" \
+  --restart=unless-stopped \
+  dotnet-mongodb-backend
+
+# Use secrets for sensitive data
+docker secret create mongo_connection_string connection.txt
+```
+
+### Docker Compose Production
 ```yaml
 services:
   backend:
     deploy:
+      replicas: 3
       resources:
         limits:
+          cpus: '1'
           memory: 512M
-          cpus: '0.5'
-        reservations:
-          memory: 256M
-          cpus: '0.25'
+      restart_policy:
+        condition: on-failure
 ```
 
-## 🎯 Best Practices
+## 📈 Performance Optimization
 
-1. **Immer deploy.bat/deploy.sh verwenden** für automatische Konfiguration
-2. **Health Checks aktivieren** für Production-Deployments
-3. **Logs-Rotation konfigurieren** für langfristige Deployments
-4. **Secrets management** für Produktionsumgebungen
-5. **Backup-Strategien** für MongoDB-Daten implementieren
+### Image Optimization
+```dockerfile
+# Layer caching optimization
+COPY *.csproj .
+RUN dotnet restore
+COPY . .
+RUN dotnet publish
 
-## 🔒 Sicherheit
+# Use .dockerignore
+bin/
+obj/
+*.md
+```
 
-### Production-Deployment
+### Runtime Optimization
 ```bash
-# Sichere MongoDB-Verbindung
-export MONGO_CONNECTION_STRING="mongodb://user:password@mongodb:27017/demo-campus?authSource=admin"
+# Enable ReadyToRun compilation
+dotnet publish -c Release -r linux-x64 --self-contained false /p:PublishReadyToRun=true
 
-# HTTPS aktivieren
-export ASPNETCORE_URLS="https://+:443;http://+:80"
-export ASPNETCORE_Kestrel__Certificates__Default__Path="/app/cert.pfx"
+# Use tiered compilation
+-e DOTNET_TieredCompilation=true
 ```
 
-### Netzwerk-Isolation
-```yaml
-networks:
-  backend-network:
-    driver: bridge
-    internal: true  # Kein Internetzugang
-  frontend-network:
-    driver: bridge
+## 🔐 Security
+
+### Security Best Practices
+```bash
+# Run as non-root user
+USER app
+
+# Read-only root filesystem
+docker run --read-only --tmpfs /tmp dotnet-mongodb-backend
+
+# Drop capabilities
+docker run --cap-drop=ALL dotnet-mongodb-backend
+
+# Use security scanning
+docker scan dotnet-mongodb-backend
 ```
+
+## 📝 Notes
+
+- The deploy scripts automatically detect the best configuration
+- Always use version tags in production
+- Monitor container health and logs regularly
+- Keep Docker images updated for security patches
 
 ---
 
-**Powered by Docker & .NET** 🐳⚡
+**Created for ZDI MongoDB Workshop** 🚀

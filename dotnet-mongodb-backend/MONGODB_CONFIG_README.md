@@ -1,13 +1,13 @@
-# MongoDB Konfiguration - Zentrale Verwaltung
+# MongoDB Configuration - Central Management
 
-## Übersicht
+## Overview
 
-Um Inkonsistenzen bei DB- und Collection-Namen zu vermeiden, wurde eine zentrale Konfigurationsverwaltung implementiert.
+To avoid inconsistencies in DB and collection names, a central configuration management has been implemented.
 
-## Zentrale Konstanten
+## Central Constants
 
 ### MongoConstants.cs
-Diese Klasse enthält alle wichtigen MongoDB-bezogenen Konstanten:
+This class contains all important MongoDB-related constants:
 
 ```csharp
 public static class MongoConstants
@@ -19,7 +19,7 @@ public static class MongoConstants
 ```
 
 ### MongoSettings.cs
-Die Konfigurationsklasse verwendet die Konstanten als Standard-Werte:
+The configuration class uses the constants as default values:
 
 ```csharp
 public class MongoSettings
@@ -35,21 +35,21 @@ public class MongoSettings
 }
 ```
 
-## Korrekte Namen
+## Correct Names
 
-### Datenbank
-- **Korrekt**: `demo-campus` (mit Bindestrich)
-- **Falsch**: `demo_campus` (mit Unterstrich)
+### Database
+- **Correct**: `demo-campus` (with hyphen)
+- **Wrong**: `demo_campus` (with underscore)
 
 ### Collection
-- **Korrekt**: `point-of-interest` (singular, mit Bindestrichen)
-- **Falsch**: `point_of_interest` (mit Unterstrichen)
-- **Falsch**: `points_of_interest` (plural)
-- **Falsch**: `points-of-interest` (plural)
+- **Correct**: `point-of-interest` (singular, with hyphens)
+- **Wrong**: `point_of_interest` (with underscores)
+- **Wrong**: `points_of_interest` (plural)
+- **Wrong**: `points-of-interest` (plural)
 
-## Verwendung in Code
+## Usage in Code
 
-### Im Service
+### In Service
 ```csharp
 public PointOfInterestService(IMongoDatabase database, IOptions<MongoSettings> mongoSettings, ILogger<PointOfInterestService> logger)
 {
@@ -59,7 +59,7 @@ public PointOfInterestService(IMongoDatabase database, IOptions<MongoSettings> m
 }
 ```
 
-### In Test-Code
+### In Test Code
 ```csharp
 var databaseName = MongoConstants.DatabaseName;
 var collectionName = MongoConstants.PoiCollectionName;
@@ -67,7 +67,7 @@ var database = client.GetDatabase(databaseName);
 var collection = database.GetCollection<BsonDocument>(collectionName);
 ```
 
-### In Konfigurationsdateien (appsettings.json)
+### In Configuration Files (appsettings.json)
 ```json
 {
   "MongoSettings": {
@@ -80,64 +80,64 @@ var collection = database.GetCollection<BsonDocument>(collectionName);
 }
 ```
 
-### In Docker Compose Dateien
+### In Docker Compose Files
 ```yaml
 environment:
   - MongoSettings__Database=demo-campus
   - MongoSettings__Collections__Pois=point-of-interest
 ```
 
-## Vorteile der zentralen Konfiguration
+## Benefits of Central Configuration
 
-1. **Konsistenz**: Alle Namen werden an einer Stelle definiert
-2. **Wartbarkeit**: Änderungen müssen nur an einer Stelle vorgenommen werden
-3. **Fehlerreduzierung**: Keine Tippfehler durch copy-paste
-4. **Dokumentation**: Klare Kommentare zu den korrekten Werten
-5. **Typsicherheit**: Compile-Zeit-Prüfung bei Verwendung der Konstanten
+1. **Consistency**: All names are defined in one place
+2. **Maintainability**: Changes only need to be made in one location
+3. **Error Reduction**: No typos from copy-paste
+4. **Documentation**: Clear comments on correct values
+5. **Type Safety**: Compile-time checking when using constants
 
-## Kompatibilität
+## Compatibility
 
-Diese Konfiguration ist kompatibel mit:
-- JEE MongoDB Backend (verwendet dieselben Namen)
+This configuration is compatible with:
+- JEE MongoDB Backend (uses the same names)
 - Angular Frontend
 - Docker Container Setups
-- MongoDB Initialisierungsskripts
+- MongoDB Initialization Scripts
 
-## Geänderte Dateien
+## Changed Files
 
-### Hauptdateien
-- `Configurations/MongoConstants.cs` - **NEU**: Zentrale Konstanten
-- `Configurations/MongoSettings.cs` - **AKTUALISIERT**: Verwendet jetzt Konstanten
-- `Services/PointOfInterestService.cs` - **AKTUALISIERT**: Verwendet zentrale Konfiguration statt hardcoded values
+### Main Files
+- `Configurations/MongoConstants.cs` - **NEW**: Central constants
+- `Configurations/MongoSettings.cs` - **UPDATED**: Now uses constants
+- `Services/PointOfInterestService.cs` - **UPDATED**: Uses central configuration instead of hardcoded values
 
-### Test-Dateien
-- `MongoDbTest/Program.cs` - **AKTUALISIERT**: Verwendet korrekte Namen
-- `MongoTest.cs.backup` - **BEREINIGT**: Konsistente Namen
+### Test Files
+- `MongoDbTest/Program.cs` - **UPDATED**: Uses correct names
+- `MongoTest.cs.backup` - **CLEANED UP**: Consistent names
 
-### Konfigurationsdateien (bereits korrekt)
+### Configuration Files (already correct)
 - `appsettings.json`
 - `appsettings.Development.json`
 - `docker-compose.yml`
 - `docker-compose.local.yml`
 - `docker-compose.external-mongo.yml`
 
-## Migration bestehender Code
+## Migration of Existing Code
 
-Wenn Sie in Zukunft MongoDB-bezogenen Code schreiben:
+When writing MongoDB-related code in the future:
 
-1. Verwenden Sie immer `MongoConstants.DatabaseName` für den DB-Namen
-2. Verwenden Sie immer `MongoConstants.PoiCollectionName` für die Collection
-3. Oder nutzen Sie die `MongoSettings` dependency injection
-4. Vermeiden Sie hardcoded Strings für DB/Collection-Namen
+1. Always use `MongoConstants.DatabaseName` for the DB name
+2. Always use `MongoConstants.PoiCollectionName` for the collection
+3. Or use the `MongoSettings` dependency injection
+4. Avoid hardcoded strings for DB/collection names
 
-## Beispiel für neuen Code
+## Example for New Code
 
 ```csharp
-// Gut - verwendet Konstanten
+// Good - uses constants
 var database = client.GetDatabase(MongoConstants.DatabaseName);
 var collection = database.GetCollection<PointOfInterest>(MongoConstants.PoiCollectionName);
 
-// Besser - verwendet dependency injection
+// Better - uses dependency injection
 public MyService(IOptions<MongoSettings> mongoSettings)
 {
     var settings = mongoSettings.Value;
@@ -145,6 +145,6 @@ public MyService(IOptions<MongoSettings> mongoSettings)
     var collection = database.GetCollection<PointOfInterest>(settings.Collections.Pois);
 }
 
-// Schlecht - hardcoded strings vermeiden
-var database = client.GetDatabase("demo-campus"); // Nicht machen!
+// Bad - avoid hardcoded strings
+var database = client.GetDatabase("demo-campus"); // Don't do this!
 ```
