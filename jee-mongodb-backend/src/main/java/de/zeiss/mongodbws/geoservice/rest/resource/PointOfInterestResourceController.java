@@ -95,6 +95,46 @@ public class PointOfInterestResourceController {
         return Response.created(location).header(Constants.CONTENT_ENC_KEY, Constants.CHARSET_UTF8).build();
     }
 
+    @PUT
+    @Path("{id}")
+    @Consumes(Constants.MEDIA_TYPE_JSON)
+    @Operation(summary = "Update point of interest", description = "Updates an existing point of interest by ID")
+    @APIResponses({
+            @APIResponse(responseCode = "201", description = "New Point of interest created if not existing for given ID"),
+            @APIResponse(responseCode = "204", description = "Point of interest updated")})
+    public Response updatePOI(@PathParam("id") String id, PointOfInterest poi) {
+        if (poi == null) {
+            return Response.status(Status.BAD_REQUEST).build();
+        }
+
+        URI location = null;
+        PointOfInterest resultPoi = null;
+        boolean isNew = false;
+
+        resultPoi = geoDataService.getPOI(id, true);
+
+        if (resultPoi == null) {
+            isNew = true;
+            poi.setId(id);
+            resultPoi = geoDataService.createPOI(poi);
+        } else {
+            poi.setId(id);
+            resultPoi = geoDataService.updatePOI(poi);
+        }
+
+        try {
+            location = new URI(createUriString(resultPoi));
+        } catch (URISyntaxException e) {
+            return Response.serverError().header(Constants.CONTENT_ENC_KEY, Constants.CHARSET_UTF8).build();
+        }
+
+        if (isNew) {
+            return Response.created(location).header(Constants.CONTENT_ENC_KEY, Constants.CHARSET_UTF8).build();
+        }
+
+        return Response.status(Status.NO_CONTENT).build();
+    }
+
     /**
      * DELETE request on poi resource by id. Returns empty response with
      * {@link Status#NO_CONTENT} (HTTP 204).
@@ -110,6 +150,9 @@ public class PointOfInterestResourceController {
             @APIResponse(responseCode = "204", description = "Point of interest deleted"),
             @APIResponse(responseCode = "404", description = "Point of interest not found")})
     public Response deletePOI(@PathParam("id") String id) {
+        if (geoDataService.getPOI(id, false) == null) {
+            throw new NotFoundException();
+        }
 
         geoDataService.deletePOI(id);
 

@@ -37,8 +37,7 @@ public class PersistenceService {
      * Saves the given {@link PointOfInterestEntity} as new entity. The
      * returning entity contains the generated id.
      *
-     * @param poi
-     *            the entity to store.
+     * @param poi the entity to store.
      * @return the entity with id
      */
     public PointOfInterestEntity createPointOfInterest(PointOfInterestEntity poi) {
@@ -51,10 +50,8 @@ public class PersistenceService {
     /**
      * Retrieve an poi entity by id.
      *
-     * @param id
-     *            The object id of the entity.
-     * @param expandDetails
-     *            If true returnes all data of the poi.
+     * @param id            The object id of the entity.
+     * @param expandDetails If true returnes all data of the poi.
      * @return
      */
     public PointOfInterestEntity getPointOfInterest(ObjectId id, boolean expandDetails) {
@@ -80,6 +77,12 @@ public class PersistenceService {
         }
     }
 
+    public PointOfInterestEntity updatePointOfInterest(PointOfInterestEntity poi) {
+        mongoDBClientProvider.getDatastore().save(poi);
+
+        return poi;
+    }
+
     /**
      * Delete a poi by id.
      *
@@ -102,8 +105,7 @@ public class PersistenceService {
      * @param lat
      * @param lon
      * @param radius
-     * @param expandDetails
-     *            If true returnes all data of the poi.
+     * @param expandDetails If true returnes all data of the poi.
      * @return
      */
     public List<PointOfInterestEntity> listPOIs(double lat, double lon, int radius, boolean expandDetails) {

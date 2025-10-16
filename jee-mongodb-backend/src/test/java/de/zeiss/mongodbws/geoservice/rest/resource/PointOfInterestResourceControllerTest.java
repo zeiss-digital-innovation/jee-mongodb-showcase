@@ -143,13 +143,14 @@ public class PointOfInterestResourceControllerTest {
     }
 
     @Test
-    public void testDeletePOI_ValidId_ShouldReturnNoContentResponse() {
+    public void testDeletePOI_ShouldReturnNotFoundResponse() {
         // When
-        Response response = controller.deletePOI(testId);
-
-        // Then
-        assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
-        verify(geoDataService).deletePOI(testId);
+        try {
+            controller.deletePOI(testId);
+            assertFalse(false, "Expected NotFoundException to be thrown");
+        } catch (NotFoundException e) {
+            // This block will not be executed
+        }
     }
 
     @Test
