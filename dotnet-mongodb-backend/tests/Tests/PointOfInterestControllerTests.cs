@@ -26,7 +26,7 @@ public class PointOfInterestControllerTests
         _mockLogger = new Mock<ILogger<PointOfInterestController>>();
         _controller = new PointOfInterestController(_mockService.Object, _mockLogger.Object);
 
-        // Setup HTTP-Context für Response.Headers
+        // Setup HTTP context for Response.Headers
         var httpContext = new DefaultHttpContext();
         _controller.ControllerContext = new ControllerContext
         {
@@ -140,7 +140,7 @@ public class PointOfInterestControllerTests
         Assert.Single(returnedPois);
     }
 
-    // ============= NEUE TESTS FÜR 80%+ ABDECKUNG =============
+    // ============= NEW TESTS FOR 80%+ COVERAGE =============
 
     [Fact]
     public async Task GetPoiById_ShouldReturnOk_WhenPoiExists()
@@ -193,12 +193,12 @@ public class PointOfInterestControllerTests
     [Fact]
     public async Task CreatePoi_ShouldReturnCreated_WhenValidPoi()
     {
-        // Arrange - vollständiges POI-Objekt mit allen erforderlichen Feldern
+        // Arrange - complete POI object with all required fields
         var newPoi = new PointOfInterest
         {
             Name = "New POI",
             Category = "museum",
-            Details = "A test museum POI",  // WICHTIG: Details ist erforderlich laut ValidatePoi
+            Details = "A test museum POI",  // IMPORTANT: Details is required according to ValidatePoi
             Location = new Location
             {
                 Type = "Point",
@@ -222,11 +222,11 @@ public class PointOfInterestControllerTests
         // Act
         var result = await _controller.CreatePoi(newPoi);
 
-        // Assert - JEE-kompatibel: HTTP 201 ohne Body, nur Location-Header
+        // Assert - JEE compatible: HTTP 201 without body, only Location header
         var statusCodeResult = Assert.IsType<StatusCodeResult>(result);
         Assert.Equal(201, statusCodeResult.StatusCode);
 
-        // Prüfe Location-Header (verwendet Fallback /poi/{id} da Url.ActionLink null zurückgibt)
+        // Check Location header (uses fallback /poi/{id} because Url.ActionLink returns null)
         Assert.True(_controller.Response.Headers.ContainsKey("Location"));
         var locationHeader = _controller.Response.Headers["Location"].ToString();
         Assert.Contains("123", locationHeader);
@@ -239,14 +239,14 @@ public class PointOfInterestControllerTests
         // Arrange
         var invalidPoi = new PointOfInterest { Name = "", Category = "test" };
         _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterest>()))
-                   .ThrowsAsync(new ArgumentException("Name ist erforderlich"));
+                   .ThrowsAsync(new ArgumentException("Name is required"));
 
         // Act
         var result = await _controller.CreatePoi(invalidPoi);
 
         // Assert
         var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-        Assert.Contains("Name ist erforderlich", badRequestResult.Value?.ToString());
+        Assert.Contains("Name is required", badRequestResult.Value?.ToString());
     }
 
     [Fact]
@@ -386,7 +386,7 @@ public class PointOfInterestControllerTests
         var actionResult = Assert.IsType<ActionResult<List<PointOfInterest>>>(result);
         var statusResult = Assert.IsType<ObjectResult>(actionResult.Result);
         Assert.Equal(500, statusResult.StatusCode);
-        Assert.Contains("Interner Serverfehler", statusResult.Value?.ToString());
+        Assert.Contains("Internal server error", statusResult.Value?.ToString());
     }
 
     [Fact]
