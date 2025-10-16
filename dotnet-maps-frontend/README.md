@@ -98,7 +98,6 @@ The application connects to the MongoDB backend REST API with optimized paramete
 
 ### Backend Compatibility:
 - ✅ **MongoDB .NET Backend**: Full parameter support (`/zdi-geo-service/api/poi?lat=X&lon=Y&radius=Z&expand=details`)
-- ❌ **JEE Backend**: Different endpoint structure (not compatible out-of-the-box)
 
 ### Performance Benefits:
 - **Reduced Data Transfer**: Only loads POIs within visible area
