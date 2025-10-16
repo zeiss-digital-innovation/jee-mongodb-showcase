@@ -10,7 +10,7 @@ export class PoiFormatService {
 
     constructor(private sanitizer: Sanitizer) { }
 
-    formatDetails(details: string | undefined): string {
+    formatDetails(details: string | undefined, noSVG: boolean = false): string {
         if (!details) return '';
 
         const detailChunks = details.split(/, |\n/).map(s => (s || '').trim()).filter(s => s.length > 0);
@@ -19,7 +19,7 @@ export class PoiFormatService {
             if (this.sanitizer.isSafeUrl(chunk)) {
                 return this.formatForLink(chunk);
             }
-            return this.formatForPhone(chunk);
+            return noSVG ? chunk : this.formatForPhone(chunk);
         });
 
         return formatted.join('<br>');

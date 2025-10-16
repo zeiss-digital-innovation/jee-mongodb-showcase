@@ -6,7 +6,7 @@ export class FormatDetailsPipe implements PipeTransform {
     constructor(private poiFormat: PoiFormatService) { }
 
     transform(value: string | undefined): string {
-        return this.poiFormat.formatDetails(value);
+        return this.poiFormat.formatDetails(value, true);
     }
 }
 
