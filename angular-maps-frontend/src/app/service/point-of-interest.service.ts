@@ -35,7 +35,17 @@ export class PointOfInterestService {
         return this.http.post<PointOfInterest>(`/poi`, sanitized);
     }
 
-
+    /**
+     * Deletes a point of interest from the backend
+     * @param point - The point of interest to delete
+     * @returns Observable<void>
+     */
+    deletePointOfInterest(point: PointOfInterest): Observable<void> {
+        if (!point.href) {
+            throw new Error('Point of Interest has no href, cannot delete');
+        }
+        return this.http.delete<void>(point.href);
+    }
 
 }
 

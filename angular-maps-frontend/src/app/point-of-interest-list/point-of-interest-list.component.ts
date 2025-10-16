@@ -64,7 +64,17 @@ export class PointOfInterestListComponent implements OnInit {
   }
 
   deletePoi(point: PointOfInterest): void {
-    // Implement delete functionality here
-    console.log('Delete POI:', point);
+    if (confirm('Are you sure you want to delete this point of interest?\n' + point.details)) {
+      this.poiService.deletePointOfInterest(point).subscribe({
+        next: () => {
+          // Remove the deleted point from the local array
+          this.pointsOfInterest = this.pointsOfInterest.filter(p => p !== point);
+        },
+        error: (err) => {
+          console.error('Error deleting point of interest:', err);
+          alert('Failed to delete the point of interest. Please try again.');
+        }
+      });
+    }
   }
 }
