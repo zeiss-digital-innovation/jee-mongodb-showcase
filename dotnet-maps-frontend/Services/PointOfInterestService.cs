@@ -74,23 +74,6 @@ namespace DotNetMapsFrontend.Services
             }
         }
 
-        /// <summary>
-        /// Gets the search radius in meters based on map zoom level (matching Angular frontend logic)
-        /// </summary>
-        /// <param name="zoom">Current map zoom level</param>
-        /// <returns>Search radius in meters</returns>
-        public static int GetRadiusForZoom(int zoom)
-        {
-            return zoom switch
-            {
-                <= 8 => 20000,
-                <= 11 => 10000,
-                12 => 5000,
-                13 => 2000,
-                _ => 1000
-            };
-        }
-
         private List<PointOfInterest> GetMockData()
         {
             return new List<PointOfInterest>

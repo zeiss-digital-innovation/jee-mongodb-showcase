@@ -21,7 +21,7 @@ namespace DotNetMapsFrontend.Controllers
 
         [HttpGet]
         [Route("api/pointsofinterest")]
-        public async Task<IActionResult> GetAll(double? lat, double? lon, int? radius, int? zoom)
+        public async Task<IActionResult> GetAll(double? lat, double? lon, int? radius)
         {
             try
             {
