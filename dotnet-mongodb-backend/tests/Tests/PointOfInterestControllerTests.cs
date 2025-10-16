@@ -168,10 +168,10 @@ public class PointOfInterestControllerTests
         // Act
         var result = await _controller.GetPoiById("999");
 
-        // Assert
+        // Assert - JEE-compatible: Returns 404 without body
         var actionResult = Assert.IsType<ActionResult<PointOfInterest>>(result);
-        var notFoundResult = Assert.IsType<NotFoundObjectResult>(actionResult.Result);
-        Assert.Contains("999", notFoundResult.Value?.ToString());
+        var notFoundResult = Assert.IsType<NotFoundResult>(actionResult.Result);
+        // NotFoundResult has no Value property (no body in response)
     }
 
     [Fact]
@@ -329,22 +329,21 @@ public class PointOfInterestControllerTests
         // Act
         var result = await _controller.DeletePoi("123");
 
-        // Assert
+        // Assert - JEE-compatible: Always 204 No Content
         Assert.IsType<NoContentResult>(result);
     }
 
     [Fact]
-    public async Task DeletePoi_ShouldReturnNotFound_WhenPoiDoesNotExist()
+    public async Task DeletePoi_ShouldReturnNoContent_WhenPoiDoesNotExist()
     {
-        // Arrange
+        // Arrange - POI doesn't exist, but DELETE is idempotent
         _mockService.Setup(s => s.DeletePoiAsync("999")).ReturnsAsync(false);
 
         // Act
         var result = await _controller.DeletePoi("999");
 
-        // Assert
-        var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
-        Assert.Contains("999", notFoundResult.Value?.ToString());
+        // Assert - JEE-compatible: Always 204 No Content (idempotent DELETE per RFC 9110)
+        Assert.IsType<NoContentResult>(result);
     }
 
     [Fact]

@@ -124,7 +124,9 @@ public class PointOfInterestController : ControllerBase
     }
 
     /// <summary>
-    /// GET /geoservice/poi/{id} - Get POI by ID
+    /// GET /poi/{id} - Get POI by ID
+    /// RFC 9110 Section 9.3.1 (GET) and Section 15.5.5 (404 Not Found)
+    /// Compatible with JEE Backend: Returns 404 without body when POI not found
     /// </summary>
     /// <param name="id">MongoDB ObjectId of the POI</param>
     /// <returns>POI or 404 if not found</returns>
@@ -138,7 +140,8 @@ public class PointOfInterestController : ControllerBase
             if (poi == null)
             {
                 _logger.LogWarning("POI not found with ID: {Id}", id);
-                return NotFound($"POI with ID '{id}' was not found");
+                // JEE-compatible: Return 404 without body (throws NotFoundException in JEE)
+                return NotFound();
             }
 
             _logger.LogInformation("POI retrieved: {Name} (ID: {Id})", poi.Name, poi.Id);
@@ -262,10 +265,12 @@ public class PointOfInterestController : ControllerBase
     }
 
     /// <summary>
-    /// DELETE /geoservice/poi/{id} - Delete POI
+    /// DELETE /poi/{id} - Delete POI
+    /// RFC 9110 Section 9.3.5 (DELETE) - Returns 204 No Content regardless of resource existence
+    /// Compatible with JEE Backend: Always returns 204, even if POI doesn't exist (idempotent)
     /// </summary>
     /// <param name="id">MongoDB ObjectId of the POI</param>
-    /// <returns>204 on success or 404 if not found</returns>
+    /// <returns>204 No Content</returns>
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeletePoi([Required] string id)
     {
@@ -273,13 +278,17 @@ public class PointOfInterestController : ControllerBase
         {
             var deleted = await _poiService.DeletePoiAsync(id);
 
-            if (!deleted)
+            if (deleted)
             {
-                _logger.LogWarning("POI not found for deletion with ID: {Id}", id);
-                return NotFound($"POI with ID '{id}' was not found");
+                _logger.LogInformation("POI deleted with ID: {Id}", id);
+            }
+            else
+            {
+                _logger.LogWarning("POI not found for deletion with ID: {Id}, returning 204 anyway (idempotent)", id);
             }
 
-            _logger.LogInformation("POI deleted with ID: {Id}", id);
+            // JEE-compatible: Always return 204 No Content (idempotent DELETE)
+            // RFC 9110: DELETE should be idempotent, same result for multiple calls
             return NoContent();
         }
         catch (Exception ex)
