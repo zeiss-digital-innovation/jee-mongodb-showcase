@@ -4,6 +4,7 @@ using Moq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using DotNetMongoDbBackend.Controllers;
@@ -24,6 +25,13 @@ public class PointOfInterestControllerTests
         _mockService = new Mock<IPointOfInterestService>();
         _mockLogger = new Mock<ILogger<PointOfInterestController>>();
         _controller = new PointOfInterestController(_mockService.Object, _mockLogger.Object);
+
+        // Setup HTTP-Context für Response.Headers
+        var httpContext = new DefaultHttpContext();
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContext
+        };
     }
 
     [Fact]
@@ -185,23 +193,44 @@ public class PointOfInterestControllerTests
     [Fact]
     public async Task CreatePoi_ShouldReturnCreated_WhenValidPoi()
     {
-        // Arrange
-        var newPoi = new PointOfInterest { Name = "New POI", Category = "museum", Location = new Location(8.4, 49.0) };
-        var createdPoi = new PointOfInterest { Id = "123", Name = "New POI", Category = "museum", Location = new Location(8.4, 49.0) };
+        // Arrange - vollständiges POI-Objekt mit allen erforderlichen Feldern
+        var newPoi = new PointOfInterest
+        {
+            Name = "New POI",
+            Category = "museum",
+            Details = "A test museum POI",  // WICHTIG: Details ist erforderlich laut ValidatePoi
+            Location = new Location
+            {
+                Type = "Point",
+                Coordinates = new double[] { 8.4, 49.0 }  // [longitude, latitude]
+            }
+        };
+        var createdPoi = new PointOfInterest
+        {
+            Id = "123",
+            Name = "New POI",
+            Category = "museum",
+            Details = "A test museum POI",
+            Location = new Location
+            {
+                Type = "Point",
+                Coordinates = new double[] { 8.4, 49.0 }
+            }
+        };
         _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterest>())).ReturnsAsync(createdPoi);
 
         // Act
         var result = await _controller.CreatePoi(newPoi);
 
-        // Assert
-        var actionResult = Assert.IsType<ActionResult<PointOfInterest>>(result);
-        var createdResult = Assert.IsType<CreatedAtActionResult>(actionResult.Result);
-        Assert.Equal("GetPoiById", createdResult.ActionName);
+        // Assert - JEE-kompatibel: HTTP 201 ohne Body, nur Location-Header
+        var statusCodeResult = Assert.IsType<StatusCodeResult>(result);
+        Assert.Equal(201, statusCodeResult.StatusCode);
 
-        // Korrigiere RouteValueDictionary Zugriff
-        Assert.NotNull(createdResult.RouteValues);
-        Assert.True(createdResult.RouteValues.ContainsKey("id"));
-        Assert.Equal("123", createdResult.RouteValues["id"]);
+        // Prüfe Location-Header (verwendet Fallback /poi/{id} da Url.ActionLink null zurückgibt)
+        Assert.True(_controller.Response.Headers.ContainsKey("Location"));
+        var locationHeader = _controller.Response.Headers["Location"].ToString();
+        Assert.Contains("123", locationHeader);
+        Assert.Contains("/poi/123", locationHeader);
     }
 
     [Fact]
@@ -216,8 +245,7 @@ public class PointOfInterestControllerTests
         var result = await _controller.CreatePoi(invalidPoi);
 
         // Assert
-        var actionResult = Assert.IsType<ActionResult<PointOfInterest>>(result);
-        var badRequestResult = Assert.IsType<BadRequestObjectResult>(actionResult.Result);
+        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
         Assert.Contains("Name ist erforderlich", badRequestResult.Value?.ToString());
     }
 
@@ -233,8 +261,7 @@ public class PointOfInterestControllerTests
         var result = await _controller.CreatePoi(newPoi);
 
         // Assert
-        var actionResult = Assert.IsType<ActionResult<PointOfInterest>>(result);
-        var statusResult = Assert.IsType<ObjectResult>(actionResult.Result);
+        var statusResult = Assert.IsType<ObjectResult>(result);
         Assert.Equal(500, statusResult.StatusCode);
     }
 
