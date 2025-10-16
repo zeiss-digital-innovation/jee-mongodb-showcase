@@ -1,3 +1,47 @@
 <div class="container">
-    <pre>{{ pointsOfInterest | json }}</pre>
+    <div class="row">
+        <div class="col">
+            <label for="latitudeInput" class="form-label">Latitude (Range: -90 to 90)</label>
+            <input type="number" class="form-control" id="latitudeInput" [(ngModel)]="latitude">
+        </div>
+        <div class="col">
+            <label for="longitudeInput" class="form-label">Longitude (Range: -180 to 180)</label>
+            <input type="number" class="form-control" id="longitudeInput" [(ngModel)]="longitude">
+        </div>
+        <div class="col">
+            <label for="radiusInput" class="form-label">Radius {{ radius }} (m)</label>
+            <input type="range" class="form-range" min="100" max="5000" [(ngModel)]="radius" id="customRange2">
+        </div>
+        <div class="col">
+            <button type="button" class="btn btn-primary mt-4" (click)="loadPointsOfInterest()"
+                [disabled]="!coordsValid">Load
+                POIs</button>
+        </div>
+    </div>
+</div>
+<div class="container">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Category</th>
+                <th scope="col">Details</th>
+                <th scope="col">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let poi of pointsOfInterest; let i = index">
+                <th scope="row">{{ i + 1 }}</th>
+                <!-- lets display the category with first letter upper case -->
+                <td>{{ poi.category | titlecase }}</td>
+                <td [innerHTML]="poi.details | formatDetails"></td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-primary" (click)="editPoi(poi)" disabled>Edit</button>
+                    &nbsp;
+                    <button type="button" class="btn btn-sm btn-danger" (click)="deletePoi(poi)"
+                        disabled>Delete</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </div>

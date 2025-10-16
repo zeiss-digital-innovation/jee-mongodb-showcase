@@ -87,8 +87,6 @@ export class PointOfInterestMapComponent implements OnInit {
     } catch (e) {
       // ignore if not available
     }
-
-
   }
 
   addMarkerAt(latitude: number, longitude: number): void {
