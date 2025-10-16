@@ -155,6 +155,7 @@ public class PointOfInterestController : ControllerBase
     /// <summary>
     /// POST /poi - Create new POI
     /// Compatible with JEE Backend: Returns HTTP 201 with Location header, but NO body
+    /// Implements RFC 9110 Section 10.2.2 (Location header)
     /// </summary>
     /// <param name="poi">POI data</param>
     /// <returns>HTTP 201 Created with Location header</returns>
@@ -170,22 +171,43 @@ public class PointOfInterestController : ControllerBase
 
             _logger.LogInformation("POI created: {Name} (ID: {Id})", createdPoi.Name, createdPoi.Id);
 
-            // JEE-compatible: HTTP 201 with Location header, NO body
-            // Use fallback if Url is null (e.g. in unit tests)
-            string? location = null;
-            if (Url != null)
+            // RFC 9110 Section 10.2.2: Location header can be absolute or relative URI
+            // Prefer absolute URI for better interoperability (matching JEE implementation)
+            string? locationUri = null;
+
+            if (Url != null && HttpContext?.Request != null)
             {
                 try
                 {
-                    location = Url.ActionLink(nameof(GetPoiById), values: new { id = createdPoi.Id });
+                    // Try to generate absolute URI using Url.Action
+                    locationUri = Url.Action(
+                        action: nameof(GetPoiById),
+                        controller: null,
+                        values: new { id = createdPoi.Id },
+                        protocol: HttpContext.Request.Scheme,
+                        host: HttpContext.Request.Host.ToString()
+                    );
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Error generating Location header, using fallback");
+                    _logger.LogWarning(ex, "Error generating absolute Location URI with Url.Action");
                 }
             }
 
-            Response.Headers.Location = location ?? $"/poi/{createdPoi.Id}";
+            // Fallback: construct absolute URI manually if Url helper failed
+            if (string.IsNullOrEmpty(locationUri) && HttpContext?.Request != null)
+            {
+                var request = HttpContext.Request;
+                var baseUri = $"{request.Scheme}://{request.Host}{request.PathBase}";
+                locationUri = $"{baseUri}/poi/{createdPoi.Id}";
+            }
+            // Last resort fallback: relative URI (valid per RFC 9110, but less preferred)
+            else if (string.IsNullOrEmpty(locationUri))
+            {
+                locationUri = $"/poi/{createdPoi.Id}";
+            }
+
+            Response.Headers.Location = locationUri;
             return StatusCode(201);
         }
         catch (ArgumentException ex)

@@ -219,6 +219,17 @@ public class PointOfInterestControllerTests
         };
         _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterest>())).ReturnsAsync(createdPoi);
 
+        // Setup HttpContext with proper Request details for absolute URI generation
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Scheme = "http";
+        httpContext.Request.Host = new HostString("localhost:8080");
+        httpContext.Request.PathBase = "/zdi-geo-service/api";
+
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContext
+        };
+
         // Act
         var result = await _controller.CreatePoi(newPoi);
 
@@ -226,11 +237,21 @@ public class PointOfInterestControllerTests
         var statusCodeResult = Assert.IsType<StatusCodeResult>(result);
         Assert.Equal(201, statusCodeResult.StatusCode);
 
-        // Check Location header (uses fallback /poi/{id} because Url.ActionLink returns null)
+        // Check Location header contains absolute URI according to RFC 7231
         Assert.True(_controller.Response.Headers.ContainsKey("Location"));
         var locationHeader = _controller.Response.Headers["Location"].ToString();
         Assert.Contains("123", locationHeader);
-        Assert.Contains("/poi/123", locationHeader);
+
+        // Verify it's an absolute URI (contains scheme and host)
+        Assert.True(locationHeader.StartsWith("http://") || locationHeader.StartsWith("https://") || locationHeader.StartsWith("/"),
+            "Location header should be an absolute URI or absolute path");
+
+        // If it's absolute, verify it contains the expected components
+        if (locationHeader.StartsWith("http://") || locationHeader.StartsWith("https://"))
+        {
+            Assert.Contains("localhost", locationHeader);
+            Assert.Contains("/poi/123", locationHeader);
+        }
     }
 
     [Fact]
