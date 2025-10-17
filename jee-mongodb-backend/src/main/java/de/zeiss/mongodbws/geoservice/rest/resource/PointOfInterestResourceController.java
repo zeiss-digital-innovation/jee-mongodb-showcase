@@ -107,7 +107,6 @@ public class PointOfInterestResourceController {
             return Response.status(Status.BAD_REQUEST).build();
         }
 
-        URI location = null;
         PointOfInterest resultPoi = null;
         boolean isNew = false;
 
@@ -122,13 +121,13 @@ public class PointOfInterestResourceController {
             resultPoi = geoDataService.updatePOI(poi);
         }
 
-        try {
-            location = new URI(createUriString(resultPoi));
-        } catch (URISyntaxException e) {
-            return Response.serverError().header(Constants.CONTENT_ENC_KEY, Constants.CHARSET_UTF8).build();
-        }
-
         if (isNew) {
+            URI location = null;
+            try {
+                location = new URI(createUriString(resultPoi));
+            } catch (URISyntaxException e) {
+                return Response.serverError().header(Constants.CONTENT_ENC_KEY, Constants.CHARSET_UTF8).build();
+            }
             return Response.created(location).header(Constants.CONTENT_ENC_KEY, Constants.CHARSET_UTF8).build();
         }
 
