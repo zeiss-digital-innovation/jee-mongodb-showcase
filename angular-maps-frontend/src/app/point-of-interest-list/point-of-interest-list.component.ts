@@ -101,6 +101,19 @@ export class PointOfInterestListComponent implements OnInit {
 
     compRef.instance.save.subscribe(({ category, details }) => {
       console.log(`Saving changes to POI ${point.href}: category=${category}, details=${details}`);
+      point.category = category;
+      point.details = details;
+
+      this.poiService.updatePointOfInterest(point).subscribe({
+        next: (updated) => {
+          console.log('POI updated:', updated);
+        },
+        error: (err) => {
+          console.error('Error updating POI:', err);
+          alert('Failed to update the point of interest. Please try again.');
+        }
+      });
+
       cleanupComponent();
     });
   }
