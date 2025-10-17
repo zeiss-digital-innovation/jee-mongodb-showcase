@@ -6,8 +6,8 @@ using System.ComponentModel.DataAnnotations;
 namespace DotNetMongoDbBackend.Controllers;
 
 /// <summary>
-/// REST Controller für Points of Interest
-/// Kompatible API mit JEE und Spring Boot Backend
+/// REST Controller for Points of Interest
+/// Compatible API with JEE and Spring Boot Backend
 /// </summary>
 [ApiController]
 [Route("poi")]
@@ -40,20 +40,20 @@ public class PointOfInterestController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Fehler beim Generieren des href für POI mit ID: {Id}", p?.Id);
+            _logger.LogWarning(ex, "Error generating href for POI with ID: {Id}", p?.Id);
         }
     }
 
     /// <summary>
-    /// GET /geoservice/poi - Alle POIs abrufen
+    /// GET /geoservice/poi - Get all POIs
     /// </summary>
-    /// <param name="category">Filtert nach Kategorie</param>
-    /// <param name="search">Volltext-Suche in Name, Adresse und Tags</param>
-    /// <param name="limit">Maximal zurückzugebende Ergebnisse</param>
-    /// <param name="lat">Latitude für geografische Suche</param>
-    /// <param name="lng">Longitude für geografische Suche</param>
-    /// <param name="radius">Radius in Kilometern für geografische Suche</param>
-    /// <returns>Liste der POIs</returns>
+    /// <param name="category">Filter by category</param>
+    /// <param name="search">Full-text search in name, address and tags</param>
+    /// <param name="limit">Maximum number of results to return</param>
+    /// <param name="lat">Latitude for geographic search</param>
+    /// <param name="lng">Longitude for geographic search</param>
+    /// <param name="radius">Radius for geographic search</param>
+    /// <returns>List of POIs</returns>
     [HttpGet]
     public async Task<ActionResult<List<PointOfInterest>>> GetAllPois(
         [FromQuery] string? category = null,
@@ -61,49 +61,49 @@ public class PointOfInterestController : ControllerBase
         [FromQuery] int? limit = null,
         [FromQuery] double? lat = null,
         [FromQuery] double? lng = null,
-        [FromQuery] double? lon = null,  // Alternative für Frontend-Kompatibilität
+        [FromQuery] double? lon = null,  // Alternative for frontend compatibility
         [FromQuery] double? radius = null)
     {
         try
         {
             List<PointOfInterest> pois;
 
-            // Normalisiere lon/lng Parameter
+            // Normalize lon/lng parameter
             double? longitude = lng ?? lon;
 
-            _logger.LogInformation("GetAllPois aufgerufen: lat={Lat}, lng={Lng}, lon={Lon}, radius={Radius}",
+            _logger.LogInformation("GetAllPois called: lat={Lat}, lng={Lng}, lon={Lon}, radius={Radius}",
                 lat, lng, lon, radius);
 
-            // WICHTIG: Geografische Suche hat Priorität (wie in JEE-Referenz)
+            // IMPORTANT: Geographic search has priority (as in JEE reference)
             if (lat.HasValue && longitude.HasValue)
             {
-                var radiusMeters = radius ?? 10000.0; // Default 10km (10000m) wie JEE
-                var radiusKm = radiusMeters / 1000.0; // Konvertiere Meter zu Kilometer
+                var radiusMeters = radius ?? 10000.0; // Default 10km (10000m) like JEE
+                var radiusKm = radiusMeters / 1000.0; // Convert meters to kilometers
 
-                _logger.LogInformation("Führe geografische Suche durch: lat={Lat}, lng={Lng}, radius={Radius}m ({RadiusKm}km)",
+                _logger.LogInformation("Performing geographic search: lat={Lat}, lng={Lng}, radius={Radius}m ({RadiusKm}km)",
                     lat, longitude, radiusMeters, radiusKm);
 
                 pois = await _poiService.GetNearbyPoisAsync(longitude.Value, lat.Value, radiusKm);
 
-                _logger.LogInformation("Geografische Suche abgeschlossen: {Count} POIs gefunden im Radius {Radius}m ({RadiusKm}km)",
+                _logger.LogInformation("Geographic search completed: {Count} POIs found within radius {Radius}m ({RadiusKm}km)",
                     pois.Count, radiusMeters, radiusKm);
             }
-            // Kategorie-Filter
+            // Category filter
             else if (!string.IsNullOrWhiteSpace(category))
             {
-                _logger.LogInformation("Führe Kategorie-Filter durch: {Category}", category);
+                _logger.LogInformation("Performing category filter: {Category}", category);
                 pois = await _poiService.GetPoisByCategoryAsync(category);
             }
-            // Volltext-Suche
+            // Full-text search
             else if (!string.IsNullOrWhiteSpace(search))
             {
-                _logger.LogInformation("Führe Volltext-Suche durch: {Search}, limit={Limit}", search, limit);
+                _logger.LogInformation("Performing full-text search: {Search}, limit={Limit}", search, limit);
                 pois = await _poiService.SearchPoisAsync(search, limit);
             }
-            // Alle POIs (nur als letzter Fallback)
+            // All POIs (only as last fallback)
             else
             {
-                _logger.LogWarning("Fallback: Alle POIs abgerufen (keine Filter angegeben) - dies kann sehr langsam sein!");
+                _logger.LogWarning("Fallback: All POIs retrieved (no filters specified) - this can be very slow!");
                 pois = await _poiService.GetAllPoisAsync();
             }
 
@@ -113,21 +113,23 @@ public class PointOfInterestController : ControllerBase
                 GenerateHref(p);
             }
 
-            _logger.LogInformation("POIs abgerufen: {Count} Ergebnisse", pois.Count);
+            _logger.LogInformation("POIs retrieved: {Count} results", pois.Count);
             return Ok(pois);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fehler beim Abrufen der POIs");
-            return StatusCode(500, "Interner Serverfehler beim Abrufen der POIs");
+            _logger.LogError(ex, "Error retrieving POIs");
+            return StatusCode(500, "Internal server error retrieving POIs");
         }
     }
 
     /// <summary>
-    /// GET /geoservice/poi/{id} - POI nach ID abrufen
+    /// GET /poi/{id} - Get POI by ID
+    /// RFC 9110 Section 9.3.1 (GET) and Section 15.5.5 (404 Not Found)
+    /// Compatible with JEE Backend: Returns 404 without body when POI not found
     /// </summary>
-    /// <param name="id">MongoDB ObjectId des POI</param>
-    /// <returns>POI oder 404 wenn nicht gefunden</returns>
+    /// <param name="id">MongoDB ObjectId of the POI</param>
+    /// <returns>POI or 404 if not found</returns>
     [HttpGet("{id}")]
     public async Task<ActionResult<PointOfInterest>> GetPoiById([Required] string id)
     {
@@ -137,60 +139,98 @@ public class PointOfInterestController : ControllerBase
 
             if (poi == null)
             {
-                _logger.LogWarning("POI nicht gefunden mit ID: {Id}", id);
-                return NotFound($"POI mit ID '{id}' wurde nicht gefunden");
+                _logger.LogWarning("POI not found with ID: {Id}", id);
+                // JEE-compatible: Return 404 without body (throws NotFoundException in JEE)
+                return NotFound();
             }
 
-            _logger.LogInformation("POI abgerufen: {Name} (ID: {Id})", poi.Name, poi.Id);
+            _logger.LogInformation("POI retrieved: {Name} (ID: {Id})", poi.Name, poi.Id);
             GenerateHref(poi);
             return Ok(poi);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fehler beim Abrufen des POI mit ID: {Id}", id);
-            return StatusCode(500, "Interner Serverfehler beim Abrufen des POI");
+            _logger.LogError(ex, "Error retrieving POI with ID: {Id}", id);
+            return StatusCode(500, "Internal server error retrieving POI");
         }
     }
 
     /// <summary>
     /// POST /poi - Create new POI
+    /// Compatible with JEE Backend: Returns HTTP 201 with Location header, but NO body
+    /// Implements RFC 9110 Section 10.2.2 (Location header)
     /// </summary>
-    /// <param name="poi">POI-Data</param>
-    /// <returns>Create POI with ID</returns>
+    /// <param name="poi">POI data</param>
+    /// <returns>HTTP 201 Created with Location header</returns>
     [HttpPost]
-    public async Task<ActionResult<PointOfInterest>> CreatePoi([FromBody] PointOfInterest poi)
+    public async Task<ActionResult> CreatePoi([FromBody] PointOfInterest poi)
     {
         try
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            // NOTE: ModelState validation is automatically performed by [ApiController]
+            // Manual check here would cause problems in unit tests
 
             var createdPoi = await _poiService.CreatePoiAsync(poi);
-            GenerateHref(createdPoi);
 
-            _logger.LogInformation("POI erstellt: {Name} (ID: {Id})", createdPoi.Name, createdPoi.Id);
-            return CreatedAtAction(nameof(GetPoiById), new { id = createdPoi.Id }, createdPoi);
+            _logger.LogInformation("POI created: {Name} (ID: {Id})", createdPoi.Name, createdPoi.Id);
+
+            // RFC 9110 Section 10.2.2: Location header can be absolute or relative URI
+            // Prefer absolute URI for better interoperability (matching JEE implementation)
+            string? locationUri = null;
+
+            if (Url != null && HttpContext?.Request != null)
+            {
+                try
+                {
+                    // Try to generate absolute URI using Url.Action
+                    locationUri = Url.Action(
+                        action: nameof(GetPoiById),
+                        controller: null,
+                        values: new { id = createdPoi.Id },
+                        protocol: HttpContext.Request.Scheme,
+                        host: HttpContext.Request.Host.ToString()
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error generating absolute Location URI with Url.Action");
+                }
+            }
+
+            // Fallback: construct absolute URI manually if Url helper failed
+            if (string.IsNullOrEmpty(locationUri) && HttpContext?.Request != null)
+            {
+                var request = HttpContext.Request;
+                var baseUri = $"{request.Scheme}://{request.Host}{request.PathBase}";
+                locationUri = $"{baseUri}/poi/{createdPoi.Id}";
+            }
+            // Last resort fallback: relative URI (valid per RFC 9110, but less preferred)
+            else if (string.IsNullOrEmpty(locationUri))
+            {
+                locationUri = $"/poi/{createdPoi.Id}";
+            }
+
+            Response.Headers.Location = locationUri;
+            return StatusCode(201);
         }
         catch (ArgumentException ex)
         {
-            _logger.LogWarning(ex, "Ungültige POI-Daten beim Erstellen");
+            _logger.LogWarning(ex, "Invalid POI data during creation");
             return BadRequest(ex.Message);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fehler beim Erstellen des POI: {Name}", poi?.Name);
-            return StatusCode(500, "Interner Serverfehler beim Erstellen des POI");
+            _logger.LogError(ex, "Error creating POI: {Name}", poi?.Name);
+            return StatusCode(500, "Internal server error creating POI");
         }
     }
 
     /// <summary>
-    /// PUT /geoservice/poi/{id} - POI aktualisieren
+    /// PUT /geoservice/poi/{id} - Update POI
     /// </summary>
-    /// <param name="id">MongoDB ObjectId des POI</param>
-    /// <param name="poi">Aktualisierte POI-Daten</param>
-    /// <returns>Aktualisierter POI oder 404 wenn nicht gefunden</returns>
+    /// <param name="id">MongoDB ObjectId of the POI</param>
+    /// <param name="poi">Updated POI data</param>
+    /// <returns>Updated POI or 404 if not found</returns>
     [HttpPut("{id}")]
     public async Task<ActionResult<PointOfInterest>> UpdatePoi([Required] string id, [FromBody] PointOfInterest poi)
     {
@@ -205,30 +245,32 @@ public class PointOfInterestController : ControllerBase
 
             if (updatedPoi == null)
             {
-                _logger.LogWarning("POI nicht gefunden für Update mit ID: {Id}", id);
-                return NotFound($"POI mit ID '{id}' wurde nicht gefunden");
+                _logger.LogWarning("POI not found for update with ID: {Id}", id);
+                return NotFound($"POI with ID '{id}' was not found");
             }
 
-            _logger.LogInformation("POI aktualisiert: {Name} (ID: {Id})", updatedPoi.Name, updatedPoi.Id);
+            _logger.LogInformation("POI updated: {Name} (ID: {Id})", updatedPoi.Name, updatedPoi.Id);
             return Ok(updatedPoi);
         }
         catch (ArgumentException ex)
         {
-            _logger.LogWarning(ex, "Ungültige POI-Daten beim Aktualisieren");
+            _logger.LogWarning(ex, "Invalid POI data during update");
             return BadRequest(ex.Message);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fehler beim Aktualisieren des POI mit ID: {Id}", id);
-            return StatusCode(500, "Interner Serverfehler beim Aktualisieren des POI");
+            _logger.LogError(ex, "Error updating POI with ID: {Id}", id);
+            return StatusCode(500, "Internal server error updating POI");
         }
     }
 
     /// <summary>
-    /// DELETE /geoservice/poi/{id} - POI löschen
+    /// DELETE /poi/{id} - Delete POI
+    /// RFC 9110 Section 9.3.5 (DELETE) - Returns 204 No Content regardless of resource existence
+    /// Compatible with JEE Backend: Always returns 204, even if POI doesn't exist (idempotent)
     /// </summary>
-    /// <param name="id">MongoDB ObjectId des POI</param>
-    /// <returns>204 bei Erfolg oder 404 wenn nicht gefunden</returns>
+    /// <param name="id">MongoDB ObjectId of the POI</param>
+    /// <returns>204 No Content</returns>
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeletePoi([Required] string id)
     {
@@ -236,71 +278,31 @@ public class PointOfInterestController : ControllerBase
         {
             var deleted = await _poiService.DeletePoiAsync(id);
 
-            if (!deleted)
+            if (deleted)
             {
-                _logger.LogWarning("POI nicht gefunden zum Löschen mit ID: {Id}", id);
-                return NotFound($"POI mit ID '{id}' wurde nicht gefunden");
+                _logger.LogInformation("POI deleted with ID: {Id}", id);
+            }
+            else
+            {
+                _logger.LogWarning("POI not found for deletion with ID: {Id}, returning 204 anyway (idempotent)", id);
             }
 
-            _logger.LogInformation("POI gelöscht mit ID: {Id}", id);
+            // JEE-compatible: Always return 204 No Content (idempotent DELETE)
+            // RFC 9110: DELETE should be idempotent, same result for multiple calls
             return NoContent();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Fehler beim Löschen des POI mit ID: {Id}", id);
-            return StatusCode(500, "Interner Serverfehler beim Löschen des POI");
+            _logger.LogError(ex, "Error deleting POI with ID: {Id}", id);
+            return StatusCode(500, "Internal server error deleting POI");
         }
     }
 
-    /// <summary>
-    /// GET /api/categories - Alle verfügbaren Kategorien abrufen
-    /// </summary>
-    /// <returns>Liste der verfügbaren Kategorien</returns>
-    [HttpGet("categories")]
-    public async Task<ActionResult<List<string>>> GetAvailableCategories()
-    {
-        // FIXME: move to separate controller
-        try
-        {
-            var categories = await _poiService.GetAvailableCategoriesAsync();
-
-            _logger.LogInformation("Kategorien abgerufen: {Count} verfügbare Kategorien", categories.Count);
-            return Ok(categories);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Fehler beim Abrufen der verfügbaren Kategorien");
-            return StatusCode(500, "Interner Serverfehler beim Abrufen der Kategorien");
-        }
-    }
-
-    /// <summary>
-    /// GET /api/stats/category/{category} - Statistiken für Kategorie
-    /// </summary>
-    /// <param name="category">Kategorie-Name</param>
-    /// <returns>Anzahl POIs in der Kategorie</returns>
-    [HttpGet("stats/category/{category}")]
-    public async Task<ActionResult<long>> GetCategoryCount([Required] string category)
-    {
-        // FIXME: move to separate controller
-        try
-        {
-            var count = await _poiService.CountByCategoryAsync(category);
-
-            _logger.LogInformation("Kategorie-Statistik abgerufen: {Category} hat {Count} POIs", category, count);
-            return Ok(count);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Fehler beim Abrufen der Statistiken für Kategorie: {Category}", category);
-            return StatusCode(500, "Interner Serverfehler beim Abrufen der Kategorie-Statistiken");
-        }
-    }
 
     /// <summary>
     /// GET /api/health - Health Check Endpoint
     /// </summary>
-    /// <returns>Service-Status</returns>
+    /// <returns>Service status</returns>
     [HttpGet("health")]
     public ActionResult<string> HealthCheck()
     {
@@ -308,7 +310,7 @@ public class PointOfInterestController : ControllerBase
     }
 
     /// <summary>
-    /// GET /geoservice/debug - Debug-Endpunkt für MongoDB-Verbindung
+    /// GET /geoservice/debug - Debug endpoint for MongoDB connection
     /// </summary>
     [HttpGet("debug")]
     public async Task<ActionResult<object>> DebugMongoConnection()
@@ -318,7 +320,7 @@ public class PointOfInterestController : ControllerBase
             var debugInfo = new
             {
                 ServiceInjected = _poiService != null,
-                CollectionTest = "wird getestet...",
+                CollectionTest = "being tested...",
                 TotalCount = 0,
                 ToiletCount = 0,
                 Error = (string?)null
@@ -334,7 +336,7 @@ public class PointOfInterestController : ControllerBase
                     debugInfo = new
                     {
                         ServiceInjected = true,
-                        CollectionTest = "erfolgreich",
+                        CollectionTest = "successful",
                         TotalCount = allPois.Count,
                         ToiletCount = toiletPois.Count,
                         Error = (string?)null
@@ -345,7 +347,7 @@ public class PointOfInterestController : ControllerBase
                     debugInfo = new
                     {
                         ServiceInjected = true,
-                        CollectionTest = "fehlgeschlagen",
+                        CollectionTest = "failed",
                         TotalCount = 0,
                         ToiletCount = 0,
                         Error = (string?)ex.Message

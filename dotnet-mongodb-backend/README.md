@@ -1,14 +1,14 @@
 # ZDI - MongoDB Workshop - .NET Backend
 
-## 🚀 Überblick
+## 🚀 Overview
 
-Dieses **.NET Backend** ist Teil des MongoDB Workshop-Projekts und bietet eine hochperformante, moderne REST API für die Verwaltung von Points of Interest (POIs). Es ist vollständig kompatibel mit dem Angular Frontend und bietet die gleiche API-Struktur wie das JEE Backend.
+This **.NET Backend** is part of the MongoDB Workshop project and provides a high-performance, modern REST API for managing Points of Interest (POIs). It is fully compatible with the Angular Frontend and offers the same API structure as the JEE Backend.
 
-## 🛠 Technologie-Stack
+## 🛠 Technology Stack
 
-- **.NET 9** - Aktuelle .NET Version
+- **.NET 9** - Latest .NET Version
 - **ASP.NET Core** - High-Performance Web Framework
-- **MongoDB.Driver 3.5.0** - Offizieller MongoDB C# Driver
+- **MongoDB.Driver 3.5.0** - Official MongoDB C# Driver
 - **Newtonsoft.Json 13.0.3** - JSON Serialization
 - **Microsoft.AspNetCore.OpenApi** - OpenAPI/Swagger Integration
 - **Built-in Dependency Injection** - .NET DI Container
@@ -16,103 +16,103 @@ Dieses **.NET Backend** ist Teil des MongoDB Workshop-Projekts und bietet eine h
 
 ## 📋 Features
 
-### Core Funktionalitäten
-- ✅ **Async/Await Pattern** - Vollständig asynchrone API
-- ✅ **CRUD Operationen** für Points of Interest
-- ✅ **Geografische Suche** mit MongoDB Geo-Queries
-- ✅ **Volltext-Suche** mit Regex-Pattern Matching
-- ✅ **Kategorie-Filter** mit case-insensitive Suche
-- ✅ **Entfernungsberechnung** mit Haversine-Formel
-- ✅ **Data Annotations** Validierung
-- ✅ **Structured Logging** mit ILogger
-- ✅ **Auto-Index Creation** für optimale Performance
+### Core Functionalities
+- ✅ **Async/Await Pattern** - Fully asynchronous API
+- ✅ **CRUD Operations** for Points of Interest
+- ✅ **Geographic Search** with MongoDB Geo-Queries
+- ✅ **Full-Text Search** with Regex-Pattern Matching
+- ✅ **Category Filter** with case-insensitive search
+- ✅ **Distance Calculation** with Haversine Formula
+- ✅ **Data Annotations** Validation
+- ✅ **Structured Logging** with ILogger
+- ✅ **Auto-Index Creation** for optimal performance
 
 ### API Endpoints
 ```
-GET  /zdi-geo-service/api/poi                    - Alle POIs (mit Query-Parametern)
-GET  /zdi-geo-service/api/poi/{id}              - POI nach ID
-POST /zdi-geo-service/api/poi                   - Neuen POI erstellen
-PUT  /zdi-geo-service/api/poi/{id}              - POI aktualisieren
-DELETE /zdi-geo-service/api/poi/{id}            - POI löschen
-GET  /zdi-geo-service/api/categories            - Alle verfügbaren Kategorien
-GET  /zdi-geo-service/api/stats/category/{cat}  - Statistiken für Kategorie
+GET  /zdi-geo-service/api/poi                    - All POIs (with query parameters)
+GET  /zdi-geo-service/api/poi/{id}              - POI by ID
+POST /zdi-geo-service/api/poi                   - Create new POI
+PUT  /zdi-geo-service/api/poi/{id}              - Update POI
+DELETE /zdi-geo-service/api/poi/{id}            - Delete POI
+GET  /zdi-geo-service/api/categories            - All available categories
+GET  /zdi-geo-service/api/stats/category/{cat}  - Statistics for category
 GET  /zdi-geo-service/api/health                - Health Check
-GET  /zdi-geo-service/api/debug                 - Debug-Informationen
+GET  /zdi-geo-service/api/debug                 - Debug information
 ```
 
-### Query Parameter für /zdi-geo-service/api/poi
-- `category` - Filtert nach Kategorie
-- `search` - Volltext-Suche in Name, Adresse, Tags
-- `limit` - Maximal zurückzugebende Ergebnisse
-- `lat` & `lng` (oder `lon`) - Geografische Suche (Koordinaten)
-- `radius` - Radius in Metern (wird automatisch zu km konvertiert)
+### Query Parameters for /zdi-geo-service/api/poi
+- `category` - Filter by category
+- `search` - Full-text search in name, address, tags
+- `limit` - Maximum number of results to return
+- `lat` & `lng` (or `lon`) - Geographic search (coordinates)
+- `radius` - Radius in meters (automatically converted to km)
 
 ## 🚀 Installation & Start
 
-### Voraussetzungen
-- .NET 9 SDK oder höher
-- MongoDB läuft auf localhost:27017
+### Prerequisites
+- .NET 9 SDK or higher
+- MongoDB running on localhost:27017
 
-### 🎯 Schnellstart (Empfohlen)
+### 🎯 Quick Start (Recommended)
 
-#### Automatisches Docker-Deployment
+#### Automatic Docker Deployment
 ```bash
-# Windows - Intelligente MongoDB-Erkennung
+# Windows - Intelligent MongoDB Detection
 .\deploy.bat
 
-# Linux/macOS - Intelligente MongoDB-Erkennung  
+# Linux/macOS - Intelligent MongoDB Detection  
 chmod +x deploy.sh
 ./deploy.sh
 ```
 
-Die Deploy-Skripte erkennen automatisch:
-- ✅ Vorhandene MongoDB-Container
-- ✅ Externe MongoDB-Installationen
-- ✅ Netzwerk-Konfigurationen
-- ✅ Optimale docker-compose Datei
+The deploy scripts automatically detect:
+- ✅ Existing MongoDB containers
+- ✅ External MongoDB installations
+- ✅ Network configurations
+- ✅ Optimal docker-compose file
 
-### 🐳 Docker-Deployment-Optionen
+### 🐳 Docker Deployment Options
 
-#### 1. Komplettes System (Backend + MongoDB)
+#### 1. Complete System (Backend + MongoDB)
 ```bash
-# Startet eigene MongoDB + Backend
+# Starts own MongoDB + Backend
 docker-compose up --build -d
 ```
 
-#### 2. Nur Backend (externe MongoDB)
+#### 2. Backend Only (external MongoDB)
 ```bash
-# Nutzt vorhandene MongoDB
+# Uses existing MongoDB
 docker-compose -f docker-compose.external-mongo.yml up --build -d
 ```
 
 #### 3. Development Mode
 ```bash
-# Development mit Hot Reload
+# Development with Hot Reload
 docker-compose -f docker-compose.local.yml up --build
 ```
 
-### 💻 Lokale Entwicklung (ohne Docker)
+### 💻 Local Development (without Docker)
 
-#### Projekt starten
+#### Start Project
 ```bash
-# In das Projekt-Verzeichnis wechseln
+# Navigate to project directory
 cd dotnet-mongodb-backend/DotNetMongoDbBackend
 
-# Dependencies wiederherstellen
+# Restore dependencies
 dotnet restore
 
-# Projekt starten (Development)
+# Start project (Development)
 dotnet run
 
-# Oder Release Build
+# Or Release Build
 dotnet build -c Release
 dotnet run -c Release
 ```
 
-### Server-URLs
+### Server URLs
 - **API Base URL**: http://localhost:8080/zdi-geo-service/api
 - **Health Check**: http://localhost:8080/zdi-geo-service/api/health
-- **Debug-Informationen**: http://localhost:8080/zdi-geo-service/api/debug
+- **Debug Information**: http://localhost:8080/zdi-geo-service/api/debug
 - **Swagger UI**: http://localhost:8080/zdi-geo-service/swagger (only active in development mode)
 
 ## 📊 MongoDB Schema
@@ -127,12 +127,12 @@ dotnet run -c Release
     "type": "Point",
     "coordinates": [13.7373, 51.0504]
   },
-  "address": "Straße 123, 01067 Dresden",
+  "address": "Street 123, 01067 Dresden",
   "tags": ["tag1", "tag2"]
 }
 ```
 
-## 🔧 Konfiguration
+## 🔧 Configuration
 
 ### appsettings.json
 ```json
@@ -161,39 +161,39 @@ dotnet run -c Release
 ## 🧪 Testing
 
 ```bash
-# Alle Tests ausführen
+# Run all tests
 dotnet test
 
-# Tests mit Coverage
+# Tests with Coverage
 dotnet test --collect:"XPlat Code Coverage"
 
-# Watch Mode für Development
+# Watch Mode for Development
 dotnet watch test
 ```
 
-## 📚 API Beispiele
+## 📚 API Examples
 
-### Alle POIs abrufen
+### Get All POIs
 ```bash
 curl http://localhost:8080/zdi-geo-service/api/poi
 ```
 
-### POIs nach Kategorie filtern
+### Filter POIs by Category
 ```bash
 curl "http://localhost:8080/zdi-geo-service/api/poi?category=restaurant"
 ```
 
-### Geografische Suche
+### Geographic Search
 ```bash
 curl "http://localhost:8080/zdi-geo-service/api/poi?lat=51.0504&lng=13.7373&radius=2000"
 ```
 
-### Volltext-Suche
+### Full-Text Search
 ```bash
-curl "http://localhost:8080/zdi-geo-service/api/poi?search=Apotheke&limit=10"
+curl "http://localhost:8080/zdi-geo-service/api/poi?search=Pharmacy&limit=10"
 ```
 
-### Neuen POI erstellen
+### Create New POI
 ```bash
 curl -X POST http://localhost:8080/zdi-geo-service/api/poi \
   -H "Content-Type: application/json" \
@@ -204,12 +204,12 @@ curl -X POST http://localhost:8080/zdi-geo-service/api/poi \
       "longitude": 13.7373,
       "latitude": 51.0504
     },
-    "address": "Teststraße 123",
+    "address": "Test Street 123",
     "tags": ["test", "restaurant"]
   }'
 ```
 
-## 🏗 Architektur
+## 🏗 Architecture
 
 ```
 DotNetMongoDbBackend/
@@ -221,7 +221,7 @@ DotNetMongoDbBackend/
 ```
 
 ### Design Patterns
-- **Repository Pattern** - In Service-Layer implementiert
+- **Repository Pattern** - Implemented in Service Layer
 - **Dependency Injection** - Native .NET DI
 - **Async Pattern** - Task-based asynchronous operations
 - **Builder Pattern** - MongoDB Filter Building
@@ -229,7 +229,7 @@ DotNetMongoDbBackend/
 
 ## 🔗 Integration
 
-### Mit Angular Frontend
+### With Angular Frontend
 ```typescript
 // Environment Configuration
 export const environment = {
@@ -237,17 +237,17 @@ export const environment = {
 };
 ```
 
-### Mit anderen Backends
+### With Other Backends
 - Port 8080: JEE Backend
-- Port 8080: **.NET Backend** (dieser)
+- Port 8080: **.NET Backend** (this one)
 
 ## 📈 Performance Highlights
 
-### MongoDB Optimierungen
-- **2dsphere Index** - Geografische Suchen
-- **Text Index** - Volltext-Suche
-- **Category Index** - Kategorie-Filter
-- **Connection Pooling** - Effiziente DB-Verbindungen
+### MongoDB Optimizations
+- **2dsphere Index** - Geographic searches
+- **Text Index** - Full-text search
+- **Category Index** - Category filtering
+- **Connection Pooling** - Efficient DB connections
 
 ### .NET Performance Features
 - **Async/Await** - Non-blocking I/O Operations
@@ -255,13 +255,13 @@ export const environment = {
 - **Kestrel Server** - Cross-platform web server
 - **Memory Optimization** - Minimal allocations
 
-### Benchmarks (typische Werte)
-- **Startup Time**: < 2 Sekunden
+### Benchmarks (typical values)
+- **Startup Time**: < 2 seconds
 - **Memory Usage**: ~30MB baseline
-- **Response Time**: < 50ms (lokale DB)
+- **Response Time**: < 50ms (local DB)
 - **Throughput**: > 10k requests/sec
 
-## 🛡 Sicherheit
+## 🛡 Security
 
 - **Data Annotations** - Input validation
 - **CORS Policy** - Configured origins
@@ -275,18 +275,18 @@ export const environment = {
 - **C# Coding Standards**
 - **Async/Await Best Practices**
 - **RESTful API Design**
-- **Clean Architecture Prinzipien**
+- **Clean Architecture Principles**
 
 ### Debugging
 ```bash
-# Debug Mode mit Hot Reload
+# Debug Mode with Hot Reload
 dotnet watch run
 
 # Attach Debugger
 dotnet run --launch-profile https
 ```
 
-## 🆚 Backend Vergleich
+## 🆚 Backend Comparison
 
 | Feature | JEE Backend | **.NET Backend** |
 |---------|-------------|------------------|
@@ -301,9 +301,9 @@ dotnet run --launch-profile https
 
 ## 🎯 C# Specific Features
 
-### Moderne C# Features verwendet
+### Modern C# Features used
 ```csharp
-// Records für DTOs
+// Records for DTOs
 public record PoiDto(string Name, string Category, Location Location);
 
 // Pattern Matching
@@ -340,7 +340,7 @@ var pipeline = new BsonDocument[]
 ## 🐳 Docker Support
 
 ```dockerfile
-# Dockerfile erstellen
+# Dockerfile creation
 FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
 COPY bin/Release/net9.0/publish/ .
@@ -355,7 +355,7 @@ docker build -t dotnet-mongodb-backend .
 docker run -p 8080:8080 dotnet-mongodb-backend
 ```
 
-## 🎯 Nächste Schritte
+## 🎯 Next Steps
 
 - [ ] **Docker Container** - Multi-stage build
 - [ ] **Azure Container Apps** - Cloud deployment
@@ -367,7 +367,7 @@ docker run -p 8080:8080 dotnet-mongodb-backend
 
 ---
 
-**Erstellt für den ZDI MongoDB Workshop** 🚀
+**Created for the ZDI MongoDB Workshop** 🚀
 
 *Powered by .NET & MongoDB* ⚡
 
@@ -381,3 +381,4 @@ Important notes:
 - Example (NGINX):
   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
   proxy_set_header X-Forwarded-Proto $scheme;
+

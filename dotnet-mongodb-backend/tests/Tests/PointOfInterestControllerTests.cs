@@ -4,6 +4,7 @@ using Moq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using DotNetMongoDbBackend.Controllers;
@@ -24,6 +25,13 @@ public class PointOfInterestControllerTests
         _mockService = new Mock<IPointOfInterestService>();
         _mockLogger = new Mock<ILogger<PointOfInterestController>>();
         _controller = new PointOfInterestController(_mockService.Object, _mockLogger.Object);
+
+        // Setup HTTP context for Response.Headers
+        var httpContext = new DefaultHttpContext();
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContext
+        };
     }
 
     [Fact]
@@ -132,7 +140,7 @@ public class PointOfInterestControllerTests
         Assert.Single(returnedPois);
     }
 
-    // ============= NEUE TESTS FÜR 80%+ ABDECKUNG =============
+    // ============= NEW TESTS FOR 80%+ COVERAGE =============
 
     [Fact]
     public async Task GetPoiById_ShouldReturnOk_WhenPoiExists()
@@ -160,10 +168,10 @@ public class PointOfInterestControllerTests
         // Act
         var result = await _controller.GetPoiById("999");
 
-        // Assert
+        // Assert - JEE-compatible: Returns 404 without body
         var actionResult = Assert.IsType<ActionResult<PointOfInterest>>(result);
-        var notFoundResult = Assert.IsType<NotFoundObjectResult>(actionResult.Result);
-        Assert.Contains("999", notFoundResult.Value?.ToString());
+        var notFoundResult = Assert.IsType<NotFoundResult>(actionResult.Result);
+        // NotFoundResult has no Value property (no body in response)
     }
 
     [Fact]
@@ -185,23 +193,65 @@ public class PointOfInterestControllerTests
     [Fact]
     public async Task CreatePoi_ShouldReturnCreated_WhenValidPoi()
     {
-        // Arrange
-        var newPoi = new PointOfInterest { Name = "New POI", Category = "museum", Location = new Location(8.4, 49.0) };
-        var createdPoi = new PointOfInterest { Id = "123", Name = "New POI", Category = "museum", Location = new Location(8.4, 49.0) };
+        // Arrange - complete POI object with all required fields
+        var newPoi = new PointOfInterest
+        {
+            Name = "New POI",
+            Category = "museum",
+            Details = "A test museum POI",  // IMPORTANT: Details is required according to ValidatePoi
+            Location = new Location
+            {
+                Type = "Point",
+                Coordinates = new double[] { 8.4, 49.0 }  // [longitude, latitude]
+            }
+        };
+        var createdPoi = new PointOfInterest
+        {
+            Id = "123",
+            Name = "New POI",
+            Category = "museum",
+            Details = "A test museum POI",
+            Location = new Location
+            {
+                Type = "Point",
+                Coordinates = new double[] { 8.4, 49.0 }
+            }
+        };
         _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterest>())).ReturnsAsync(createdPoi);
+
+        // Setup HttpContext with proper Request details for absolute URI generation
+        var httpContext = new DefaultHttpContext();
+        httpContext.Request.Scheme = "http";
+        httpContext.Request.Host = new HostString("localhost:8080");
+        httpContext.Request.PathBase = "/zdi-geo-service/api";
+
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = httpContext
+        };
 
         // Act
         var result = await _controller.CreatePoi(newPoi);
 
-        // Assert
-        var actionResult = Assert.IsType<ActionResult<PointOfInterest>>(result);
-        var createdResult = Assert.IsType<CreatedAtActionResult>(actionResult.Result);
-        Assert.Equal("GetPoiById", createdResult.ActionName);
+        // Assert - JEE compatible: HTTP 201 without body, only Location header
+        var statusCodeResult = Assert.IsType<StatusCodeResult>(result);
+        Assert.Equal(201, statusCodeResult.StatusCode);
 
-        // Korrigiere RouteValueDictionary Zugriff
-        Assert.NotNull(createdResult.RouteValues);
-        Assert.True(createdResult.RouteValues.ContainsKey("id"));
-        Assert.Equal("123", createdResult.RouteValues["id"]);
+        // Check Location header contains absolute URI according to RFC 7231
+        Assert.True(_controller.Response.Headers.ContainsKey("Location"));
+        var locationHeader = _controller.Response.Headers["Location"].ToString();
+        Assert.Contains("123", locationHeader);
+
+        // Verify it's an absolute URI (contains scheme and host)
+        Assert.True(locationHeader.StartsWith("http://") || locationHeader.StartsWith("https://") || locationHeader.StartsWith("/"),
+            "Location header should be an absolute URI or absolute path");
+
+        // If it's absolute, verify it contains the expected components
+        if (locationHeader.StartsWith("http://") || locationHeader.StartsWith("https://"))
+        {
+            Assert.Contains("localhost", locationHeader);
+            Assert.Contains("/poi/123", locationHeader);
+        }
     }
 
     [Fact]
@@ -210,15 +260,14 @@ public class PointOfInterestControllerTests
         // Arrange
         var invalidPoi = new PointOfInterest { Name = "", Category = "test" };
         _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterest>()))
-                   .ThrowsAsync(new ArgumentException("Name ist erforderlich"));
+                   .ThrowsAsync(new ArgumentException("Name is required"));
 
         // Act
         var result = await _controller.CreatePoi(invalidPoi);
 
         // Assert
-        var actionResult = Assert.IsType<ActionResult<PointOfInterest>>(result);
-        var badRequestResult = Assert.IsType<BadRequestObjectResult>(actionResult.Result);
-        Assert.Contains("Name ist erforderlich", badRequestResult.Value?.ToString());
+        var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+        Assert.Contains("Name is required", badRequestResult.Value?.ToString());
     }
 
     [Fact]
@@ -233,8 +282,7 @@ public class PointOfInterestControllerTests
         var result = await _controller.CreatePoi(newPoi);
 
         // Assert
-        var actionResult = Assert.IsType<ActionResult<PointOfInterest>>(result);
-        var statusResult = Assert.IsType<ObjectResult>(actionResult.Result);
+        var statusResult = Assert.IsType<ObjectResult>(result);
         Assert.Equal(500, statusResult.StatusCode);
     }
 
@@ -281,56 +329,21 @@ public class PointOfInterestControllerTests
         // Act
         var result = await _controller.DeletePoi("123");
 
-        // Assert
+        // Assert - JEE-compatible: Always 204 No Content
         Assert.IsType<NoContentResult>(result);
     }
 
     [Fact]
-    public async Task DeletePoi_ShouldReturnNotFound_WhenPoiDoesNotExist()
+    public async Task DeletePoi_ShouldReturnNoContent_WhenPoiDoesNotExist()
     {
-        // Arrange
+        // Arrange - POI doesn't exist, but DELETE is idempotent
         _mockService.Setup(s => s.DeletePoiAsync("999")).ReturnsAsync(false);
 
         // Act
         var result = await _controller.DeletePoi("999");
 
-        // Assert
-        var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
-        Assert.Contains("999", notFoundResult.Value?.ToString());
-    }
-
-    [Fact]
-    public async Task GetAvailableCategories_ShouldReturnOk_WithCategoriesList()
-    {
-        // Arrange
-        var categories = new List<string> { "restaurant", "museum", "park" };
-        _mockService.Setup(s => s.GetAvailableCategoriesAsync()).ReturnsAsync(categories);
-
-        // Act
-        var result = await _controller.GetAvailableCategories();
-
-        // Assert
-        var actionResult = Assert.IsType<ActionResult<List<string>>>(result);
-        var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-        var returnedCategories = Assert.IsType<List<string>>(okResult.Value);
-        Assert.Equal(3, returnedCategories.Count);
-        Assert.Contains("restaurant", returnedCategories);
-    }
-
-    [Fact]
-    public async Task GetCategoryCount_ShouldReturnOk_WithCount()
-    {
-        // Arrange
-        _mockService.Setup(s => s.CountByCategoryAsync("restaurant")).ReturnsAsync(42);
-
-        // Act
-        var result = await _controller.GetCategoryCount("restaurant");
-
-        // Assert
-        var actionResult = Assert.IsType<ActionResult<long>>(result);
-        var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-        var count = Assert.IsType<long>(okResult.Value);
-        Assert.Equal(42, count);
+        // Assert - JEE-compatible: Always 204 No Content (idempotent DELETE per RFC 9110)
+        Assert.IsType<NoContentResult>(result);
     }
 
     [Fact]
@@ -359,7 +372,7 @@ public class PointOfInterestControllerTests
         var actionResult = Assert.IsType<ActionResult<List<PointOfInterest>>>(result);
         var statusResult = Assert.IsType<ObjectResult>(actionResult.Result);
         Assert.Equal(500, statusResult.StatusCode);
-        Assert.Contains("Interner Serverfehler", statusResult.Value?.ToString());
+        Assert.Contains("Internal server error", statusResult.Value?.ToString());
     }
 
     [Fact]

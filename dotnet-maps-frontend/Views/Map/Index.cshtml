@@ -1,0 +1,138 @@
+@{
+    ViewData["Title"] = "Point of Interest Map";
+}
+
+<div class="container">
+    <div id="map" class="jumbotron map_large"></div>
+</div>
+
+@section Scripts {
+    <script>
+        let map;
+        let pointsOfInterest = [];
+        
+        // Default coordinates (Dresden)
+        const latitudeDefault = 51.0504;
+        const longitudeDefault = 13.7373;
+        const zoomDefault = 13;
+        
+        // Initialize the map when the page loads
+        $(document).ready(function () {
+            initializeMap();
+        });
+        
+        function initializeMap() {
+            // Fix for default markers in Leaflet with ASP.NET
+            delete L.Icon.Default.prototype._getIconUrl;
+            L.Icon.Default.mergeOptions({
+                iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+                iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+                shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+            });
+            
+            // Initialize the map
+            map = L.map('map').setView([latitudeDefault, longitudeDefault], zoomDefault);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // Load initial points of interest
+            loadPointsOfInterest(latitudeDefault, longitudeDefault, getRadiusForZoom(zoomDefault));
+            
+            // Add event listener for map movement
+            map.on('moveend', function () {
+                const center = map.getCenter();
+                const newLatitude = center.lat;
+                const newLongitude = center.lng;
+                const newRadius = getRadiusForZoom(map.getZoom());
+                loadPointsOfInterest(newLatitude, newLongitude, newRadius);
+            });
+        }
+        
+        function loadPointsOfInterest(latitude, longitude, radius) {
+            $.ajax({
+                url: '/api/pointsofinterest',
+                type: 'GET',
+                data: {
+                    lat: latitude,
+                    lon: longitude,
+                    radius: radius
+                },
+                success: function (points) {
+                    console.log(`Loaded ${points.length} POIs for coordinates (${latitude.toFixed(4)}, ${longitude.toFixed(4)}) with radius ${radius}m`);
+                    showPointsOnMap(points);
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error loading points of interest:', error);
+                    console.error('Status:', status);
+                    console.error('XHR:', xhr);
+                }
+            });
+        }
+        
+        function showPointsOnMap(points) {
+            pointsOfInterest = points;
+            
+            if (!map) {
+                console.error('Map is not initialized');
+                return;
+            }
+            
+            // Remove all current markers
+            map.eachLayer(function (layer) {
+                if (layer instanceof L.Marker) {
+                    map.removeLayer(layer);
+                }
+            });
+            
+            // Add new markers
+            pointsOfInterest.forEach(function (poi) {
+                const coords = poi.location.coordinates;
+                const lat = coords[1];
+                const lng = coords[0];
+                
+                L.marker([lat, lng]).addTo(map)
+                    .bindPopup(getMarkerPopupFor(poi));
+            });
+        }
+        
+        function getMarkerPopupFor(poi) {
+            let popupContent = '<div>';
+            popupContent += '<h6>' + capitalizeFirstLetter(poi.category) + '</h6>';
+            
+            if (poi.details) {
+                const lines = poi.details.split('\n');
+                lines.forEach(function (line) {
+                    if (line.trim()) {
+                        popupContent += '<p>' + line + '</p>';
+                    }
+                });
+            }
+            
+            popupContent += '</div>';
+            return popupContent;
+        }
+        
+        function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+        
+        function getRadiusForZoom(zoom) {
+            // Exact same logic as Angular frontend MapDataService
+            if (zoom <= 8) {
+                return 20000;
+            }
+            if (zoom <= 11) {
+                return 10000;
+            }
+            if (zoom == 12) {
+                return 5000;
+            }
+            if (zoom == 13) {
+                return 2000;
+            }
+            return 1000;
+        }
+    </script>
+}

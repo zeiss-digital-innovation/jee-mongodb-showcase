@@ -13,10 +13,10 @@ public class PointOfInterestServiceIntegrationTests
     [Fact]
     public async Task ServiceInterface_ShouldHaveAllRequiredMethods()
     {
-        // Arrange - Test dass das Interface alle Methoden hat
+        // Arrange - Test that the interface includes all required methods
         var mockService = new Mock<IPointOfInterestService>();
 
-        // Setup Mock-Responses für alle Interface-Methoden
+        // Setup mock responses for all interface methods
         mockService.Setup(s => s.GetAllPoisAsync())
                    .ReturnsAsync(new List<PointOfInterest>());
 
@@ -47,7 +47,7 @@ public class PointOfInterestServiceIntegrationTests
         mockService.Setup(s => s.CountByCategoryAsync(It.IsAny<string>()))
                    .ReturnsAsync(0);
 
-        // Act & Assert - Alle Methoden sollten aufrufbar sein
+        // Act & Assert - All methods should be callable
         var service = mockService.Object;
 
         await service.GetAllPoisAsync();
@@ -61,7 +61,7 @@ public class PointOfInterestServiceIntegrationTests
         await service.GetAvailableCategoriesAsync();
         await service.CountByCategoryAsync("test");
 
-        // Test erfolgreich wenn keine Exception
+        // Test succeeds if no exception thrown
         Assert.True(true);
     }
 }
