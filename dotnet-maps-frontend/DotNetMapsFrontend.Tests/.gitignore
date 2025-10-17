@@ -1,0 +1,9 @@
+# Test Results
+TestResults/
+
+# Coverage Reports
+CoverageReport/
+
+# Build artifacts
+bin/
+obj/

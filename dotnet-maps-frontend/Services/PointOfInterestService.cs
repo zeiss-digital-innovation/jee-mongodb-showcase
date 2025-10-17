@@ -8,6 +8,8 @@ namespace DotNetMapsFrontend.Services
     {
         Task<List<PointOfInterest>> GetPointsOfInterestAsync();
         Task<List<PointOfInterest>> GetPointsOfInterestAsync(double latitude, double longitude, int radiusInMeters);
+        Task<PointOfInterest> CreatePointOfInterestAsync(PointOfInterest pointOfInterest);
+        Task<List<string>> GetAvailableCategoriesAsync();
     }
 
     public class PointOfInterestService : IPointOfInterestService
@@ -72,6 +74,117 @@ namespace DotNetMapsFrontend.Services
                 _logger.LogError(ex, "Error calling Points of Interest API");
                 return GetMockData();
             }
+        }
+
+        public async Task<PointOfInterest> CreatePointOfInterestAsync(PointOfInterest pointOfInterest)
+        {
+            try
+            {
+                var apiBaseUrl = _configuration["PointOfInterestApi:BaseUrl"];
+                if (string.IsNullOrEmpty(apiBaseUrl))
+                {
+                    throw new InvalidOperationException("API Base URL not configured");
+                }
+
+                var httpClient = _httpClientFactory.CreateClient();
+                var url = $"{apiBaseUrl}/poi";
+                
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
+                
+                var jsonContent = JsonSerializer.Serialize(pointOfInterest, jsonOptions);
+                var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+                
+                _logger.LogInformation("Creating POI: {Category} at coordinates ({Lat}, {Lon})", 
+                    pointOfInterest.Category, pointOfInterest.Location.Latitude, pointOfInterest.Location.Longitude);
+                
+                var response = await httpClient.PostAsync(url, content);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonString = await response.Content.ReadAsStringAsync();
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
+                    
+                    var createdPoi = JsonSerializer.Deserialize<PointOfInterest>(jsonString, options);
+                    _logger.LogInformation("Successfully created POI with ID: {Id}", createdPoi?.Href);
+                    return createdPoi ?? pointOfInterest;
+                }
+                
+                _logger.LogWarning("POI creation failed with status: {StatusCode}", response.StatusCode);
+                throw new HttpRequestException($"Failed to create POI: {response.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating Point of Interest");
+                throw;
+            }
+        }
+
+        public async Task<List<string>> GetAvailableCategoriesAsync()
+        {
+            try
+            {
+                var apiBaseUrl = _configuration["PointOfInterestApi:BaseUrl"];
+                if (string.IsNullOrEmpty(apiBaseUrl))
+                {
+                    _logger.LogWarning("API Base URL not configured, using fallback categories");
+                    return GetFallbackCategories();
+                }
+
+                var httpClient = _httpClientFactory.CreateClient();
+                var url = $"{apiBaseUrl}/categories";
+                
+                _logger.LogInformation("Fetching categories from: {Url}", url);
+                
+                var response = await httpClient.GetAsync(url);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonString = await response.Content.ReadAsStringAsync();
+                    var categories = JsonSerializer.Deserialize<List<string>>(jsonString, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                    
+                    _logger.LogInformation("Successfully loaded {Count} categories", categories?.Count ?? 0);
+                    return categories ?? GetFallbackCategories();
+                }
+                
+                _logger.LogWarning("Categories API call failed with status: {StatusCode}, using fallback", response.StatusCode);
+                return GetFallbackCategories();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching categories, using fallback");
+                return GetFallbackCategories();
+            }
+        }
+
+        private List<string> GetFallbackCategories()
+        {
+            return new List<string>
+            {
+                "landmark",
+                "museum", 
+                "castle",
+                "cathedral",
+                "park",
+                "restaurant",
+                "hotel",
+                "gasstation",
+                "hospital",
+                "pharmacy",
+                "shop",
+                "bank",
+                "school",
+                "library",
+                "theater"
+            };
         }
 
         private List<PointOfInterest> GetMockData()
