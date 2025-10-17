@@ -299,65 +299,187 @@ docker secret create mongo_connection_string connection.txt
 ```yaml
 services:
   backend:
+    image: dotnet-mongodb-backend:latest
+    container_name: dotnet-mongodb-backend-prod
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - MongoSettings__ConnectionString=mongodb://mongodb:27017
+      - MongoSettings__Database=demo-campus
+      - DOTNET_RUNNING_IN_CONTAINER=true
+    networks:
+      - demo-campus
+    depends_on:
+      - mongodb
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/zdi-geo-service/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     deploy:
-      replicas: 3
       resources:
         limits:
-          cpus: '1'
+          cpus: '1.0'
           memory: 512M
-      restart_policy:
-        condition: on-failure
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  mongodb:
+    image: mongodb/mongodb-community-server:latest
+    container_name: mongodb-prod
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - demo-campus
+
+networks:
+  demo-campus:
+    external: true
+
+volumes:
+  mongo-data:
+    driver: local
 ```
 
-## 📈 Performance Optimization
+## 🔐 Security Considerations
 
-### Image Optimization
-```dockerfile
-# Layer caching optimization
-COPY *.csproj .
-RUN dotnet restore
-COPY . .
-RUN dotnet publish
-
-# Use .dockerignore
-bin/
-obj/
-*.md
-```
-
-### Runtime Optimization
-```bash
-# Enable ReadyToRun compilation
-dotnet publish -c Release -r linux-x64 --self-contained false /p:PublishReadyToRun=true
-
-# Use tiered compilation
--e DOTNET_TieredCompilation=true
-```
-
-## 🔐 Security
-
-### Security Best Practices
+### Production Hardening
 ```bash
 # Run as non-root user
-USER app
+docker run -d --user 1000:1000 dotnet-mongodb-backend
 
-# Read-only root filesystem
-docker run --read-only --tmpfs /tmp dotnet-mongodb-backend
+# Read-only filesystem
+docker run -d --read-only dotnet-mongodb-backend
 
 # Drop capabilities
-docker run --cap-drop=ALL dotnet-mongodb-backend
+docker run -d --cap-drop ALL dotnet-mongodb-backend
 
 # Use security scanning
 docker scan dotnet-mongodb-backend
 ```
 
-## 📝 Notes
+### MongoDB Security
+- Use authentication in production
+- Configure SSL/TLS for MongoDB connections
+- Restrict network access with firewall rules
+- Regular security updates
 
-- The deploy scripts automatically detect the best configuration
-- Always use version tags in production
-- Monitor container health and logs regularly
-- Keep Docker images updated for security patches
+## 📊 Monitoring & Observability
+
+### Health Check Endpoints
+```bash
+# Application health
+curl http://localhost:8080/zdi-geo-service/api/health
+
+# Debug information (development only)
+curl http://localhost:8080/zdi-geo-service/api/debug
+```
+
+### Prometheus Metrics (optional)
+```bash
+# Add to docker-compose.yml
+environment:
+  - ASPNETCORE_ENVIRONMENT=Production
+  - EnablePrometheusMetrics=true
+```
+
+## 🔄 CI/CD Integration
+
+### GitHub Actions Example
+```yaml
+name: Docker Build and Deploy
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build Docker Image
+        run: docker build -t dotnet-mongodb-backend:${{ github.sha }} .
+      - name: Run Tests
+        run: docker run dotnet-mongodb-backend:${{ github.sha }} dotnet test
+      - name: Push to Registry
+        run: docker push dotnet-mongodb-backend:${{ github.sha }}
+```
+
+## 📚 Additional Resources
+
+### Documentation
+- [ASP.NET Core Documentation](https://docs.microsoft.com/aspnet/core)
+- [MongoDB C# Driver Documentation](https://mongodb.github.io/mongo-csharp-driver/)
+- [Docker Best Practices](https://docs.docker.com/develop/dev-best-practices/)
+
+### Related Projects
+- **Angular Frontend**: `../angular-maps-frontend/`
+- **JEE Backend** (Reference Implementation): `../jee-mongodb-backend/`
+- **MongoDB Setup**: `../MongoDB/`
+
+## 🐛 Known Issues
+
+### Issue: Connection Timeout
+**Solution**: Increase MongoDB timeout settings in `appsettings.json`
+
+### Issue: Container Cannot Connect to MongoDB
+**Solution**: Ensure both containers are on the same Docker network
+
+### Issue: Port 8080 Already in Use
+**Solution**: Stop conflicting services or change port mapping
+
+## 🤝 Contributing
+
+### Development Workflow
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests: `dotnet test`
+5. Build Docker image: `docker build -t dotnet-mongodb-backend .`
+6. Submit pull request
+
+## 📄 License
+
+See [LICENSE.md](../LICENSE.md) for details.
+
+## 📞 Support
+
+For issues and questions:
+- Check the main [README.md](README.md)
+- Review [MONGODB_CONFIG_README.md](MONGODB_CONFIG_README.md) for configuration help
+- Compare with JEE Backend reference implementation
+
+## 🎯 Quick Reference
+
+### Most Common Commands
+```bash
+# Quick start
+./deploy.bat                                  # Windows
+./deploy.sh                                   # Linux/macOS
+
+# View logs
+docker logs dotnet-mongodb-backend -f
+
+# Restart service
+docker-compose restart backend
+
+# Clean rebuild
+docker-compose down && docker-compose up --build -d
+
+# Health check
+curl http://localhost:8080/zdi-geo-service/api/health
+```
 
 ---
 
-**Created for ZDI MongoDB Workshop** 🚀
+**Last Updated**: October 2025  
+**Version**: 1.0  
+**Docker Image Base**: mcr.microsoft.com/dotnet/aspnet:9.0
