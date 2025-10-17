@@ -1,0 +1,60 @@
+/* height of the fixed controls */
+:host {
+    --top-controls-height: 75px;
+}
+
+/* top-controls - height should match the actual height of the fixed controls (including vertical margins) */
+.top-controls {
+    z-index: 1030;
+    height: var(--top-controls-height);
+
+    align-items: center;
+    background: rgba(255, 255, 255);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+    margin-top: 50px;
+}
+
+/* offset main content by the same amount so it never goes under the fixed header */
+.poi-list-content {
+    /* calculating the height for the content by using max height subtracting the fixed header height plus some extra gap */
+    height: calc(100vh - var(--top-controls-height));
+    padding-top: var(--top-controls-height);
+    /* keeps content below header */
+    overflow: auto;
+}
+
+/* keeping the table header visible while scrolling the tbody */
+.poi-list-content .table thead th {
+    position: sticky;
+    top: 0;
+}
+
+/* Mobile: header will wrap and be taller, so we need a larger top control height */
+@media (max-width: 767.98px) {
+    :host {
+        --top-controls-height: 140px;
+    }
+
+    .top-controls {
+        padding: 0.75rem;
+    }
+
+    .poi-list-content {
+        height: calc(100vh - var(--top-controls-height));
+    }
+}
+
+/* Tablet: intermediate */
+@media (min-width: 768px) and (max-width: 991.98px) {
+    :host {
+        --top-controls-height: 100px;
+    }
+
+    .top-controls {
+        padding: 0.6rem 0.75rem;
+    }
+
+    .poi-list-content {
+        height: calc(100vh - var(--top-controls-height));
+    }
+}
