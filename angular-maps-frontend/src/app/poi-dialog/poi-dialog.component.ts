@@ -19,7 +19,7 @@ import { FormsModule } from '@angular/forms';
         <div class="form-group">
           <label>Category</label>
           <select class="form-control" [(ngModel)]="model.category">
-            <option *ngFor="let c of categories" [value]="c">{{c}}</option>
+            <option *ngFor="let c of categories" [value]="c">{{c | titlecase}}</option>
           </select>
         </div>
         <div class="form-group mt-2">
