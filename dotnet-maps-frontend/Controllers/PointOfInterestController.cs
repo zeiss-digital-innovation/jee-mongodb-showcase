@@ -29,8 +29,8 @@ namespace DotNetMapsFrontend.Controllers
                 
                 if (lat.HasValue && lon.HasValue)
                 {
-                    // Use provided coordinates and radius
-                    var searchRadius = radius ?? (zoom.HasValue ? PointOfInterestService.GetRadiusForZoom(zoom.Value) : 2000);
+                    // Use provided coordinates and radius (default 2000m if not specified)
+                    var searchRadius = radius ?? 2000;
                     points = await _poiService.GetPointsOfInterestAsync(lat.Value, lon.Value, searchRadius);
                 }
                 else

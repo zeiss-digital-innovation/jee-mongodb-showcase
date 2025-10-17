@@ -4,7 +4,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Configure logging with custom timestamp format
 builder.Logging.ClearProviders();
-builder.Logging.AddConsole(options => 
+builder.Logging.AddConsole(options =>
 {
     options.FormatterName = "simple";
 }).AddSimpleConsole(options =>
@@ -28,16 +28,15 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthorization();
 
-app.MapStaticAssets();
-
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Map}/{action=Index}/{id?}")
-    .WithStaticAssets();
+    pattern: "{controller=Map}/{action=Index}/{id?}");
 
 
 app.Run();
+
