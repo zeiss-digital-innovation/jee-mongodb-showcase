@@ -2,6 +2,9 @@ using DotNetMapsFrontend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure URL to run on localhost:4200
+builder.WebHost.UseUrls("http://localhost:4200");
+
 // Configure logging with custom timestamp format
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole(options =>
@@ -23,7 +26,6 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -40,3 +42,8 @@ app.MapControllerRoute(
 
 app.Run();
 
+// Make Program class accessible for testing
+public partial class Program 
+{
+    protected Program() { }
+}

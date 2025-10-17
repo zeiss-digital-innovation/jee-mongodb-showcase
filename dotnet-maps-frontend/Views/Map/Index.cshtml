@@ -6,10 +6,65 @@
     <div id="map" class="jumbotron map_large"></div>
 </div>
 
+<!-- POI Creation Modal -->
+<div class="modal fade" id="createPoiModal" tabindex="-1" aria-labelledby="createPoiModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createPoiModalLabel">Create New Point of Interest</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createPoiForm">
+                    <div class="mb-3">
+                        <label for="poiCategory" class="form-label">Category *</label>
+                        <select class="form-select" id="poiCategory" required>
+                            <option value="">-- Select Category --</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            Please select a category.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="poiDetails" class="form-label">Details *</label>
+                        <textarea class="form-control" id="poiDetails" rows="4" 
+                                  placeholder="Enter details about this point of interest..." 
+                                  required maxlength="1000"></textarea>
+                        <div class="invalid-feedback">
+                            Please enter details (max 1000 characters).
+                        </div>
+                        <div class="form-text">
+                            You can use quotes, special characters, and line breaks.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            Location: <span id="selectedCoordinates"></span>
+                        </small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelPoiBtn">
+                    Cancel (Esc)
+                </button>
+                <button type="button" class="btn btn-primary" id="savePoiBtn" disabled>
+                    Save (Enter)
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         let map;
         let pointsOfInterest = [];
+        let selectedLatitude = null;
+        let selectedLongitude = null;
+        let availableCategories = [];
         
         // Default coordinates (Dresden)
         const latitudeDefault = 51.0504;
@@ -19,6 +74,8 @@
         // Initialize the map when the page loads
         $(document).ready(function () {
             initializeMap();
+            loadAvailableCategories();
+            setupModalEventHandlers();
         });
         
         function initializeMap() {
@@ -37,6 +94,27 @@
                 attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
             
+            // Disable default browser context menu on map
+            map.getContainer().addEventListener('contextmenu', function (e) {
+                e.preventDefault();
+            });
+            
+            // Add right-click event listener for POI creation
+            map.on('contextmenu', function (e) {
+                selectedLatitude = e.latlng.lat;
+                selectedLongitude = e.latlng.lng;
+                
+                // Update coordinate display
+                $('#selectedCoordinates').text(`${selectedLatitude.toFixed(6)}, ${selectedLongitude.toFixed(6)}`);
+                
+                // Reset form
+                resetPoiForm();
+                
+                // Show modal
+                const modal = new bootstrap.Modal(document.getElementById('createPoiModal'));
+                modal.show();
+            });
+            
             // Load initial points of interest
             loadPointsOfInterest(latitudeDefault, longitudeDefault, getRadiusForZoom(zoomDefault));
             
@@ -47,6 +125,136 @@
                 const newLongitude = center.lng;
                 const newRadius = getRadiusForZoom(map.getZoom());
                 loadPointsOfInterest(newLatitude, newLongitude, newRadius);
+            });
+        }
+        
+        function loadAvailableCategories() {
+            $.ajax({
+                url: '/api/categories',
+                type: 'GET',
+                success: function (categories) {
+                    availableCategories = categories;
+                    populateCategoryDropdown(categories);
+                },
+                error: function (xhr, status, error) {
+                    console.warn('Could not load categories from backend, using fallback:', error);
+                    // Use fallback categories
+                    const fallbackCategories = [
+                        'landmark', 'museum', 'castle', 'cathedral', 'park', 
+                        'restaurant', 'hotel', 'gasstation', 'hospital', 'pharmacy',
+                        'shop', 'bank', 'school', 'library', 'theater'
+                    ];
+                    availableCategories = fallbackCategories;
+                    populateCategoryDropdown(fallbackCategories);
+                }
+            });
+        }
+        
+        function populateCategoryDropdown(categories) {
+            const $categorySelect = $('#poiCategory');
+            $categorySelect.empty();
+            $categorySelect.append('<option value="">-- Select Category --</option>');
+            
+            categories.forEach(function (category) {
+                $categorySelect.append(`<option value="${category}">${capitalizeFirstLetter(category)}</option>`);
+            });
+        }
+        
+        function setupModalEventHandlers() {
+            // Enable/disable save button based on form validation
+            $('#poiCategory, #poiDetails').on('input change', function () {
+                validatePoiForm();
+            });
+            
+            // Handle Save button click
+            $('#savePoiBtn').click(function () {
+                if (validatePoiForm()) {
+                    savePoi();
+                }
+            });
+            
+            // Handle keyboard shortcuts
+            $('#createPoiModal').on('keydown', function (e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if ($('#savePoiBtn').prop('disabled') === false) {
+                        savePoi();
+                    }
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    bootstrap.Modal.getInstance(document.getElementById('createPoiModal')).hide();
+                }
+            });
+        }
+        
+        function validatePoiForm() {
+            const category = $('#poiCategory').val().trim();
+            const details = $('#poiDetails').val().trim();
+            const isValid = category !== '' && details !== '';
+            
+            $('#savePoiBtn').prop('disabled', !isValid);
+            
+            return isValid;
+        }
+        
+        function resetPoiForm() {
+            $('#createPoiForm')[0].reset();
+            $('#poiCategory').removeClass('is-invalid');
+            $('#poiDetails').removeClass('is-invalid');
+            $('#savePoiBtn').prop('disabled', true);
+        }
+        
+        function savePoi() {
+            if (!validatePoiForm()) return;
+            
+            const category = $('#poiCategory').val().trim();
+            const details = $('#poiDetails').val().trim();
+            
+            // Basic XSS prevention - encode HTML entities
+            const sanitizedDetails = $('<div>').text(details).html();
+            
+            const newPoi = {
+                category: category,
+                details: sanitizedDetails,
+                location: {
+                    type: 'Point',
+                    coordinates: [selectedLongitude, selectedLatitude]
+                }
+            };
+            
+            // Disable save button to prevent double submission
+            $('#savePoiBtn').prop('disabled', true).text('Saving...');
+            
+            $.ajax({
+                url: '/api/pointsofinterest',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(newPoi),
+                success: function (response) {
+                    console.log('POI created successfully:', response);
+                    
+                    // Hide modal
+                    bootstrap.Modal.getInstance(document.getElementById('createPoiModal')).hide();
+                    
+                    // Refresh the map to show the new POI
+                    const center = map.getCenter();
+                    const radius = getRadiusForZoom(map.getZoom());
+                    loadPointsOfInterest(center.lat, center.lng, radius);
+                    
+                    // Show success message (optional)
+                    // Could add a toast notification here
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error creating POI:', error);
+                    console.error('Status:', status);
+                    console.error('Response:', xhr.responseText);
+                    
+                    alert('Failed to create POI. Please try again.');
+                },
+                complete: function () {
+                    // Re-enable save button and reset text
+                    $('#savePoiBtn').prop('disabled', false).text('Save (Enter)');
+                }
             });
         }
         
