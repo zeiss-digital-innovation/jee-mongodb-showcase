@@ -6,7 +6,7 @@ import { MapDataService } from '../service/map-data.service';
 import { CommonModule } from '@angular/common';
 import { ApplicationRef, createComponent, EnvironmentInjector } from '@angular/core';
 import { POI_CATEGORIES } from '../model/poi-categories';
-import { AddPoiDialogComponent } from './add-poi-dialog.component';
+import { PoiDialogComponent } from '../poi-dialog/poi-dialog.component';
 
 // Fix for default markers in Leaflet with Angular
 const iconRetinaUrl = 'media/leaflet/marker-icon-2x.png';
@@ -87,8 +87,6 @@ export class PointOfInterestMapComponent implements OnInit {
     } catch (e) {
       // ignore if not available
     }
-
-
   }
 
   addMarkerAt(latitude: number, longitude: number): void {
@@ -97,7 +95,7 @@ export class PointOfInterestMapComponent implements OnInit {
       return;
     }
     // create and attach the Angular dialog component to the document
-    const compRef = createComponent(AddPoiDialogComponent, { environmentInjector: this.injector });
+    const compRef = createComponent(PoiDialogComponent, { environmentInjector: this.injector });
     // set inputs before attaching the view so CD picks them up
     compRef.instance.latitude = latitude;
     compRef.instance.longitude = longitude;

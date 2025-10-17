@@ -16,3 +16,8 @@
     font-size: 12px;
     user-select: none;
 }
+
+/* Reserve space for the fixed navbar so page content isn't covered */
+body {
+    padding-top: 50px;
+}

@@ -47,15 +47,6 @@ public class GeoDataService {
     }
 
     /**
-     * Delete a poi by id.
-     *
-     * @param id
-     */
-    public void deletePOI(String id) {
-        persistenceService.deletePointOfInterest(new ObjectId(id));
-    }
-
-    /**
      * Create a new poi.
      *
      * @param poi
@@ -68,6 +59,33 @@ public class GeoDataService {
         entity = persistenceService.createPointOfInterest(entity);
 
         return PointOfInterestMapper.mapToModel(entity);
+    }
+
+    public PointOfInterest updatePOI(PointOfInterest poi) {
+        if (poi.getId() == null) {
+            throw new IllegalArgumentException("POI id must not be null for update.");
+        }
+        PointOfInterestEntity entity = persistenceService.getPointOfInterest(new ObjectId(poi.getId()), true);
+
+        if (entity == null) {
+            return null;
+        }
+
+        entity.setCategory(poi.getCategory());
+        entity.setDetails(poi.getDetails());
+
+        entity = persistenceService.updatePointOfInterest(entity);
+
+        return PointOfInterestMapper.mapToModel(entity);
+    }
+
+    /**
+     * Delete a poi by id.
+     *
+     * @param id
+     */
+    public void deletePOI(String id) {
+        persistenceService.deletePointOfInterest(new ObjectId(id));
     }
 
     /**

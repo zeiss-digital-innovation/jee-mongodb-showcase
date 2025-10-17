@@ -19,7 +19,7 @@ import { FormsModule } from '@angular/forms';
         <div class="form-group">
           <label>Category</label>
           <select class="form-control" [(ngModel)]="model.category">
-            <option *ngFor="let c of categories" [value]="c">{{c}}</option>
+            <option *ngFor="let c of categories" [value]="c">{{c | titlecase}}</option>
           </select>
         </div>
         <div class="form-group mt-2">
@@ -56,10 +56,13 @@ import { FormsModule } from '@angular/forms';
     `
   ]
 })
-export class AddPoiDialogComponent implements OnInit {
+export class PoiDialogComponent implements OnInit {
   @Input() latitude = 0;
   @Input() longitude = 0;
   @Input() categories: string[] = [];
+
+  @Input() category: string | null = null;
+  @Input() details: string | null = null;
 
   @Output() save = new EventEmitter<{ category: string; details: string }>();
   @Output() cancel = new EventEmitter<void>();
@@ -67,7 +70,12 @@ export class AddPoiDialogComponent implements OnInit {
   model = { category: '', details: '' };
 
   ngOnInit(): void {
-    this.model.category = this.categories && this.categories.length > 0 ? this.categories[0] : '';
+    if (this.category) {
+      this.model.category = this.category.toLocaleLowerCase();
+    } else {
+      this.model.category = this.categories && this.categories.length > 0 ? this.categories[0] : '';
+    }
+    this.model.details = this.details || '';
   }
 
   onSave(): void {

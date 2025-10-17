@@ -35,7 +35,26 @@ export class PointOfInterestService {
         return this.http.post<PointOfInterest>(`/poi`, sanitized);
     }
 
+    updatePointOfInterest(point: PointOfInterest): Observable<PointOfInterest> {
+        if (!point.href) {
+            throw new Error('Point of Interest has no href, cannot update');
+        }
+        const sanitized = this.sanitizer.sanitizePoint(point);
+        const id = point.href.split('/').pop() || '';
+        return this.http.put<PointOfInterest>(`/poi/${id}`, sanitized);
+    }
 
+    /**
+     * Deletes a point of interest from the backend
+     * @param point - The point of interest to delete
+     * @returns Observable<void>
+     */
+    deletePointOfInterest(point: PointOfInterest): Observable<void> {
+        if (!point.href) {
+            throw new Error('Point of Interest has no href, cannot delete');
+        }
+        return this.http.delete<void>(point.href);
+    }
 
 }
 
