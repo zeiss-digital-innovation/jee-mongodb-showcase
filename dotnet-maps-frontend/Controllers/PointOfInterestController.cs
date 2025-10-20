@@ -95,6 +95,84 @@ namespace DotNetMapsFrontend.Controllers
         }
 
         [HttpGet]
+        [Route("poi/{id}")]
+        public async Task<IActionResult> GetById(string id)
+        {
+            try
+            {
+                var poi = await _poiService.GetPointOfInterestByIdAsync(id);
+                if (poi == null)
+                {
+                    return NotFound();
+                }
+                return Json(poi);
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Failed to retrieve Point of Interest.");
+            }
+        }
+
+        [HttpPut]
+        [Route("poi/{id}")]
+        public async Task<IActionResult> Update(string id, [FromBody] PointOfInterest pointOfInterest)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                // Input validation
+                if (string.IsNullOrWhiteSpace(pointOfInterest.Category))
+                {
+                    return BadRequest("Category is required.");
+                }
+
+                if (string.IsNullOrWhiteSpace(pointOfInterest.Details))
+                {
+                    return BadRequest("Details are required.");
+                }
+
+                // Validate location
+                if (pointOfInterest.Location?.Coordinates == null || 
+                    pointOfInterest.Location.Coordinates.Length != 2)
+                {
+                    return BadRequest("Valid location is required.");
+                }
+
+                var updatedPoi = await _poiService.UpdatePointOfInterestAsync(id, pointOfInterest);
+                if (updatedPoi == null)
+                {
+                    return NotFound($"POI with ID '{id}' was not found");
+                }
+
+                return Json(updatedPoi);
+            }
+            catch (Exception ex)
+            {
+                // Log the error
+                return StatusCode(500, $"Failed to update Point of Interest: {ex.Message}");
+            }
+        }
+
+        [HttpDelete]
+        [Route("poi/{id}")]
+        public async Task<IActionResult> Delete(string id)
+        {
+            try
+            {
+                await _poiService.DeletePointOfInterestAsync(id);
+                return NoContent(); // 204 No Content (idempotent per RFC 9110)
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Failed to delete Point of Interest.");
+            }
+        }
+
+        [HttpGet]
         [Route("api/categories")]
         public async Task<IActionResult> GetCategories()
         {

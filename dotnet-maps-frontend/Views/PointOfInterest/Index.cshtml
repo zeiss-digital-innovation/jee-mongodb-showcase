@@ -560,6 +560,9 @@
             }
         });
         
+        // Store complete POI data for editing (needed for PUT request)
+        let currentPoiData = null;
+        
         // Global functions for onclick handlers
         function editPoi(href) {
             if (!href) {
@@ -584,6 +587,9 @@
                 url: href,
                 type: 'GET',
                 success: function(poi) {
+                    // Store complete POI data (needed for PUT request)
+                    currentPoiData = poi;
+                    
                     // Store original data for change detection
                     originalPoiData = {
                         category: poi.category || '',
@@ -628,13 +634,21 @@
                 return;
             }
             
+            if (!currentPoiData) {
+                alert('POI data not loaded. Please try again.');
+                return;
+            }
+            
             // Disable save button to prevent double submission
             $('#saveEditBtn').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Saving...');
             
-            // Prepare update data (only category and details, location stays the same)
+            // Prepare update data - send complete POI object with updated fields
             const updateData = {
                 category: category,
-                details: details
+                details: details,
+                location: currentPoiData.location,  // Keep location unchanged
+                name: currentPoiData.name,           // Keep name if present
+                tags: currentPoiData.tags            // Keep tags if present
             };
             
             // Send PUT request to backend
