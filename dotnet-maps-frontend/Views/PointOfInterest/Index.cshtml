@@ -3,48 +3,420 @@
     ViewData["Title"] = "Point of Interest List";
 }
 
-<div class="container mt-4">
-    <h2>Points of Interest</h2>
+<style>
+    .top-controls {
+        background-color: white;
+        padding: 15px 0;
+        border-bottom: 1px solid #dee2e6;
+        z-index: 1000;
+        margin-top: 56px;
+    }
     
-    @if (Model != null && Model.Any())
-    {
-        <div class="row">
-            @foreach (var poi in Model)
-            {
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card">
-                        <div class="card-header d-flex align-items-center">
-                            <i class="bi @GetCategoryIcon(poi.Category) me-2"></i>
-                            <strong>@poi.Category.ToUpperInvariant()</strong>
-                        </div>
-                        <div class="card-body">
-                            @if (!string.IsNullOrEmpty(poi.Details))
-                            {
-                                @foreach (var line in poi.Details.Split('\n'))
-                                {
-                                    if (!string.IsNullOrWhiteSpace(line))
-                                    {
-                                        <p class="card-text small">@line</p>
-                                    }
-                                }
-                            }
-                            <small class="text-muted">
-                                Location: @poi.Location.Latitude.ToString("F5"), @poi.Location.Longitude.ToString("F5")
-                            </small>
+    .poi-list-content {
+        margin-top: 180px;
+    }
+    
+    .table td, .table th {
+        vertical-align: middle;
+    }
+    
+    .category-cell {
+        text-transform: capitalize;
+    }
+    
+    .details-cell {
+        max-width: 500px;
+        word-wrap: break-word;
+    }
+    
+    .action-buttons {
+        white-space: nowrap;
+    }
+    
+    .poi-card {
+        transition: transform 0.2s;
+        height: 100%;
+    }
+    
+    .poi-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .poi-card .card-body {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .poi-card .card-title {
+        display: flex;
+        align-items: center;
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+    }
+    
+    .poi-card .card-title i {
+        font-size: 1.5rem;
+        margin-right: 10px;
+    }
+    
+    .poi-card .card-text {
+        flex-grow: 1;
+    }
+    
+    .view-toggle {
+        margin-bottom: 20px;
+    }
+    
+    .view-toggle .btn-group {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+</style>
+
+<div class="top-controls fixed-top">
+    <div class="container">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label for="latitudeInput" class="form-label">Latitude (Range: -90 to 90)</label>
+                <input type="number" class="form-control" id="latitudeInput" value="51.0504" step="0.0001" min="-90" max="90">
+            </div>
+            <div class="col-md-3">
+                <label for="longitudeInput" class="form-label">Longitude (Range: -180 to 180)</label>
+                <input type="number" class="form-control" id="longitudeInput" value="13.7373" step="0.0001" min="-180" max="180">
+            </div>
+            <div class="col-md-4">
+                <label for="radiusInput" class="form-label">Radius <span id="radiusValue">2000</span> (m)</label>
+                <input type="range" class="form-range" id="radiusInput" min="100" max="5000" value="2000" step="100">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label d-block">&nbsp;</label>
+                <button type="button" class="btn btn-primary w-100" id="loadPoisBtn">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Load POIs
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container poi-list-content">
+    <h2 class="mb-4">Points of Interest</h2>
+    
+    <!-- View Toggle -->
+    <div class="view-toggle">
+        <div class="btn-group" role="group" aria-label="View toggle">
+            <button type="button" class="btn btn-outline-primary active" id="cardsViewBtn">
+                <i class="bi bi-grid-3x3-gap me-1"></i>Cards
+            </button>
+            <button type="button" class="btn btn-outline-primary" id="listViewBtn">
+                <i class="bi bi-list-ul me-1"></i>List
+            </button>
+        </div>
+    </div>
+    
+    <!-- Cards View (Default) -->
+    <div id="poiCardsContainer">
+        @if (Model != null && Model.Any())
+        {
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                @foreach (var poi in Model)
+                {
+                    <div class="col">
+                        <div class="card poi-card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="bi @GetCategoryIcon(poi.Category) text-primary"></i>
+                                    @poi.Category
+                                </h5>
+                                <p class="card-text">@Html.Raw(FormatDetails(poi.Details))</p>
+                                <div class="action-buttons mt-auto">
+                                    <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="editPoi('@poi.Href')">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deletePoi('@poi.Href')">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
-            }
-        </div>
-    }
-    else
-    {
-        <div class="alert alert-info">
-            <i class="bi bi-info-circle me-2"></i>
-            No points of interest found.
-        </div>
-    }
+                }
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                No points of interest found. Please adjust the search parameters and click "Load POIs".
+            </div>
+        }
+    </div>
+    
+    <!-- Table View (List) -->
+    <div id="poiTableContainer" style="display: none;">
+        @if (Model != null && Model.Any())
+        {
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">Category</th>
+                        <th scope="col">Details</th>
+                        <th scope="col" style="width: 180px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="poiTableBody">
+                    @for (int i = 0; i < Model.Count; i++)
+                    {
+                        var poi = Model[i];
+                        <tr>
+                            <td class="category-cell" style="width: 250px;">
+                                @(i + 1). @poi.Category <i class="bi @GetCategoryIcon(poi.Category)"></i>
+                            </td>
+                            <td class="details-cell">@Html.Raw(FormatDetails(poi.Details))</td>
+                            <td class="action-buttons">
+                                <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="editPoi('@poi.Href')">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deletePoi('@poi.Href')">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                No points of interest found. Please adjust the search parameters and click "Load POIs".
+            </div>
+        }
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // View toggle functionality
+            let currentView = 'cards'; // Default view
+            
+            $('#cardsViewBtn').click(function() {
+                currentView = 'cards';
+                $(this).addClass('active');
+                $('#listViewBtn').removeClass('active');
+                $('#poiCardsContainer').show();
+                $('#poiTableContainer').hide();
+            });
+            
+            $('#listViewBtn').click(function() {
+                currentView = 'list';
+                $(this).addClass('active');
+                $('#cardsViewBtn').removeClass('active');
+                $('#poiCardsContainer').hide();
+                $('#poiTableContainer').show();
+            });
+            
+            // Update radius display when slider changes
+            $('#radiusInput').on('input', function() {
+                $('#radiusValue').text($(this).val());
+            });
+            
+            // Validate coordinates
+            function validateCoordinates() {
+                const lat = parseFloat($('#latitudeInput').val());
+                const lon = parseFloat($('#longitudeInput').val());
+                const radius = parseInt($('#radiusInput').val());
+                
+                const latValid = !isNaN(lat) && lat >= -90 && lat <= 90;
+                const lonValid = !isNaN(lon) && lon >= -180 && lon <= 180;
+                const radiusValid = !isNaN(radius) && radius >= 100 && radius <= 5000;
+                
+                return latValid && lonValid && radiusValid;
+            }
+            
+            // Update button state based on validation
+            function updateButtonState() {
+                $('#loadPoisBtn').prop('disabled', !validateCoordinates());
+            }
+            
+            $('#latitudeInput, #longitudeInput, #radiusInput').on('input', updateButtonState);
+            updateButtonState();
+            
+            // Load POIs button click handler
+            $('#loadPoisBtn').click(function() {
+                const lat = parseFloat($('#latitudeInput').val());
+                const lon = parseFloat($('#longitudeInput').val());
+                const radius = parseInt($('#radiusInput').val());
+                
+                if (!validateCoordinates()) {
+                    alert('Please enter valid coordinates and radius.');
+                    return;
+                }
+                
+                // Show loading state
+                const $btn = $(this);
+                const originalHtml = $btn.html();
+                $btn.html('<span class="spinner-border spinner-border-sm me-1"></span>Loading...').prop('disabled', true);
+                
+                // Make AJAX request
+                $.ajax({
+                    url: '/api/pointsofinterest',
+                    method: 'GET',
+                    data: { lat: lat, lon: lon, radius: radius },
+                    success: function(data) {
+                        // Update both views with new data
+                        updatePoiCards(data);
+                        updatePoiTable(data);
+                    },
+                    error: function() {
+                        alert('Failed to load points of interest. Please try again.');
+                    },
+                    complete: function() {
+                        $btn.html(originalHtml).prop('disabled', false);
+                        updateButtonState();
+                    }
+                });
+            });
+            
+            function updatePoiCards(pois) {
+                const $container = $('#poiCardsContainer');
+                
+                if (!pois || pois.length === 0) {
+                    $container.html(`
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            No points of interest found. Please adjust the search parameters and try again.
+                        </div>
+                    `);
+                    return;
+                }
+                
+                let cardsHtml = '<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">';
+                
+                pois.forEach((poi) => {
+                    const icon = getCategoryIcon(poi.category);
+                    const details = formatDetails(poi.details);
+                    const category = poi.category.charAt(0).toUpperCase() + poi.category.slice(1);
+                    
+                    cardsHtml += `
+                        <div class="col">
+                            <div class="card poi-card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="bi ${icon} text-primary"></i>
+                                        ${category}
+                                    </h5>
+                                    <p class="card-text">${details}</p>
+                                    <div class="action-buttons mt-auto">
+                                        <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="editPoi('${poi.href}')">
+                                            <i class="bi bi-pencil"></i> Edit
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deletePoi('${poi.href}')">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                cardsHtml += '</div>';
+                $container.html(cardsHtml);
+            }
+            
+            function updatePoiTable(pois) {
+                const $container = $('#poiTableContainer');
+                
+                if (!pois || pois.length === 0) {
+                    $container.html(`
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            No points of interest found. Please adjust the search parameters and try again.
+                        </div>
+                    `);
+                    return;
+                }
+                
+                let tableHtml = `
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th scope="col">Category</th>
+                                <th scope="col">Details</th>
+                                <th scope="col" style="width: 180px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="poiTableBody">
+                `;
+                
+                pois.forEach((poi, index) => {
+                    const icon = getCategoryIcon(poi.category);
+                    const details = formatDetails(poi.details);
+                    const category = poi.category.charAt(0).toUpperCase() + poi.category.slice(1);
+                    
+                    tableHtml += `
+                        <tr>
+                            <td class="category-cell" style="width: 250px;">${index + 1}. ${category} <i class="bi ${icon}"></i></td>
+                            <td class="details-cell">${details}</td>
+                            <td class="action-buttons">
+                                <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="editPoi('${poi.href}')">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deletePoi('${poi.href}')">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                tableHtml += `
+                        </tbody>
+                    </table>
+                `;
+                
+                $container.html(tableHtml);
+            }
+            
+            function getCategoryIcon(category) {
+                const icons = {
+                    'restaurant': 'bi-cup-hot',
+                    'cash': 'bi-credit-card',
+                    'supermarket': 'bi-shop',
+                    'post': 'bi-mailbox',
+                    'lodging': 'bi-house',
+                    'police': 'bi-shield-check',
+                    'toilet': 'bi-person-standing',
+                    'coffee': 'bi-cup-hot',
+                    'parking': 'bi-car-front',
+                    'gas station': 'bi-fuel-pump',
+                    'company': 'bi-building',
+                    'pharmacy': 'bi-plus-square'
+                };
+                return icons[category?.toLowerCase()] || 'bi-geo-alt';
+            }
+            
+            function formatDetails(details) {
+                if (!details) return '';
+                return details.replace(/\n/g, '<br>');
+            }
+        });
+        
+        function editPoi(href) {
+            // TODO: Implement edit functionality
+            alert('Edit functionality will be implemented. POI: ' + href);
+        }
+        
+        function deletePoi(href) {
+            if (confirm('Are you sure you want to delete this point of interest?')) {
+                // TODO: Implement delete functionality
+                alert('Delete functionality will be implemented. POI: ' + href);
+            }
+        }
+    </script>
+}
 
 @functions {
     string GetCategoryIcon(string category)
@@ -65,5 +437,13 @@
             "pharmacy" => "bi-plus-square",
             _ => "bi-geo-alt"
         };
+    }
+    
+    string FormatDetails(string details)
+    {
+        if (string.IsNullOrEmpty(details))
+            return string.Empty;
+            
+        return details.Replace("\n", "<br>");
     }
 }
