@@ -50,11 +50,58 @@ The application can be configured via `appsettings.json`:
 {
   "PointOfInterestApi": {
     "BaseUrl": "http://localhost:8080/zdi-geo-service/api"
+  },
+  "Server": {
+    "UseHttps": false,
+    "HttpPort": 4200,
+    "HttpsPort": 7225
   }
 }
 ```
 
-**Port Configuration**: The application runs on port 4200 (same as Angular frontend) for consistency. This is configured in `Properties/launchSettings.json`.
+### Server Configuration
+
+**HTTPS Support**: The application supports both HTTP and HTTPS modes:
+
+- **`UseHttps`** (boolean, default: `false`):
+  - `false`: Run on HTTP only, no HTTPS redirection, no warnings
+  - `true`: Enable HTTPS with automatic HTTP to HTTPS redirection
+  
+- **`HttpPort`** (integer, default: `4200`):
+  - Port for HTTP traffic (matches Angular frontend port)
+  
+- **`HttpsPort`** (integer, default: `7225`):
+  - Port for HTTPS traffic (only used when `UseHttps` is `true`)
+
+**Examples:**
+
+HTTP Only (Default):
+```json
+{
+  "Server": {
+    "UseHttps": false,
+    "HttpPort": 4200
+  }
+}
+```
+→ Application runs on: `http://localhost:4200`
+
+HTTPS Enabled:
+```json
+{
+  "Server": {
+    "UseHttps": true,
+    "HttpPort": 4200,
+    "HttpsPort": 7225
+  }
+}
+```
+→ Application runs on: `https://localhost:7225` (HTTP on 4200 redirects to HTTPS)
+
+**Development Certificate**: For HTTPS in development, ensure you have a valid development certificate:
+```powershell
+dotnet dev-certs https --trust
+```
 
 **Backend Integration**: Connects to MongoDB .NET/JEE Backend on `/zdi-geo-service/api/poi` endpoint.
 

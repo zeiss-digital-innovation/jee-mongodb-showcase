@@ -48,7 +48,7 @@ public class PointOfInterestController : ControllerBase
     /// GET /geoservice/poi - Get all POIs
     /// </summary>
     /// <param name="category">Filter by category</param>
-    /// <param name="search">Full-text search in name, address and tags</param>
+    /// <param name="search">Full-text search in name and tags</param>
     /// <param name="limit">Maximum number of results to return</param>
     /// <param name="lat">Latitude for geographic search</param>
     /// <param name="lng">Longitude for geographic search</param>

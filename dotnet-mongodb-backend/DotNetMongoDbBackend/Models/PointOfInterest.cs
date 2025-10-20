@@ -17,7 +17,9 @@ public class PointOfInterest
     [JsonIgnore]
     public string? Id { get; set; }
 
-    [BsonElement("href")]
+    // NOTE: href is NOT stored in MongoDB (like JEE reference implementation)
+    // It is generated dynamically by the backend when returning POIs
+    [BsonIgnore]
     [JsonPropertyName("href")]
     public string? Href { get; set; }
 
@@ -34,15 +36,11 @@ public class PointOfInterest
     [JsonPropertyName("location")]
     public Location? Location { get; set; }
 
-    // Optionale Felder die möglicherweise nicht in allen Dokumenten vorhanden sind
+    // Optional fields that may not be present in all documents
     [BsonElement("name")]
     [JsonPropertyName("name")]
     [BsonIgnoreIfNull]
     public string? Name { get; set; }
-
-    [BsonElement("address")]
-    [JsonPropertyName("address")]
-    public string? Address { get; set; }
 
     [BsonElement("tags")]
     [JsonPropertyName("tags")]
