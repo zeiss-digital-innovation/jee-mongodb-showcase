@@ -64,6 +64,19 @@ namespace DotNetMapsFrontend.Services
                     };
                     
                     var points = JsonSerializer.Deserialize<List<PointOfInterest>>(jsonString, options);
+                    
+                    // Convert all categories to lowercase for consistency
+                    if (points != null)
+                    {
+                        foreach (var point in points)
+                        {
+                            if (!string.IsNullOrEmpty(point.Category))
+                            {
+                                point.Category = point.Category.ToLower();
+                            }
+                        }
+                    }
+                    
                     _logger.LogInformation("Successfully loaded {Count} POIs for coordinates ({Lat}, {Lon}) with radius {Radius}m", 
                         points?.Count ?? 0, latitude, longitude, radiusInMeters);
                     return points ?? new List<PointOfInterest>();
@@ -129,6 +142,13 @@ namespace DotNetMapsFrontend.Services
                     };
                     
                     var createdPoi = JsonSerializer.Deserialize<PointOfInterest>(jsonString, options);
+                    
+                    // Convert category to lowercase for consistency
+                    if (createdPoi != null && !string.IsNullOrEmpty(createdPoi.Category))
+                    {
+                        createdPoi.Category = createdPoi.Category.ToLower();
+                    }
+                    
                     _logger.LogInformation("Successfully created POI with ID: {Id}", createdPoi?.Href);
                     return createdPoi ?? pointOfInterest;
                 }
@@ -169,6 +189,13 @@ namespace DotNetMapsFrontend.Services
                     };
                     
                     var poi = JsonSerializer.Deserialize<PointOfInterest>(jsonString, options);
+                    
+                    // Convert category to lowercase for consistency
+                    if (poi != null && !string.IsNullOrEmpty(poi.Category))
+                    {
+                        poi.Category = poi.Category.ToLower();
+                    }
+                    
                     _logger.LogInformation("Successfully loaded POI with ID: {Id}", id);
                     return poi;
                 }
@@ -223,6 +250,13 @@ namespace DotNetMapsFrontend.Services
                     };
                     
                     var updatedPoi = JsonSerializer.Deserialize<PointOfInterest>(jsonString, options);
+                    
+                    // Convert category to lowercase for consistency
+                    if (updatedPoi != null && !string.IsNullOrEmpty(updatedPoi.Category))
+                    {
+                        updatedPoi.Category = updatedPoi.Category.ToLower();
+                    }
+                    
                     _logger.LogInformation("Successfully updated POI with ID: {Id}", id);
                     return updatedPoi;
                 }
@@ -304,8 +338,11 @@ namespace DotNetMapsFrontend.Services
                         PropertyNameCaseInsensitive = true
                     });
                     
-                    _logger.LogInformation("Successfully loaded {Count} categories", categories?.Count ?? 0);
-                    return categories ?? GetFallbackCategories();
+                    // Convert all categories to lowercase for consistency
+                    var lowercaseCategories = categories?.Select(c => c.ToLower()).ToList();
+                    
+                    _logger.LogInformation("Successfully loaded {Count} categories", lowercaseCategories?.Count ?? 0);
+                    return lowercaseCategories ?? GetFallbackCategories();
                 }
                 
                 _logger.LogWarning("Categories API call failed with status: {StatusCode}, using fallback", response.StatusCode);
