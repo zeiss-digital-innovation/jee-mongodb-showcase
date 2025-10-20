@@ -23,7 +23,7 @@
         left: 0;
         right: 0;
         background-color: white;
-        padding: 15px 0;
+        padding: 15px 0 15px 0;
         border-bottom: 2px solid #dee2e6;
         z-index: 999;
     }
@@ -31,7 +31,7 @@
     /* Scrollable content area */
     .poi-scrollable-content {
         position: fixed;
-        top: 258px; /* navbar + controls + header */
+        top: 280px; /* navbar + controls + header + toggle */
         bottom: 0;
         left: 0;
         right: 0;
@@ -48,7 +48,7 @@
         position: sticky;
         top: 0;
         background-color: #212529;
-        z-index: 10;
+        z-index: 998; /* Higher than content, lower than fixed headers */
         box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
     }
     
@@ -138,18 +138,16 @@
 <!-- Fixed Header Section -->
 <div class="poi-header-section">
     <div class="container">
-        <div class="d-flex justify-content-between align-items-center">
-            <h2 class="mb-0">Points of Interest</h2>
-            <!-- View Toggle -->
-            <div class="view-toggle">
-                <div class="btn-group" role="group" aria-label="View toggle">
-                    <button type="button" class="btn btn-outline-primary active" id="cardsViewBtn">
-                        <i class="bi bi-grid-3x3-gap me-1"></i>Cards
-                    </button>
-                    <button type="button" class="btn btn-outline-primary" id="listViewBtn">
-                        <i class="bi bi-list-ul me-1"></i>List
-                    </button>
-                </div>
+        <h2 class="mb-3">Points of Interest</h2>
+        <!-- View Toggle -->
+        <div class="view-toggle">
+            <div class="btn-group" role="group" aria-label="View toggle">
+                <button type="button" class="btn btn-outline-primary active" id="cardsViewBtn">
+                    <i class="bi bi-grid-3x3-gap me-1"></i>Cards
+                </button>
+                <button type="button" class="btn btn-outline-primary" id="listViewBtn">
+                    <i class="bi bi-list-ul me-1"></i>List
+                </button>
             </div>
         </div>
     </div>
