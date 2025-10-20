@@ -13,7 +13,7 @@ namespace DotNetMapsFrontend.Controllers
             _poiService = poiService;
         }
 
-        [Route("PointOfInterest")]
+        [Route("poi")]
         public async Task<IActionResult> Index()
         {
             var points = await _poiService.GetPointsOfInterestAsync();
