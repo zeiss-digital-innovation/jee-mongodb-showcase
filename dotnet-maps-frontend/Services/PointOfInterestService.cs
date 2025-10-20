@@ -8,7 +8,10 @@ namespace DotNetMapsFrontend.Services
     {
         Task<List<PointOfInterest>> GetPointsOfInterestAsync();
         Task<List<PointOfInterest>> GetPointsOfInterestAsync(double latitude, double longitude, int radiusInMeters);
+        Task<PointOfInterest?> GetPointOfInterestByIdAsync(string id);
         Task<PointOfInterest> CreatePointOfInterestAsync(PointOfInterest pointOfInterest);
+        Task<PointOfInterest?> UpdatePointOfInterestAsync(string id, PointOfInterest pointOfInterest);
+        Task DeletePointOfInterestAsync(string id);
         Task<List<string>> GetAvailableCategoriesAsync();
     }
 
@@ -136,6 +139,141 @@ namespace DotNetMapsFrontend.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating Point of Interest");
+                throw;
+            }
+        }
+
+        public async Task<PointOfInterest?> GetPointOfInterestByIdAsync(string id)
+        {
+            try
+            {
+                var apiBaseUrl = _configuration["PointOfInterestApi:BaseUrl"];
+                if (string.IsNullOrEmpty(apiBaseUrl))
+                {
+                    throw new InvalidOperationException("API Base URL not configured");
+                }
+
+                var httpClient = _httpClientFactory.CreateClient();
+                var url = $"{apiBaseUrl}/poi/{id}";
+                
+                _logger.LogInformation("Fetching POI by ID from: {Url}", url);
+                
+                var response = await httpClient.GetAsync(url);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonString = await response.Content.ReadAsStringAsync();
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
+                    
+                    var poi = JsonSerializer.Deserialize<PointOfInterest>(jsonString, options);
+                    _logger.LogInformation("Successfully loaded POI with ID: {Id}", id);
+                    return poi;
+                }
+                
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    _logger.LogWarning("POI not found with ID: {Id}", id);
+                    return null;
+                }
+                
+                _logger.LogWarning("Failed to fetch POI with status: {StatusCode}", response.StatusCode);
+                throw new HttpRequestException($"Failed to fetch POI: {response.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching Point of Interest by ID: {Id}", id);
+                throw;
+            }
+        }
+
+        public async Task<PointOfInterest?> UpdatePointOfInterestAsync(string id, PointOfInterest pointOfInterest)
+        {
+            try
+            {
+                var apiBaseUrl = _configuration["PointOfInterestApi:BaseUrl"];
+                if (string.IsNullOrEmpty(apiBaseUrl))
+                {
+                    throw new InvalidOperationException("API Base URL not configured");
+                }
+
+                var httpClient = _httpClientFactory.CreateClient();
+                var url = $"{apiBaseUrl}/poi/{id}";
+                
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
+                
+                var jsonContent = JsonSerializer.Serialize(pointOfInterest, jsonOptions);
+                var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+                
+                _logger.LogInformation("Updating POI with ID: {Id}", id);
+                
+                var response = await httpClient.PutAsync(url, content);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonString = await response.Content.ReadAsStringAsync();
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
+                    
+                    var updatedPoi = JsonSerializer.Deserialize<PointOfInterest>(jsonString, options);
+                    _logger.LogInformation("Successfully updated POI with ID: {Id}", id);
+                    return updatedPoi;
+                }
+                
+                if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    _logger.LogWarning("POI not found for update with ID: {Id}", id);
+                    return null;
+                }
+                
+                _logger.LogWarning("POI update failed with status: {StatusCode}", response.StatusCode);
+                throw new HttpRequestException($"Failed to update POI: {response.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating Point of Interest with ID: {Id}", id);
+                throw;
+            }
+        }
+
+        public async Task DeletePointOfInterestAsync(string id)
+        {
+            try
+            {
+                var apiBaseUrl = _configuration["PointOfInterestApi:BaseUrl"];
+                if (string.IsNullOrEmpty(apiBaseUrl))
+                {
+                    throw new InvalidOperationException("API Base URL not configured");
+                }
+
+                var httpClient = _httpClientFactory.CreateClient();
+                var url = $"{apiBaseUrl}/poi/{id}";
+                
+                _logger.LogInformation("Deleting POI with ID: {Id}", id);
+                
+                var response = await httpClient.DeleteAsync(url);
+                
+                // Per RFC 9110, DELETE is idempotent and should return 204 even if resource doesn't exist
+                if (response.StatusCode == System.Net.HttpStatusCode.NoContent || 
+                    response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    _logger.LogInformation("Successfully deleted POI with ID: {Id}", id);
+                    return;
+                }
+                
+                _logger.LogWarning("POI deletion returned unexpected status: {StatusCode}", response.StatusCode);
+                throw new HttpRequestException($"Failed to delete POI: {response.StatusCode}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting Point of Interest with ID: {Id}", id);
                 throw;
             }
         }
