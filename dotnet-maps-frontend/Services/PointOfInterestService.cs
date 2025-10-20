@@ -105,6 +105,21 @@ namespace DotNetMapsFrontend.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var jsonString = await response.Content.ReadAsStringAsync();
+                    
+                    // Backend returns 201 Created without body, only Location header
+                    if (string.IsNullOrWhiteSpace(jsonString))
+                    {
+                        // Set Href from Location header if available
+                        if (response.Headers.Location != null)
+                        {
+                            pointOfInterest.Href = response.Headers.Location.ToString();
+                        }
+                        _logger.LogInformation("Successfully created POI (empty response body, Location: {Location})", 
+                            response.Headers.Location?.ToString());
+                        return pointOfInterest;
+                    }
+                    
+                    // If backend returns a body, deserialize it
                     var options = new JsonSerializerOptions
                     {
                         PropertyNameCaseInsensitive = true

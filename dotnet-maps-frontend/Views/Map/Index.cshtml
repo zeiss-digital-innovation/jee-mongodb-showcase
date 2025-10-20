@@ -213,6 +213,7 @@
             // Basic XSS prevention - encode HTML entities
             const sanitizedDetails = $('<div>').text(details).html();
             
+            // Only send required fields - do NOT send href or address
             const newPoi = {
                 category: category,
                 details: sanitizedDetails,
@@ -232,11 +233,36 @@
                 data: JSON.stringify(newPoi),
                 success: function (response) {
                     console.log('POI created successfully:', response);
+                    console.log('New POI location:', selectedLatitude, selectedLongitude);
                     
                     // Hide modal
                     bootstrap.Modal.getInstance(document.getElementById('createPoiModal')).hide();
                     
-                    // Refresh the map to show the new POI
+                    // Add the new POI immediately to the map
+                    // Backend returns empty response, so we use the data we sent
+                    const coords = [selectedLongitude, selectedLatitude];
+                    const lat = coords[1];
+                    const lng = coords[0];
+                    
+                    console.log('Adding marker at:', lat, lng);
+                    
+                    // Create POI object for display
+                    const displayPoi = {
+                        category: $('#poiCategory').val().trim(),
+                        details: $('#poiDetails').val().trim(),
+                        location: {
+                            type: 'Point',
+                            coordinates: coords
+                        }
+                    };
+                    
+                    L.marker([lat, lng]).addTo(map)
+                        .bindPopup(getMarkerPopupFor(displayPoi))
+                        .openPopup(); // Open popup to show the newly created POI
+                    
+                    console.log('Marker added successfully');
+                    
+                    // Also refresh the map data in background to sync with server
                     const center = map.getCenter();
                     const radius = getRadiusForZoom(map.getZoom());
                     loadPointsOfInterest(center.lat, center.lng, radius);

@@ -99,7 +99,7 @@ public class PointOfInterestService : IPointOfInterestService
     }
 
     /// <summary>
-    /// Search POIs (Name, Address, Tags)
+    /// Search POIs (Name, Tags)
     /// </summary>
     public async Task<List<PointOfInterest>> SearchPoisAsync(string searchTerm, int? limit = null)
     {
@@ -115,17 +115,12 @@ public class PointOfInterestService : IPointOfInterestService
                 new BsonRegularExpression(searchTerm, "i")
             );
 
-            var addressFilter = Builders<PointOfInterest>.Filter.Regex(
-                p => p.Address,
-                new BsonRegularExpression(searchTerm, "i")
-            );
-
             var tagsFilter = Builders<PointOfInterest>.Filter.AnyEq(
                 p => p.Tags,
                 searchTerm
             );
 
-            var combinedFilter = Builders<PointOfInterest>.Filter.Or(nameFilter, addressFilter, tagsFilter);
+            var combinedFilter = Builders<PointOfInterest>.Filter.Or(nameFilter, tagsFilter);
 
             var query = _poisCollection.Find(combinedFilter);
 
@@ -178,7 +173,10 @@ public class PointOfInterestService : IPointOfInterestService
         {
             ValidatePoi(poi);
 
+            // Clear client-provided fields that should be managed by backend
             poi.Id = null; // New ObjectId will be automatically generated
+            poi.Href = null; // Href is not stored in DB, will be generated on retrieval
+            
             await _poisCollection.InsertOneAsync(poi);
 
             _logger.LogInformation("POI created: {Name} (ID: {Id})", poi.Name, poi.Id);
@@ -330,11 +328,8 @@ public class PointOfInterestService : IPointOfInterestService
             var locationIndex = Builders<PointOfInterest>.IndexKeys.Geo2DSphere(p => p.Location);
             _poisCollection.Indexes.CreateOne(new CreateIndexModel<PointOfInterest>(locationIndex));
 
-            // Text index for full-text search
-            var textIndex = Builders<PointOfInterest>.IndexKeys.Combine(
-                Builders<PointOfInterest>.IndexKeys.Text(p => p.Name),
-                Builders<PointOfInterest>.IndexKeys.Text(p => p.Address)
-            );
+            // Text index for full-text search on name field
+            var textIndex = Builders<PointOfInterest>.IndexKeys.Text(p => p.Name);
             _poisCollection.Indexes.CreateOne(new CreateIndexModel<PointOfInterest>(textIndex));
 
             // Index for category searches

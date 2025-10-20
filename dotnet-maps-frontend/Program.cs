@@ -2,8 +2,20 @@ using DotNetMapsFrontend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure URL to run on localhost:4200
-builder.WebHost.UseUrls("http://localhost:4200");
+// Read HTTPS configuration from appsettings
+var useHttps = builder.Configuration.GetValue<bool>("Server:UseHttps");
+var httpPort = builder.Configuration.GetValue<int>("Server:HttpPort", 4200);
+var httpsPort = builder.Configuration.GetValue<int>("Server:HttpsPort", 7225);
+
+// Configure URLs based on HTTPS setting
+if (useHttps)
+{
+    builder.WebHost.UseUrls($"https://localhost:{httpsPort}", $"http://localhost:{httpPort}");
+}
+else
+{
+    builder.WebHost.UseUrls($"http://localhost:{httpPort}");
+}
 
 // Configure logging with custom timestamp format
 builder.Logging.ClearProviders();
@@ -26,10 +38,20 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
+    
+    // Only use HSTS if HTTPS is enabled
+    if (useHttps)
+    {
+        app.UseHsts();
+    }
 }
 
-app.UseHttpsRedirection();
+// Only use HTTPS redirection if HTTPS is enabled
+if (useHttps)
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseStaticFiles();
 app.UseRouting();
 
