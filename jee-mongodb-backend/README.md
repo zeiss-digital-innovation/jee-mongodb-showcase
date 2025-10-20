@@ -29,12 +29,12 @@ endpoints see the following sections).
 ### Java
 
 - Java 21
-- Maven 3.9
-- Wildfly Application Server Version 37 or Docker (for containerization)
+- [Apache Maven](https://maven.apache.org/) 3.9
+- [Wildfly Application Server](https://www.wildfly.org/downloads/) Version 37 or Docker (for containerization)
 
 ### MongoDB
 
-- REST backend uses MongoDB as data provider. Uses [Morphia Object Mapper](http://mongodb.github.io/morphia/) to work
+- REST backend uses [MongoDB](https://www.mongodb.com/) as data provider. Uses [Morphia Object Mapper](http://mongodb.github.io/morphia/) to work
   with the database.
 - The default connection settings are host=localhost, port=27017, database=demo_campus.
   You can set different settings by supplying a custom `/src/main/webapp/META-INF/microprofile-config.properties` file.

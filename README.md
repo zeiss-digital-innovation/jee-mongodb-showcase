@@ -31,8 +31,10 @@ These steps will get a local demo running (frontend + example backend + local Mo
    - Of course you can use any other MongoDB installation.
    - For more information (i.e. database prerequisites) see the folders README.
 
-2. Start a backend and the frontend:
+2. Start a backend and a frontend:
    - See each subproject README for exact commands and ports (examples below).
+   - The backends are configured to run under http://localhost:8080/zdi-geo-service/api/
+   - Swagger for the backends is available under http://localhost:8080/zdi-geo-service/swagger/index.html
 
 3. Open a frontend in your browser:
    - Angular frontend: http://localhost:4200  
