@@ -295,6 +295,13 @@
 
 @section Scripts {
     <script>
+        // Shared localStorage keys for synchronization with Map page
+        const STORAGE_KEYS = {
+            latitude: 'poi_latitude',
+            longitude: 'poi_longitude',
+            radius: 'poi_radius'
+        };
+        
         $(document).ready(function() {
             // View toggle functionality
             let currentView = 'cards'; // Default view
@@ -305,11 +312,68 @@
                 details: ''
             };
             
+            // Load settings from localStorage on page load
+            loadSettingsFromStorage();
+            
+            // Setup control event handlers for saving to localStorage
+            setupControlHandlers();
+            
             // Load available categories on page load
             loadAvailableCategories();
             
             // Setup Edit Modal event handlers
             setupEditModalHandlers();
+            
+            function loadSettingsFromStorage() {
+                const lat = localStorage.getItem(STORAGE_KEYS.latitude);
+                const lon = localStorage.getItem(STORAGE_KEYS.longitude);
+                const radius = localStorage.getItem(STORAGE_KEYS.radius);
+                
+                if (lat) {
+                    $('#latitudeInput').val(parseFloat(lat));
+                }
+                if (lon) {
+                    $('#longitudeInput').val(parseFloat(lon));
+                }
+                if (radius) {
+                    $('#radiusInput').val(parseInt(radius));
+                    $('#radiusValue').text(parseInt(radius) + 'm');
+                }
+            }
+            
+            function saveSettingsToStorage() {
+                localStorage.setItem(STORAGE_KEYS.latitude, $('#latitudeInput').val());
+                localStorage.setItem(STORAGE_KEYS.longitude, $('#longitudeInput').val());
+                localStorage.setItem(STORAGE_KEYS.radius, $('#radiusInput').val());
+            }
+            
+            function setupControlHandlers() {
+                // Save to localStorage when inputs change
+                $('#latitudeInput, #longitudeInput').on('change', function() {
+                    saveSettingsToStorage();
+                });
+                
+                // Update radius display and save to localStorage
+                $('#radiusInput').on('input', function() {
+                    $('#radiusValue').text($(this).val() + 'm');
+                    saveSettingsToStorage();
+                });
+                
+                // Load POIs button
+                $('#loadPoisBtn').on('click', function() {
+                    saveSettingsToStorage();
+                    loadPois();
+                });
+            }
+            
+            function loadPois() {
+                const lat = $('#latitudeInput').val();
+                const lon = $('#longitudeInput').val();
+                const radius = $('#radiusInput').val();
+                
+                // Reload page with new parameters
+                window.location.href = `/PointOfInterest?lat=${lat}&lon=${lon}&radius=${radius}`;
+            }
             
             function loadAvailableCategories() {
                 $.ajax({

@@ -2,7 +2,59 @@
     ViewData["Title"] = "Point of Interest Map";
 }
 
-<div class="container">
+<style>
+    /* Fixed top controls */
+    .top-controls {
+        position: fixed;
+        top: 56px; /* Height of navbar */
+        left: 0;
+        right: 0;
+        background-color: white;
+        padding: 15px 0;
+        border-bottom: 1px solid #dee2e6;
+        z-index: 1000;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Map container with margin for controls */
+    .map-container {
+        margin-top: 140px; /* Space for fixed controls */
+        height: calc(100vh - 200px); /* Full height minus navbar and controls */
+    }
+    
+    .map_large {
+        height: 100%;
+        width: 100%;
+    }
+</style>
+
+<!-- Fixed Top Controls -->
+<div class="top-controls">
+    <div class="container">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label for="latitudeInput" class="form-label">Latitude (Range: -90 to 90)</label>
+                <input type="number" class="form-control" id="latitudeInput" value="51.0504" step="0.0001" min="-90" max="90">
+            </div>
+            <div class="col-md-3">
+                <label for="longitudeInput" class="form-label">Longitude (Range: -180 to 180)</label>
+                <input type="number" class="form-control" id="longitudeInput" value="13.7373" step="0.0001" min="-180" max="180">
+            </div>
+            <div class="col-md-4">
+                <label for="radiusInput" class="form-label">Radius <span id="radiusValue">2000</span> (m)</label>
+                <input type="range" class="form-range" id="radiusInput" min="100" max="5000" value="2000" step="100">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label d-block">&nbsp;</label>
+                <button type="button" class="btn btn-primary w-100" id="loadPoisBtn">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Load POIs
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container map-container">
     <div id="map" class="jumbotron map_large"></div>
 </div>
 
@@ -65,18 +117,80 @@
         let selectedLatitude = null;
         let selectedLongitude = null;
         let availableCategories = [];
+        let markersLayer = L.layerGroup(); // Layer to hold all POI markers
+        
+        // localStorage keys for synchronization between pages
+        const STORAGE_KEYS = {
+            latitude: 'poi_latitude',
+            longitude: 'poi_longitude',
+            radius: 'poi_radius'
+        };
         
         // Default coordinates (Dresden)
         const latitudeDefault = 51.0504;
         const longitudeDefault = 13.7373;
+        const radiusDefault = 2000;
         const zoomDefault = 13;
         
         // Initialize the map when the page loads
         $(document).ready(function () {
+            // Load values from localStorage or use defaults
+            loadSettingsFromStorage();
+            
+            // Initialize map with loaded settings
             initializeMap();
             loadAvailableCategories();
             setupModalEventHandlers();
+            setupControlHandlers();
         });
+        
+        function loadSettingsFromStorage() {
+            const lat = localStorage.getItem(STORAGE_KEYS.latitude);
+            const lon = localStorage.getItem(STORAGE_KEYS.longitude);
+            const radius = localStorage.getItem(STORAGE_KEYS.radius);
+            
+            $('#latitudeInput').val(lat ? parseFloat(lat) : latitudeDefault);
+            $('#longitudeInput').val(lon ? parseFloat(lon) : longitudeDefault);
+            $('#radiusInput').val(radius ? parseInt(radius) : radiusDefault);
+            $('#radiusValue').text(radius ? parseInt(radius) : radiusDefault);
+        }
+        
+        function saveSettingsToStorage() {
+            const lat = $('#latitudeInput').val();
+            const lon = $('#longitudeInput').val();
+            const radius = $('#radiusInput').val();
+            
+            localStorage.setItem(STORAGE_KEYS.latitude, lat);
+            localStorage.setItem(STORAGE_KEYS.longitude, lon);
+            localStorage.setItem(STORAGE_KEYS.radius, radius);
+        }
+        
+        function setupControlHandlers() {
+            // Update radius display when slider changes and save to storage
+            $('#radiusInput').on('input', function () {
+                $('#radiusValue').text($(this).val());
+                saveSettingsToStorage();
+            });
+            
+            // Save settings when inputs change
+            $('#latitudeInput, #longitudeInput').on('change', function () {
+                saveSettingsToStorage();
+            });
+            
+            // Load POIs button handler
+            $('#loadPoisBtn').on('click', function () {
+                const lat = parseFloat($('#latitudeInput').val());
+                const lon = parseFloat($('#longitudeInput').val());
+                const radius = parseInt($('#radiusInput').val());
+                
+                // Save to localStorage
+                saveSettingsToStorage();
+                
+                // Update map center and reload POIs
+                map.setView([lat, lon], map.getZoom());
+                loadPointsOfInterest(lat, lon, radius);
+            });
+        }
         
         function initializeMap() {
             // Fix for default markers in Leaflet with ASP.NET
@@ -87,12 +201,20 @@
                 shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
             });
             
-            // Initialize the map
-            map = L.map('map').setView([latitudeDefault, longitudeDefault], zoomDefault);
+            // Get current values from inputs (already loaded from localStorage)
+            const currentLat = parseFloat($('#latitudeInput').val());
+            const currentLon = parseFloat($('#longitudeInput').val());
+            const currentRadius = parseInt($('#radiusInput').val());
+            
+            // Initialize the map with current settings
+            map = L.map('map').setView([currentLat, currentLon], zoomDefault);
             
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
+            
+            // Add markers layer to map
+            markersLayer.addTo(map);
             
             // Disable default browser context menu on map
             map.getContainer().addEventListener('contextmenu', function (e) {
@@ -115,17 +237,11 @@
                 modal.show();
             });
             
-            // Load initial points of interest
-            loadPointsOfInterest(latitudeDefault, longitudeDefault, getRadiusForZoom(zoomDefault));
+            // Load initial points of interest with current settings
+            loadPointsOfInterest(currentLat, currentLon, currentRadius);
             
-            // Add event listener for map movement
-            map.on('moveend', function () {
-                const center = map.getCenter();
-                const newLatitude = center.lat;
-                const newLongitude = center.lng;
-                const newRadius = getRadiusForZoom(map.getZoom());
-                loadPointsOfInterest(newLatitude, newLongitude, newRadius);
-            });
+            // REMOVED: Auto-reload on map movement - user must click "Load POIs" button
+            // This ensures synchronization with the List page
         }
         
         function loadAvailableCategories() {
@@ -313,27 +429,24 @@
                 return;
             }
             
-            // Remove all current markers
-            map.eachLayer(function (layer) {
-                if (layer instanceof L.Marker) {
-                    map.removeLayer(layer);
-                }
-            });
+            // Clear existing markers from the layer group
+            markersLayer.clearLayers();
             
-            // Add new markers
+            // Add new markers to the layer group
             pointsOfInterest.forEach(function (poi) {
                 const coords = poi.location.coordinates;
                 const lat = coords[1];
                 const lng = coords[0];
                 
-                L.marker([lat, lng]).addTo(map)
-                    .bindPopup(getMarkerPopupFor(poi));
+                const marker = L.marker([lat, lng]);
+                marker.bindPopup(getMarkerPopupFor(poi));
+                markersLayer.addLayer(marker);
             });
         }
         
         function getMarkerPopupFor(poi) {
             let popupContent = '<div>';
-            popupContent += '<h6>' + capitalizeFirstLetter(poi.category) + '</h6>';
+            popupContent += '<h6>' + poi.category + '</h6>';
             
             if (poi.details) {
                 const lines = poi.details.split('\n');
@@ -346,10 +459,6 @@
             
             popupContent += '</div>';
             return popupContent;
-        }
-        
-        function capitalizeFirstLetter(string) {
-            return string.charAt(0).toUpperCase() + string.slice(1);
         }
         
         function getRadiusForZoom(zoom) {
