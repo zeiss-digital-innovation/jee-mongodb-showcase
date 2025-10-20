@@ -176,19 +176,19 @@ GET /api/pointsofinterest?lat=51.0504&lon=13.7373&radius=1000
 |---------|------------------|------------------|--------|
 | Interactive Map | ✅ Leaflet.js | ✅ Leaflet.js | ✅ Implemented |
 | POI Markers | ✅ | ✅ | ✅ Implemented |
-| POI Creation | ⚠️ Limited | ✅ Full CRUD | ✅ Implemented |
-| POI Editing | ❌ | ✅ With Validation | ✅ Implemented |
-| POI Deletion | ❌ | ✅ With Confirmation | ✅ Implemented |
+| POI Creation | ✅ Map Page | ✅ Map Page | ✅ Implemented |
+| POI Editing | ✅ List Page | ✅ List & Map Pages | ✅ Implemented |
+| POI Deletion | ✅ List Page | ✅ List & Map Pages | ✅ Implemented |
 | Map Movement API Calls | ✅ | ✅ | ✅ Implemented |
-| List View (Cards) | ✅ | ✅ | ✅ Implemented |
-| List View (Table) | ❌ | ✅ | ✅ Implemented |
-| View Toggle | ❌ | ✅ | ✅ Implemented |
-| Fixed Headers & Scrolling | ❌ | ✅ | ✅ Implemented |
+| List View (Table) | ✅ | ✅ | ✅ Implemented |
+| List View (Cards) | ❌ | ✅ | ✅ Implemented |
+| View Toggle (Cards/Table) | ❌ | ✅ | ✅ Implemented |
+| Fixed Headers & Scrolling | ✅ | ✅ | ✅ Implemented |
 | Synchronized Controls | ❌ | ✅ localStorage | ✅ Implemented |
 | Query Parameters | ❌ | ✅ URL Parameters | ✅ Implemented |
 | Bootstrap Navigation | ✅ | ✅ | ✅ Implemented |
 | Category Icons | ✅ Bootstrap Icons | ✅ Bootstrap Icons | ✅ Implemented |
-| Lowercase Categories | ❌ | ✅ Normalized | ✅ Implemented |
+| Category Format | ✅ TitleCase | ✅ lowercase | ✅ Implemented |
 | Responsive Design | ✅ | ✅ | ✅ Implemented |
 | Mock Data Fallback | ✅ | ✅ | ✅ Implemented |
 | Category Filter | ⚠️ TODO | ⚠️ TODO | 🔄 Future Enhancement |
