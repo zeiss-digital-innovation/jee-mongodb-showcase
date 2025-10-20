@@ -1,39 +1,84 @@
 # Angular Frontend
 
-## Dependencies and environment
+Small Angular frontend for the POI / map showcase.
 
-### Angular
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.2.8.
+## Requirements
 
-### Bootstrap
-- The project uses [Bootstrap 5](https://getbootstrap.com/) for styling and [Bootstrap icons](https://icons.getbootstrap.com/).
+- [Node.js](https://nodejs.org/) (recommended LTS, e.g. 18.x or later)
+- npm (comes with Node) or yarn
+- Angular CLI, install for instance using npm:
+```bash
+npm install -g @angular/cli
+```
+- Chrome (for running Karma tests) or install a compatible headless Chromium for CI
 
-### Maps
-- For the map functionality the app uses the [Leaflet](https://leafletjs.com/) library.
-- The map layers it uses [OpenStreetMap](https://www.openstreetmap.org/).
+This project was generated with Angular CLI 18.2.8.
 
-## Build and run
+## Quickstart
 
-### Development server
+1. Install dependencies
+   - npm:
+     npm install
+   - or yarn:
+     yarn install
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+2. Configure API base URL
+   - Edit `src/app/environments/environment.ts` and `src/app/environments/environment.prod.ts` and set `apiBaseUrl` to your backend API (e.g. `http://localhost:8080/api`).
 
-### Code scaffolding
+3. Start dev server (Windows)
+   ng serve
+   - Open http://localhost:4200
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## Build
 
-### Build
+- Development build:
+  ng build
+- Production build:
+  ng build --configuration production
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+Built artifacts end up in `dist/`.
 
-### Running unit tests
+## Tests
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+- Run unit tests (Karma):
+  npm test
+  or
+  ng test
 
-### Running end-to-end tests
+- Headless (useful for CI / when Chrome GUI is not available):
+  ng test --watch=false --browsers=ChromeHeadless
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+If Karma fails with Chrome disconnects on CI, configure a headless launcher with no-sandbox flags in `karma.conf.js` (e.g. `ChromeHeadlessNoSandbox`) or use `karma-chrome-launcher` with appropriate flags.
 
-### Further help
+Common test fixes:
+- If a spec reports "No provider for HttpClient!" add `HttpClientTestingModule` to the TestBed imports for that spec.
+- If a spec reports "No provider for ActivatedRoute!" add `RouterTestingModule` to TestBed imports.
+- For components using DOM libraries (Leaflet), create minimal DOM elements the component expects (e.g. `#map`) before `fixture.detectChanges()`.
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Workspace notes
+
+- CSS: [Bootstrap](https://getbootstrap.com/) + [Bootstrap Icons](https://icons.getbootstrap.com/) is used for styling. Neccessary css / js files will be available after loading dependencies.
+- Maps: [Leaflet](https://leafletjs.com/) is used; its assets (marker icons, tiles) can be found in `public/media/leaflet/`.
+- Runtime backend base URL: this project uses an HttpInterceptor to prefix relative URLs with `environment.apiBaseUrl`. Keep `environment.*.ts` values accurate.
+
+## Security / Input handling
+
+- The app performs client-side sanitization but server-side validation is required and must be authoritative.
+- If any pipe or service returns HTML for `[innerHTML]`, validate and/or use Angular `DomSanitizer` carefully.
+
+## Development tips
+
+- Use standalone components and import small dependencies per-component to keep bundles small.
+- For dynamic components created with `createComponent(...)` pass `environmentInjector` so DI providers are available.
+- For dialogs created at runtime, attach/detach views with `ApplicationRef.attachView(...)` or use `ViewContainerRef` to manage lifecycle.
+
+## Troubleshooting
+
+- Dev server not seeing changes: stop `ng serve` and restart it.
+- Map right-click triggers browser context menu: handle Leaflet's `contextmenu` event and call `event.originalEvent.preventDefault()`, plus add a native `contextmenu` listener on the map container for robustness.
+- Tests failing due to missing providers: update TestBed imports/providers as described above.
+
+## Contributing
+
+- Run tests locally before pushing.
+- Keep unit tests focused and add tests for services that handle sanitization/formatting.
