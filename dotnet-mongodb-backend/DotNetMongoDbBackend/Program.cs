@@ -124,17 +124,15 @@ app.UseForwardedHeaders();
 // Map the API controllers under /api so final API base becomes /{serviceBase}/api
 app.UsePathBase($"/{serviceBase}");
 
-if (app.Environment.IsDevelopment())
+
+// Swagger JSON will be available under the application PathBase + /swagger/v1/swagger.json
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    // Swagger JSON will be available under the application PathBase + /swagger/v1/swagger.json
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        // Serve the UI at {PathBase}/swagger (RoutePrefix defaults to "swagger")
-        c.SwaggerEndpoint($"/{serviceBase}/swagger/v1/swagger.json", "Poi Service API V1");
-        c.RoutePrefix = "swagger"; // explicit for clarity
-    });
-}
+    // Serve the UI at {PathBase}/swagger (RoutePrefix defaults to "swagger")
+    c.SwaggerEndpoint($"/{serviceBase}/swagger/v1/swagger.json", "Poi Service API V1");
+    c.RoutePrefix = "swagger"; // explicit for clarity
+});
 
 app.UseCors("AllowAngular");
 
