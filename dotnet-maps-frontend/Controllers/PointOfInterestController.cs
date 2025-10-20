@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DotNetMapsFrontend.Controllers
 {
-    [Route("")]
     public class PointOfInterestController : Controller
     {
         private readonly IPointOfInterestService _poiService;
@@ -14,6 +13,7 @@ namespace DotNetMapsFrontend.Controllers
             _poiService = poiService;
         }
 
+        [Route("PointOfInterest")]
         public async Task<IActionResult> Index()
         {
             var points = await _poiService.GetPointsOfInterestAsync();
