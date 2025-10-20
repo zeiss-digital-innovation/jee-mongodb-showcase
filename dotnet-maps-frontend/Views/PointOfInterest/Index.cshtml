@@ -4,16 +4,52 @@
 }
 
 <style>
+    /* Fixed top controls */
     .top-controls {
+        position: fixed;
+        top: 56px; /* Height of navbar */
+        left: 0;
+        right: 0;
         background-color: white;
         padding: 15px 0;
         border-bottom: 1px solid #dee2e6;
         z-index: 1000;
-        margin-top: 56px;
     }
     
-    .poi-list-content {
-        margin-top: 180px;
+    /* Fixed header section */
+    .poi-header-section {
+        position: fixed;
+        top: 178px; /* navbar (56px) + top-controls (~122px) */
+        left: 0;
+        right: 0;
+        background-color: white;
+        padding: 15px 0;
+        border-bottom: 2px solid #dee2e6;
+        z-index: 999;
+    }
+    
+    /* Scrollable content area */
+    .poi-scrollable-content {
+        position: fixed;
+        top: 258px; /* navbar + controls + header */
+        bottom: 0;
+        left: 0;
+        right: 0;
+        overflow-y: auto;
+        padding: 20px 0;
+    }
+    
+    /* Table specific styles */
+    .table-wrapper {
+        position: relative;
+    }
+    
+    .table thead th {
+        position: sticky;
+        top: 0;
+        background-color: #212529;
+        z-index: 10;
+        box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
     }
     
     .table td, .table th {
@@ -33,6 +69,7 @@
         white-space: nowrap;
     }
     
+    /* Card styles */
     .poi-card {
         transition: transform 0.2s;
         height: 100%;
@@ -65,7 +102,7 @@
     }
     
     .view-toggle {
-        margin-bottom: 20px;
+        margin-bottom: 0;
     }
     
     .view-toggle .btn-group {
@@ -98,23 +135,31 @@
     </div>
 </div>
 
-<div class="container poi-list-content">
-    <h2 class="mb-4">Points of Interest</h2>
-    
-    <!-- View Toggle -->
-    <div class="view-toggle">
-        <div class="btn-group" role="group" aria-label="View toggle">
-            <button type="button" class="btn btn-outline-primary active" id="cardsViewBtn">
-                <i class="bi bi-grid-3x3-gap me-1"></i>Cards
-            </button>
-            <button type="button" class="btn btn-outline-primary" id="listViewBtn">
-                <i class="bi bi-list-ul me-1"></i>List
-            </button>
+<!-- Fixed Header Section -->
+<div class="poi-header-section">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="mb-0">Points of Interest</h2>
+            <!-- View Toggle -->
+            <div class="view-toggle">
+                <div class="btn-group" role="group" aria-label="View toggle">
+                    <button type="button" class="btn btn-outline-primary active" id="cardsViewBtn">
+                        <i class="bi bi-grid-3x3-gap me-1"></i>Cards
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="listViewBtn">
+                        <i class="bi bi-list-ul me-1"></i>List
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
-    
-    <!-- Cards View (Default) -->
-    <div id="poiCardsContainer">
+</div>
+
+<!-- Scrollable Content Area -->
+<div class="poi-scrollable-content">
+    <div class="container">
+        <!-- Cards View (Default) -->
+        <div id="poiCardsContainer">
         @if (Model != null && Model.Any())
         {
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
@@ -125,7 +170,7 @@
                             <div class="card-body">
                                 <h5 class="card-title">
                                     <i class="bi @GetCategoryIcon(poi.Category) text-primary"></i>
-                                    @poi.Category
+                                    @poi.Category.ToLower()
                                 </h5>
                                 <p class="card-text">@Html.Raw(FormatDetails(poi.Details))</p>
                                 <div class="action-buttons mt-auto">
@@ -169,7 +214,7 @@
                         var poi = Model[i];
                         <tr>
                             <td class="category-cell" style="width: 250px;">
-                                @(i + 1). @poi.Category <i class="bi @GetCategoryIcon(poi.Category)"></i>
+                                @(i + 1). @poi.Category.ToLower() <i class="bi @GetCategoryIcon(poi.Category)"></i>
                             </td>
                             <td class="details-cell">@Html.Raw(FormatDetails(poi.Details))</td>
                             <td class="action-buttons">
@@ -193,7 +238,8 @@
             </div>
         }
     </div>
-</div>
+    </div> <!-- End of container -->
+</div> <!-- End of poi-scrollable-content -->
 
 <!-- Edit POI Modal -->
 <div class="modal fade" id="editPoiModal" tabindex="-1" aria-labelledby="editPoiModalLabel" aria-hidden="true">
@@ -286,12 +332,10 @@
                 $categorySelect.append('<option value="">-- Select Category --</option>');
                 
                 categories.forEach(function (category) {
-                    $categorySelect.append(`<option value="${category}">${capitalizeFirstLetter(category)}</option>`);
+                    // Value and display text both lowercase
+                    const lowerCategory = category.toLowerCase();
+                    $categorySelect.append(`<option value="${lowerCategory}">${lowerCategory}</option>`);
                 });
-            }
-            
-            function capitalizeFirstLetter(string) {
-                return string.charAt(0).toUpperCase() + string.slice(1);
             }
             
             function setupEditModalHandlers() {
@@ -453,7 +497,7 @@
                 pois.forEach((poi) => {
                     const icon = getCategoryIcon(poi.category);
                     const details = formatDetails(poi.details);
-                    const category = poi.category.charAt(0).toUpperCase() + poi.category.slice(1);
+                    const category = poi.category; // Keep lowercase
                     
                     cardsHtml += `
                         <div class="col">
@@ -510,7 +554,7 @@
                 pois.forEach((poi, index) => {
                     const icon = getCategoryIcon(poi.category);
                     const details = formatDetails(poi.details);
-                    const category = poi.category.charAt(0).toUpperCase() + poi.category.slice(1);
+                    const category = poi.category; // Keep lowercase
                     
                     tableHtml += `
                         <tr>
