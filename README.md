@@ -39,8 +39,8 @@ These steps will get a local demo running (frontend + example backend + local Mo
    - ASP.NET Core frontend: http://localhost:4200 (same port for consistency)
 
 <figure style="text-align:center;">
-  <a href="angular-maps-frontend/public/media/screenshots/angular_frontend_screenshot.png" target="_blank" rel="noopener">
-    <img src="angular-maps-frontend/public/media/screenshots/angular_frontend_screenshot.png"
+  <a href="media/screenshots/frontend_screenshot.png" target="_blank" rel="noopener">
+    <img src="media/screenshots/frontend_screenshot.png"
          alt="Angular frontend: interactive map with Points of Interest marked"
          style="max-width:480px;height:auto;border:1px solid #ccc;border-radius:4px;" />
   </a>
@@ -109,7 +109,7 @@ Note: exact ports and steps vary by backend. See the subproject READMEs for full
 
 - `angular-maps-frontend/` — Angular app that displays POIs on a map and calls the backend for POIs near the current map center. See `angular-maps-frontend/README.md`.
 - `dotnet-maps-frontend/` — ASP.NET Core MVC app providing the same functionality as the Angular frontend. Interactive maps with Leaflet.js and Bootstrap UI. See `dotnet-maps-frontend/README.md`.
-- `jee-mongodb-backend/` — Jakarta (JEE) backend service. Contains REST endpoints and mapping to MongoDB.
+- `jee-mongodb-backend/` — Jakarta (JEE) backend service. Contains REST endpoints and mapping to MongoDB. See `jee-mongodb-backend/README.md`
 - `dotnet-mongodb-backend/` — .NET Core backend service with MongoDB integration. High-performance async REST API. See `dotnet-mongodb-backend/README.md`.
 - `MongoDB/` — Docker + compose configuration and initialization scripts. Use this to run a local MongoDB instance.
 - `testdata-generation/` — Java tool to parse GPX files and POST POIs to a running backend to populate test data.
