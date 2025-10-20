@@ -14,9 +14,23 @@ namespace DotNetMapsFrontend.Controllers
         }
 
         [Route("poi")]
-        public async Task<IActionResult> Index()
+        [Route("PointOfInterest")]
+        public async Task<IActionResult> Index(double? lat, double? lon, int? radius)
         {
-            var points = await _poiService.GetPointsOfInterestAsync();
+            List<PointOfInterest> points;
+            
+            if (lat.HasValue && lon.HasValue)
+            {
+                // Use provided coordinates and radius
+                var searchRadius = radius ?? 2000;
+                points = await _poiService.GetPointsOfInterestAsync(lat.Value, lon.Value, searchRadius);
+            }
+            else
+            {
+                // Use default coordinates (Dresden)
+                points = await _poiService.GetPointsOfInterestAsync();
+            }
+            
             return View(points);
         }
 
