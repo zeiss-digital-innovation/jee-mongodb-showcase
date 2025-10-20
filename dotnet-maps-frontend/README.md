@@ -5,7 +5,13 @@ This is an ASP.NET Core MVC application that provides the same functionality as 
 ## Features
 
 - **Interactive Map View**: Uses Leaflet.js to display POIs on an OpenStreetMap
-- **List View**: Displays POIs in a structured card layout  
+- **POI Creation**: Create new POIs directly on the map by clicking
+- **POI Editing**: Edit existing POI categories and details with real-time validation
+- **POI Deletion**: Delete POIs with confirmation dialog
+- **List View**: Displays POIs in card and table views with toggle
+- **Synchronized Controls**: Latitude, Longitude, and Radius controls synchronized between Map and List pages via localStorage
+- **Fixed Headers**: Scrollable content with pinned headers and controls for better UX
+- **Category Display**: All categories displayed in lowercase for consistency
 - **Bootstrap Navigation**: Clean navigation between map and list views
 - **REST API Integration**: Fetches POI data from the backend service
 - **Responsive Design**: Works on desktop and mobile devices
@@ -119,8 +125,10 @@ dotnet dev-certs https --trust
 3. **Access the application**:
    - Map View: `http://localhost:4200/Map` (same port as Angular frontend)
    - List View: `http://localhost:4200/PointOfInterest`
+   - List View with Parameters: `http://localhost:4200/PointOfInterest?lat=51.0504&lon=13.7373&radius=3900`
    - Home: `http://localhost:4200/` (redirects to Map)
    - API Endpoint: `http://localhost:4200/api/pointsofinterest`
+   - API Endpoint with Parameters: `http://localhost:4200/api/pointsofinterest?lat=51.0504&lon=13.7373&radius=2000`
 
 ## API Integration
 
@@ -168,10 +176,19 @@ GET /api/pointsofinterest?lat=51.0504&lon=13.7373&radius=1000
 |---------|------------------|------------------|--------|
 | Interactive Map | ✅ Leaflet.js | ✅ Leaflet.js | ✅ Implemented |
 | POI Markers | ✅ | ✅ | ✅ Implemented |
+| POI Creation | ⚠️ Limited | ✅ Full CRUD | ✅ Implemented |
+| POI Editing | ❌ | ✅ With Validation | ✅ Implemented |
+| POI Deletion | ❌ | ✅ With Confirmation | ✅ Implemented |
 | Map Movement API Calls | ✅ | ✅ | ✅ Implemented |
-| List View | ✅ | ✅ | ✅ Implemented |
+| List View (Cards) | ✅ | ✅ | ✅ Implemented |
+| List View (Table) | ❌ | ✅ | ✅ Implemented |
+| View Toggle | ❌ | ✅ | ✅ Implemented |
+| Fixed Headers & Scrolling | ❌ | ✅ | ✅ Implemented |
+| Synchronized Controls | ❌ | ✅ localStorage | ✅ Implemented |
+| Query Parameters | ❌ | ✅ URL Parameters | ✅ Implemented |
 | Bootstrap Navigation | ✅ | ✅ | ✅ Implemented |
 | Category Icons | ✅ Bootstrap Icons | ✅ Bootstrap Icons | ✅ Implemented |
+| Lowercase Categories | ❌ | ✅ Normalized | ✅ Implemented |
 | Responsive Design | ✅ | ✅ | ✅ Implemented |
 | Mock Data Fallback | ✅ | ✅ | ✅ Implemented |
 | Category Filter | ⚠️ TODO | ⚠️ TODO | 🔄 Future Enhancement |
@@ -198,9 +215,15 @@ The project is designed with testability in mind:
 
 ## Current Status
 
-✅ **Fully Functional** - All core features implemented and working
+✅ **Fully Functional** - All features implemented and working
 - Interactive map with POI markers from MongoDB backend
-- List view with real POI data  
+- **Full CRUD Operations**: Create, Read, Update, Delete POIs
+- **Edit & Delete**: Real-time validation, change detection, confirmation dialogs
+- **Dual List Views**: Card view and Table view with toggle
+- **Fixed Layout**: Scrollable content with pinned headers for better UX
+- **Synchronized Settings**: Lat/Lon/Radius synchronized between pages via localStorage
+- **URL Parameters**: Support for `?lat=X&lon=Y&radius=Z` query parameters
+- **Category Normalization**: All categories displayed in lowercase
 - Navigation between views
 - Responsive design for mobile/desktop
 - Live MongoDB backend integration
@@ -208,7 +231,7 @@ The project is designed with testability in mind:
 - Clean, maintainable code structure
 - The application follows ASP.NET Core MVC best practices with separation of concerns
 
-**Data Source**: Currently connected to MongoDB backend with live POI data (thousands of entries).
+**Data Source**: Currently connected to MongoDB backend with live POI data (152,578+ entries).
 
 ## Future Enhancements
 

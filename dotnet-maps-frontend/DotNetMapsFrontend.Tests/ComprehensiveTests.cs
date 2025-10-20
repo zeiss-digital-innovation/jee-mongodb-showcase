@@ -184,10 +184,60 @@ public class PointOfInterestControllerTests
         _mockService.Setup(s => s.GetPointsOfInterestAsync()).ReturnsAsync(mockPois);
 
         // Act
-        var result = await _controller.Index();
+        var result = await _controller.Index(null, null, null);
 
         // Assert
         Assert.That(result, Is.InstanceOf<ViewResult>());
+    }
+
+    [Test]
+    public async Task Index_WithNoParameters_ShouldUseDefaultCoordinates()
+    {
+        // Arrange
+        var mockPois = new List<PointOfInterest>();
+        _mockService.Setup(s => s.GetPointsOfInterestAsync()).ReturnsAsync(mockPois);
+
+        // Act
+        var result = await _controller.Index(null, null, null);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        _mockService.Verify(s => s.GetPointsOfInterestAsync(), Times.Once);
+    }
+
+    [Test]
+    public async Task Index_WithCoordinates_ShouldCallServiceWithParameters()
+    {
+        // Arrange
+        var mockPois = new List<PointOfInterest>();
+        var lat = 51.0504;
+        var lon = 13.7373;
+        var radius = 3900;
+        _mockService.Setup(s => s.GetPointsOfInterestAsync(lat, lon, radius)).ReturnsAsync(mockPois);
+
+        // Act
+        var result = await _controller.Index(lat, lon, radius);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        _mockService.Verify(s => s.GetPointsOfInterestAsync(lat, lon, radius), Times.Once);
+    }
+
+    [Test]
+    public async Task Index_WithCoordinatesButNoRadius_ShouldUseDefaultRadius()
+    {
+        // Arrange
+        var mockPois = new List<PointOfInterest>();
+        var lat = 51.0504;
+        var lon = 13.7373;
+        _mockService.Setup(s => s.GetPointsOfInterestAsync(lat, lon, 2000)).ReturnsAsync(mockPois);
+
+        // Act
+        var result = await _controller.Index(lat, lon, null);
+
+        // Assert
+        Assert.That(result, Is.InstanceOf<ViewResult>());
+        _mockService.Verify(s => s.GetPointsOfInterestAsync(lat, lon, 2000), Times.Once);
     }
 
     [Test]

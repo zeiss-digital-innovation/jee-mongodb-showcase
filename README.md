@@ -64,7 +64,7 @@ This demo offers multiple technology combinations:
 
 **Frontend Options:**
 - **Angular** (`angular-maps-frontend/`) - SPA with TypeScript
-- **ASP.NET Core MVC** (`dotnet-maps-frontend/`) - Server-side rendering with Razor
+- **ASP.NET Core MVC** (`dotnet-maps-frontend/`) - Server-side rendering with Razor + Full CRUD operations (Create, Edit, Delete POIs)
 
 **Backend Options:**  
 - **JEE/Jakarta** (`jee-mongodb-backend/`) - Traditional enterprise Java
@@ -108,7 +108,7 @@ Note: exact ports and steps vary by backend. See the subproject READMEs for full
 ## Subprojects / Layout
 
 - `angular-maps-frontend/` — Angular app that displays POIs on a map and calls the backend for POIs near the current map center. See `angular-maps-frontend/README.md`.
-- `dotnet-maps-frontend/` — ASP.NET Core MVC app providing the same functionality as the Angular frontend. Interactive maps with Leaflet.js and Bootstrap UI. See `dotnet-maps-frontend/README.md`.
+- `dotnet-maps-frontend/` — ASP.NET Core MVC app with full CRUD operations (Create, Edit, Delete POIs). Features interactive maps with Leaflet.js, dual list views (cards/table), synchronized controls between pages, and localStorage-based settings. See `dotnet-maps-frontend/README.md`.
 - `jee-mongodb-backend/` — Jakarta (JEE) backend service. Contains REST endpoints and mapping to MongoDB.
 - `dotnet-mongodb-backend/` — .NET Core backend service with MongoDB integration. High-performance async REST API. See `dotnet-mongodb-backend/README.md`.
 - `MongoDB/` — Docker + compose configuration and initialization scripts. Use this to run a local MongoDB instance.
