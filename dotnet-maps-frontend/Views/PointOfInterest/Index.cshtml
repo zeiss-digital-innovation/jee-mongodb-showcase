@@ -195,11 +195,163 @@
     </div>
 </div>
 
+<!-- Edit POI Modal -->
+<div class="modal fade" id="editPoiModal" tabindex="-1" aria-labelledby="editPoiModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editPoiModalLabel">Edit Point of Interest</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editPoiForm">
+                    <input type="hidden" id="editPoiId">
+                    
+                    <div class="mb-3">
+                        <label for="editPoiCategory" class="form-label">Category *</label>
+                        <select class="form-select" id="editPoiCategory" required>
+                            <option value="">-- Select Category --</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            Please select a category.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editPoiDetails" class="form-label">Details *</label>
+                        <textarea class="form-control" id="editPoiDetails" rows="4" 
+                                  placeholder="Enter details about this point of interest..." 
+                                  required maxlength="1000"></textarea>
+                        <div class="invalid-feedback">
+                            Please enter details (max 1000 characters).
+                        </div>
+                        <div class="form-text">
+                            You can use quotes, special characters, and line breaks.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            Location: <span id="editPoiCoordinates"></span> (read-only)
+                        </small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelEditBtn">
+                    Cancel (Esc)
+                </button>
+                <button type="button" class="btn btn-primary" id="saveEditBtn" disabled>
+                    Save (Enter)
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         $(document).ready(function() {
             // View toggle functionality
             let currentView = 'cards'; // Default view
+            
+            // Store original POI data for change detection
+            let originalPoiData = {
+                category: '',
+                details: ''
+            };
+            
+            // Load available categories on page load
+            loadAvailableCategories();
+            
+            // Setup Edit Modal event handlers
+            setupEditModalHandlers();
+            
+            function loadAvailableCategories() {
+                $.ajax({
+                    url: '/api/categories',
+                    type: 'GET',
+                    success: function (categories) {
+                        populateCategoryDropdown(categories);
+                    },
+                    error: function (xhr, status, error) {
+                        console.warn('Could not load categories from backend:', error);
+                    }
+                });
+            }
+            
+            function populateCategoryDropdown(categories) {
+                const $categorySelect = $('#editPoiCategory');
+                $categorySelect.empty();
+                $categorySelect.append('<option value="">-- Select Category --</option>');
+                
+                categories.forEach(function (category) {
+                    $categorySelect.append(`<option value="${category}">${capitalizeFirstLetter(category)}</option>`);
+                });
+            }
+            
+            function capitalizeFirstLetter(string) {
+                return string.charAt(0).toUpperCase() + string.slice(1);
+            }
+            
+            function setupEditModalHandlers() {
+                // Enable/disable save button based on form validation and changes
+                $('#editPoiCategory, #editPoiDetails').on('input change', function () {
+                    validateEditForm();
+                });
+                
+                // Handle Save button click
+                $('#saveEditBtn').click(function () {
+                    if (validateEditForm() && hasChanges()) {
+                        saveEditedPoi();
+                    }
+                });
+                
+                // Handle keyboard shortcuts
+                $('#editPoiModal').on('keydown', function (e) {
+                    if (e.key === 'Enter' && !e.shiftKey && e.target.tagName !== 'TEXTAREA') {
+                        e.preventDefault();
+                        if ($('#saveEditBtn').prop('disabled') === false) {
+                            saveEditedPoi();
+                        }
+                    } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        bootstrap.Modal.getInstance(document.getElementById('editPoiModal')).hide();
+                    }
+                });
+                
+                // Allow Shift+Enter in textarea for new lines
+                $('#editPoiDetails').on('keydown', function(e) {
+                    if (e.key === 'Enter' && e.shiftKey) {
+                        // Allow default behavior (new line)
+                        return true;
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if ($('#saveEditBtn').prop('disabled') === false) {
+                            saveEditedPoi();
+                        }
+                    }
+                });
+            }
+            
+            function validateEditForm() {
+                const category = $('#editPoiCategory').val().trim();
+                const details = $('#editPoiDetails').val().trim();
+                const isValid = category !== '' && details !== '';
+                const changed = hasChanges();
+                
+                $('#saveEditBtn').prop('disabled', !isValid || !changed);
+                
+                return isValid;
+            }
+            
+            function hasChanges() {
+                const currentCategory = $('#editPoiCategory').val().trim();
+                const currentDetails = $('#editPoiDetails').val().trim();
+                
+                return currentCategory !== originalPoiData.category || 
+                       currentDetails !== originalPoiData.details;
+            }
             
             $('#cardsViewBtn').click(function() {
                 currentView = 'cards';
@@ -278,6 +430,10 @@
                     }
                 });
             });
+            
+            // Make these functions available globally for reloadCurrentPois
+            window.updatePoiCards = updatePoiCards;
+            window.updatePoiTable = updatePoiTable;
             
             function updatePoiCards(pois) {
                 const $container = $('#poiCardsContainer');
@@ -404,16 +560,181 @@
             }
         });
         
+        // Global functions for onclick handlers
         function editPoi(href) {
-            // TODO: Implement edit functionality
-            alert('Edit functionality will be implemented. POI: ' + href);
+            if (!href) {
+                console.error('No href provided for edit');
+                return;
+            }
+            
+            // Show loading state
+            const loadingHtml = `
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            `;
+            
+            // Extract ID from href (last segment after /)
+            const id = href.split('/').pop();
+            
+            // Fetch POI data
+            $.ajax({
+                url: href,
+                type: 'GET',
+                success: function(poi) {
+                    // Store original data for change detection
+                    originalPoiData = {
+                        category: poi.category || '',
+                        details: poi.details || ''
+                    };
+                    
+                    // Populate form
+                    $('#editPoiId').val(id);
+                    $('#editPoiCategory').val(poi.category);
+                    $('#editPoiDetails').val(poi.details);
+                    
+                    // Display coordinates (read-only)
+                    if (poi.location && poi.location.coordinates) {
+                        const lon = poi.location.coordinates[0];
+                        const lat = poi.location.coordinates[1];
+                        $('#editPoiCoordinates').text(`${lat.toFixed(6)}, ${lon.toFixed(6)}`);
+                    }
+                    
+                    // Reset validation states
+                    $('#editPoiCategory').removeClass('is-invalid');
+                    $('#editPoiDetails').removeClass('is-invalid');
+                    $('#saveEditBtn').prop('disabled', true);
+                    
+                    // Show modal
+                    const modal = new bootstrap.Modal(document.getElementById('editPoiModal'));
+                    modal.show();
+                },
+                error: function(xhr) {
+                    console.error('Error loading POI:', xhr);
+                    alert('Failed to load POI data. Please try again.');
+                }
+            });
+        }
+        
+        function saveEditedPoi() {
+            const id = $('#editPoiId').val();
+            const category = $('#editPoiCategory').val().trim();
+            const details = $('#editPoiDetails').val().trim();
+            
+            if (!id || !category || !details) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            // Disable save button to prevent double submission
+            $('#saveEditBtn').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Saving...');
+            
+            // Prepare update data (only category and details, location stays the same)
+            const updateData = {
+                category: category,
+                details: details
+            };
+            
+            // Send PUT request to backend
+            $.ajax({
+                url: `/poi/${id}`,
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify(updateData),
+                success: function(response) {
+                    console.log('POI updated successfully:', response);
+                    
+                    // Hide modal
+                    bootstrap.Modal.getInstance(document.getElementById('editPoiModal')).hide();
+                    
+                    // Reload POIs to show updated data
+                    reloadCurrentPois();
+                    
+                    // Show success message
+                    showSuccessMessage('POI updated successfully!');
+                },
+                error: function(xhr) {
+                    console.error('Error updating POI:', xhr);
+                    let errorMsg = 'Failed to update POI. Please try again.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+                    alert(errorMsg);
+                    $('#saveEditBtn').prop('disabled', false).text('Save (Enter)');
+                }
+            });
         }
         
         function deletePoi(href) {
-            if (confirm('Are you sure you want to delete this point of interest?')) {
-                // TODO: Implement delete functionality
-                alert('Delete functionality will be implemented. POI: ' + href);
+            if (!href) {
+                console.error('No href provided for delete');
+                return;
             }
+            
+            if (confirm('Are you sure you want to delete this point of interest?')) {
+                // Extract ID from href
+                const id = href.split('/').pop();
+                
+                // Send DELETE request
+                $.ajax({
+                    url: `/poi/${id}`,
+                    type: 'DELETE',
+                    success: function() {
+                        console.log('POI deleted successfully');
+                        
+                        // Reload POIs to update the view
+                        reloadCurrentPois();
+                        
+                        // Show success message
+                        showSuccessMessage('POI deleted successfully!');
+                    },
+                    error: function(xhr) {
+                        console.error('Error deleting POI:', xhr);
+                        alert('Failed to delete POI. Please try again.');
+                    }
+                });
+            }
+        }
+        
+        function reloadCurrentPois() {
+            // Get current coordinates and radius
+            const lat = parseFloat($('#latitudeInput').val());
+            const lon = parseFloat($('#longitudeInput').val());
+            const radius = parseInt($('#radiusInput').val());
+            
+            // Reload POIs with current parameters
+            $.ajax({
+                url: '/api/pointsofinterest',
+                method: 'GET',
+                data: { lat: lat, lon: lon, radius: radius },
+                success: function(data) {
+                    updatePoiCards(data);
+                    updatePoiTable(data);
+                },
+                error: function() {
+                    console.error('Failed to reload POIs');
+                }
+            });
+        }
+        
+        function showSuccessMessage(message) {
+            // Create a temporary success alert
+            const alertHtml = `
+                <div class="alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3" 
+                     role="alert" style="z-index: 9999; min-width: 300px;">
+                    <i class="bi bi-check-circle me-2"></i>${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            
+            $('body').append(alertHtml);
+            
+            // Auto-remove after 3 seconds
+            setTimeout(function() {
+                $('.alert-success').alert('close');
+            }, 3000);
         }
     </script>
 }
