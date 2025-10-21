@@ -151,6 +151,15 @@
                 </button>
             </div>
         </div>
+        <!-- Filter Input Field -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <label for="poiFilterInput" class="form-label">
+                    Filter POIs by Details
+                </label>
+                <input type="text" class="form-control" id="poiFilterInput" placeholder="Enter text to filter POIs...">
+            </div>
+        </div>
     </div>
 </div>
 
@@ -376,6 +385,9 @@
             
             // Setup Edit Modal event handlers
             setupEditModalHandlers();
+            
+            // Setup filter functionality
+            setupFilterFunctionality();
             
             function loadSettingsFromStorage() {
                 // Load values from localStorage or use defaults
@@ -698,6 +710,12 @@
                 
                 cardsHtml += '</div>';
                 $container.html(cardsHtml);
+                
+                // Apply current filter after updating cards
+                const currentFilter = $('#poiFilterInput').val();
+                if (currentFilter) {
+                    applyFilter(currentFilter);
+                }
             }
             
             function updatePoiTable(pois) {
@@ -752,6 +770,12 @@
                 `;
                 
                 $container.html(tableHtml);
+                
+                // Apply current filter after updating table
+                const currentFilter = $('#poiFilterInput').val();
+                if (currentFilter) {
+                    applyFilter(currentFilter);
+                }
             }
             
             function getCategoryIcon(category) {
@@ -947,6 +971,54 @@
                 },
                 error: function() {
                     console.error('Failed to reload POIs');
+                }
+            });
+        }
+        
+        function setupFilterFunctionality() {
+            const filterInput = $('#poiFilterInput');
+            
+            // Load filter value from localStorage
+            const savedFilter = localStorage.getItem('poi_filter') || '';
+            filterInput.val(savedFilter);
+            
+            // Apply initial filter if exists
+            if (savedFilter) {
+                applyFilter(savedFilter);
+            }
+            
+            // Apply filter on input
+            filterInput.on('input', function() {
+                const filterValue = $(this).val();
+                localStorage.setItem('poi_filter', filterValue);
+                applyFilter(filterValue);
+            });
+        }
+        
+        function applyFilter(filterValue) {
+            const filterLower = filterValue.toLowerCase();
+            
+            // Filter cards view
+            $('#poiCardsContainer .col').each(function() {
+                const $card = $(this);
+                const details = $card.find('.card-text').text().toLowerCase();
+                
+                if (filterLower === '' || details.includes(filterLower)) {
+                    $card.show();
+                } else {
+                    $card.hide();
+                }
+            });
+            
+            // Filter list view (table rows)
+            $('#poiTableBody tr').each(function() {
+                const $row = $(this);
+                const details = $row.find('.details-cell').text().toLowerCase();
+                
+                if (filterLower === '' || details.includes(filterLower)) {
+                    $row.show();
+                } else {
+                    $row.hide();
                 }
             });
         }
