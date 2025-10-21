@@ -123,7 +123,11 @@
         const STORAGE_KEYS = {
             latitude: 'poi_latitude',
             longitude: 'poi_longitude',
-            radius: 'poi_radius'
+            radius: 'poi_radius',
+            view: 'poi_view',
+            lastUpdate: 'poi_last_update',
+            needsReload: 'poi_needs_reload',
+            sessionStart: 'poi_session_start'
         };
         
         // Default coordinates (Dresden)
@@ -132,10 +136,33 @@
         const radiusDefault = 2000;
         const zoomDefault = 13;
         
+        // Session timeout: 30 minutes of inactivity = new session
+        const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+        
         // Initialize the map when the page loads
         $(document).ready(function () {
+            // Check if this is a new browser session
+            const lastActivity = localStorage.getItem(STORAGE_KEYS.sessionStart);
+            const now = Date.now();
+            const isNewSession = !lastActivity || (now - parseInt(lastActivity)) > SESSION_TIMEOUT_MS;
+            
+            if (isNewSession) {
+                // This is a NEW session - clear settings but keep view preference
+                localStorage.removeItem(STORAGE_KEYS.latitude);
+                localStorage.removeItem(STORAGE_KEYS.longitude);
+                localStorage.removeItem(STORAGE_KEYS.radius);
+                localStorage.removeItem(STORAGE_KEYS.needsReload);
+                localStorage.setItem(STORAGE_KEYS.view, 'cards');
+            }
+            
+            // Update session timestamp
+            localStorage.setItem(STORAGE_KEYS.sessionStart, now.toString());
+            
             // Load values from localStorage or use defaults
             loadSettingsFromStorage();
+            
+            // Check if we need to reload due to updates from List page
+            checkForReloadFlag();
             
             // Initialize map with loaded settings
             initializeMap();
@@ -145,14 +172,25 @@
         });
         
         function loadSettingsFromStorage() {
+            // Load values from localStorage or use defaults
             const lat = localStorage.getItem(STORAGE_KEYS.latitude);
             const lon = localStorage.getItem(STORAGE_KEYS.longitude);
             const radius = localStorage.getItem(STORAGE_KEYS.radius);
             
-            $('#latitudeInput').val(lat ? parseFloat(lat) : latitudeDefault);
-            $('#longitudeInput').val(lon ? parseFloat(lon) : longitudeDefault);
-            $('#radiusInput').val(radius ? parseInt(radius) : radiusDefault);
-            $('#radiusValue').text(radius ? parseInt(radius) : radiusDefault);
+            const actualLat = lat ? parseFloat(lat) : latitudeDefault;
+            const actualLon = lon ? parseFloat(lon) : longitudeDefault;
+            const actualRadius = radius ? parseInt(radius) : radiusDefault;
+            
+            // Set input fields to actual values
+            $('#latitudeInput').val(actualLat);
+            $('#longitudeInput').val(actualLon);
+            $('#radiusInput').val(actualRadius);
+            $('#radiusValue').text(actualRadius + 'm');
+            
+            // Save to localStorage if they were defaults (ensures consistency)
+            if (!lat) localStorage.setItem(STORAGE_KEYS.latitude, actualLat);
+            if (!lon) localStorage.setItem(STORAGE_KEYS.longitude, actualLon);
+            if (!radius) localStorage.setItem(STORAGE_KEYS.radius, actualRadius);
         }
         
         function saveSettingsToStorage() {
@@ -163,6 +201,22 @@
             localStorage.setItem(STORAGE_KEYS.latitude, lat);
             localStorage.setItem(STORAGE_KEYS.longitude, lon);
             localStorage.setItem(STORAGE_KEYS.radius, radius);
+            
+            // Set flag that List page needs to reload
+            localStorage.setItem(STORAGE_KEYS.needsReload, 'true');
+        }
+        
+        function checkForReloadFlag() {
+            // Check if List page triggered a reload request
+            const needsReload = localStorage.getItem(STORAGE_KEYS.needsReload);
+            if (needsReload === 'true') {
+                // Clear the flag
+                localStorage.removeItem(STORAGE_KEYS.needsReload);
+                
+                // Reload the map with stored parameters after initialization
+                // Set a flag to reload after map is initialized
+                window.mapNeedsReload = true;
+            }
         }
         
         function setupControlHandlers() {
@@ -183,7 +237,7 @@
                 const lon = parseFloat($('#longitudeInput').val());
                 const radius = parseInt($('#radiusInput').val());
                 
-                // Save to localStorage
+                // Save to localStorage (this sets needsReload flag for List page)
                 saveSettingsToStorage();
                 
                 // Update map center and reload POIs
@@ -239,6 +293,17 @@
             
             // Load initial points of interest with current settings
             loadPointsOfInterest(currentLat, currentLon, currentRadius);
+            
+            // Check if we need to reload due to List page update
+            if (window.mapNeedsReload) {
+                window.mapNeedsReload = false;
+                // Reload with updated parameters
+                const lat = parseFloat($('#latitudeInput').val());
+                const lon = parseFloat($('#longitudeInput').val());
+                const radius = parseInt($('#radiusInput').val());
+                map.setView([lat, lon], map.getZoom());
+                loadPointsOfInterest(lat, lon, radius);
+            }
             
             // REMOVED: Auto-reload on map movement - user must click "Load POIs" button
             // This ensures synchronization with the List page
