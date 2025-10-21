@@ -108,7 +108,26 @@
     .view-toggle .btn-group {
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
+    
+    /* Hide list view by default, will be shown by JS if needed */
+    #poiTableContainer {
+        display: none;
+    }
 </style>
+
+<!-- Apply view preference immediately to prevent flash -->
+<script>
+    (function() {
+        const savedView = localStorage.getItem('poi_view');
+        if (savedView === 'list') {
+            // Inject CSS to show list view immediately
+            const style = document.createElement('style');
+            style.id = 'initial-view-style';
+            style.textContent = '#poiCardsContainer { display: none !important; } #poiTableContainer { display: block !important; }';
+            document.head.appendChild(style);
+        }
+    })();
+</script>
 
 <div class="top-controls fixed-top">
     <div class="container">
@@ -299,12 +318,40 @@
         const STORAGE_KEYS = {
             latitude: 'poi_latitude',
             longitude: 'poi_longitude',
-            radius: 'poi_radius'
+            radius: 'poi_radius',
+            view: 'poi_view',
+            needsReload: 'poi_needs_reload',
+            sessionStart: 'poi_session_start'
         };
         
+        // Default coordinates (Dresden) - must match Map page
+        const latitudeDefault = 51.0504;
+        const longitudeDefault = 13.7373;
+        const radiusDefault = 2000;
+        
+        // Session timeout: 30 minutes of inactivity = new session
+        const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+        
         $(document).ready(function() {
-            // View toggle functionality
-            let currentView = 'cards'; // Default view
+            // Check if this is a new browser session
+            const lastActivity = localStorage.getItem(STORAGE_KEYS.sessionStart);
+            const now = Date.now();
+            const isNewSession = !lastActivity || (now - parseInt(lastActivity)) > SESSION_TIMEOUT_MS;
+            
+            if (isNewSession) {
+                // This is a NEW session - clear settings but keep view preference
+                localStorage.removeItem(STORAGE_KEYS.latitude);
+                localStorage.removeItem(STORAGE_KEYS.longitude);
+                localStorage.removeItem(STORAGE_KEYS.radius);
+                localStorage.removeItem(STORAGE_KEYS.needsReload);
+                localStorage.setItem(STORAGE_KEYS.view, 'cards');
+            }
+            
+            // Update session timestamp
+            localStorage.setItem(STORAGE_KEYS.sessionStart, now.toString());
+            
+            // View toggle functionality - load from localStorage or default to 'cards'
+            let currentView = localStorage.getItem(STORAGE_KEYS.view) || 'cards';
             
             // Store original POI data for change detection
             let originalPoiData = {
@@ -312,8 +359,14 @@
                 details: ''
             };
             
+            // Apply saved view IMMEDIATELY to prevent flash
+            applySavedView();
+            
             // Load settings from localStorage on page load
             loadSettingsFromStorage();
+            
+            // Check if we need to reload POIs based on updates from Map page
+            checkForUpdates();
             
             // Setup control event handlers for saving to localStorage
             setupControlHandlers();
@@ -325,26 +378,80 @@
             setupEditModalHandlers();
             
             function loadSettingsFromStorage() {
+                // Load values from localStorage or use defaults
                 const lat = localStorage.getItem(STORAGE_KEYS.latitude);
                 const lon = localStorage.getItem(STORAGE_KEYS.longitude);
                 const radius = localStorage.getItem(STORAGE_KEYS.radius);
                 
-                if (lat) {
-                    $('#latitudeInput').val(parseFloat(lat));
-                }
-                if (lon) {
-                    $('#longitudeInput').val(parseFloat(lon));
-                }
-                if (radius) {
-                    $('#radiusInput').val(parseInt(radius));
-                    $('#radiusValue').text(parseInt(radius) + 'm');
-                }
+                const actualLat = lat ? parseFloat(lat) : latitudeDefault;
+                const actualLon = lon ? parseFloat(lon) : longitudeDefault;
+                const actualRadius = radius ? parseInt(radius) : radiusDefault;
+                
+                // Set input fields to actual values
+                $('#latitudeInput').val(actualLat);
+                $('#longitudeInput').val(actualLon);
+                $('#radiusInput').val(actualRadius);
+                $('#radiusValue').text(actualRadius + 'm');
+                
+                // Save to localStorage if they were defaults (ensures consistency)
+                if (!lat) localStorage.setItem(STORAGE_KEYS.latitude, actualLat);
+                if (!lon) localStorage.setItem(STORAGE_KEYS.longitude, actualLon);
+                if (!radius) localStorage.setItem(STORAGE_KEYS.radius, actualRadius);
             }
             
             function saveSettingsToStorage() {
                 localStorage.setItem(STORAGE_KEYS.latitude, $('#latitudeInput').val());
                 localStorage.setItem(STORAGE_KEYS.longitude, $('#longitudeInput').val());
                 localStorage.setItem(STORAGE_KEYS.radius, $('#radiusInput').val());
+                
+                // Set flag that Map page needs to reload
+                localStorage.setItem(STORAGE_KEYS.needsReload, 'true');
+            }
+            
+            function checkForUpdates() {
+                // Check if Map page triggered an update
+                const needsReload = localStorage.getItem(STORAGE_KEYS.needsReload);
+                const currentParams = new URLSearchParams(window.location.search);
+                const urlLat = currentParams.get('lat');
+                const urlLon = currentParams.get('lon');
+                const urlRadius = currentParams.get('radius');
+                
+                // If needsReload flag is set and we don't have URL params, reload with stored values
+                if (needsReload === 'true' && !urlLat && !urlLon) {
+                    const lat = localStorage.getItem(STORAGE_KEYS.latitude);
+                    const lon = localStorage.getItem(STORAGE_KEYS.longitude);
+                    const radius = localStorage.getItem(STORAGE_KEYS.radius);
+                    
+                    if (lat && lon && radius) {
+                        // Clear the reload flag and reload
+                        localStorage.removeItem(STORAGE_KEYS.needsReload);
+                        window.location.href = `/PointOfInterest?lat=${lat}&lon=${lon}&radius=${radius}`;
+                    }
+                } else if (urlLat && urlLon) {
+                    // We were loaded with URL params, clear the reload flag
+                    localStorage.removeItem(STORAGE_KEYS.needsReload);
+                }
+            }
+            
+            function applySavedView() {
+                // Remove the initial style tag if it exists (it was used to prevent flash)
+                const initialStyle = document.getElementById('initial-view-style');
+                if (initialStyle) {
+                    initialStyle.remove();
+                }
+                
+                // Apply the saved view preference
+                if (currentView === 'list') {
+                    $('#listViewBtn').addClass('active');
+                    $('#cardsViewBtn').removeClass('active');
+                    $('#poiCardsContainer').hide();
+                    $('#poiTableContainer').show();
+                } else {
+                    $('#cardsViewBtn').addClass('active');
+                    $('#listViewBtn').removeClass('active');
+                    $('#poiCardsContainer').show();
+                    $('#poiTableContainer').hide();
+                }
             }
             
             function setupControlHandlers() {
@@ -370,6 +477,9 @@
                 const lat = $('#latitudeInput').val();
                 const lon = $('#longitudeInput').val();
                 const radius = $('#radiusInput').val();
+                
+                // Clear reload flag (we're doing the reload now)
+                localStorage.removeItem(STORAGE_KEYS.needsReload);
                 
                 // Reload page with new parameters
                 window.location.href = `/PointOfInterest?lat=${lat}&lon=${lon}&radius=${radius}`;
@@ -461,6 +571,7 @@
             
             $('#cardsViewBtn').click(function() {
                 currentView = 'cards';
+                localStorage.setItem(STORAGE_KEYS.view, 'cards');
                 $(this).addClass('active');
                 $('#listViewBtn').removeClass('active');
                 $('#poiCardsContainer').show();
@@ -469,6 +580,7 @@
             
             $('#listViewBtn').click(function() {
                 currentView = 'list';
+                localStorage.setItem(STORAGE_KEYS.view, 'list');
                 $(this).addClass('active');
                 $('#cardsViewBtn').removeClass('active');
                 $('#poiCardsContainer').hide();
