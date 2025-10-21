@@ -50,7 +50,7 @@
                 <!-- lets display the category with first letter upper case -->
                 <td>{{ poi.category | titlecase }}</td>
                 <td [innerHTML]="poi.details | formatDetails"></td>
-                <td>
+                <td class="poi-list-content-column-right">
                     <button type="button" class="btn btn-sm btn-outline-primary btn-sm" (click)="editPoi(poi)"><i
                             class="bi bi-pencil"></i> Edit</button>
                     &nbsp;
