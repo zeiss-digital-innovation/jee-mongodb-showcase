@@ -18,8 +18,8 @@
     
     /* Map container with margin for controls */
     .map-container {
-        margin-top: 140px; /* Space for fixed controls */
-        height: calc(100vh - 200px); /* Full height minus navbar and controls */
+        margin-top: 210px; /* Space for fixed controls including filter */
+        height: calc(100vh - 270px); /* Full height minus navbar and controls */
     }
     
     .map_large {
@@ -49,6 +49,15 @@
                 <button type="button" class="btn btn-primary w-100" id="loadPoisBtn">
                     <i class="bi bi-arrow-clockwise me-1"></i>Load POIs
                 </button>
+            </div>
+        </div>
+        <!-- Filter Input Field -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <label for="poiFilterInput" class="form-label">
+                    Filter POIs by Details
+                </label>
+                <input type="text" class="form-control" id="poiFilterInput" placeholder="Enter text to filter POIs...">
             </div>
         </div>
     </div>
@@ -169,6 +178,7 @@
             loadAvailableCategories();
             setupModalEventHandlers();
             setupControlHandlers();
+            setupFilterFunctionality();
         });
         
         function loadSettingsFromStorage() {
@@ -494,19 +504,25 @@
                 return;
             }
             
-            // Clear existing markers from the layer group
-            markersLayer.clearLayers();
-            
-            // Add new markers to the layer group
-            pointsOfInterest.forEach(function (poi) {
-                const coords = poi.location.coordinates;
-                const lat = coords[1];
-                const lng = coords[0];
+            // Apply filter if exists
+            const currentFilter = $('#poiFilterInput').val();
+            if (currentFilter) {
+                applyMapFilter(currentFilter);
+            } else {
+                // Clear existing markers from the layer group
+                markersLayer.clearLayers();
                 
-                const marker = L.marker([lat, lng]);
-                marker.bindPopup(getMarkerPopupFor(poi));
-                markersLayer.addLayer(marker);
-            });
+                // Add new markers to the layer group
+                pointsOfInterest.forEach(function (poi) {
+                    const coords = poi.location.coordinates;
+                    const lat = coords[1];
+                    const lng = coords[0];
+                    
+                    const marker = L.marker([lat, lng]);
+                    marker.bindPopup(getMarkerPopupFor(poi));
+                    markersLayer.addLayer(marker);
+                });
+            }
         }
         
         function getMarkerPopupFor(poi) {
@@ -541,6 +557,49 @@
                 return 2000;
             }
             return 1000;
+        }
+        
+        function setupFilterFunctionality() {
+            const filterInput = $('#poiFilterInput');
+            
+            // Load filter value from localStorage
+            const savedFilter = localStorage.getItem('poi_filter') || '';
+            filterInput.val(savedFilter);
+            
+            // Apply initial filter if exists
+            if (savedFilter && pointsOfInterest.length > 0) {
+                applyMapFilter(savedFilter);
+            }
+            
+            // Apply filter on input
+            filterInput.on('input', function() {
+                const filterValue = $(this).val();
+                localStorage.setItem('poi_filter', filterValue);
+                applyMapFilter(filterValue);
+            });
+        }
+        
+        function applyMapFilter(filterValue) {
+            const filterLower = filterValue.toLowerCase();
+            
+            // Clear existing markers
+            markersLayer.clearLayers();
+            
+            // Filter and add markers
+            pointsOfInterest.forEach(function (poi) {
+                const details = (poi.details || '').toLowerCase();
+                
+                // Show marker if filter is empty or details contain the filter text
+                if (filterLower === '' || details.includes(filterLower)) {
+                    const coords = poi.location.coordinates;
+                    const lat = coords[1];
+                    const lng = coords[0];
+                    
+                    const marker = L.marker([lat, lng]);
+                    marker.bindPopup(getMarkerPopupFor(poi));
+                    markersLayer.addLayer(marker);
+                }
+            });
         }
     </script>
 }
