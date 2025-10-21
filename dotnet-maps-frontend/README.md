@@ -9,6 +9,9 @@ This is an ASP.NET Core MVC application that provides the same functionality as 
 - **POI Editing**: Edit existing POI categories and details with real-time validation
 - **POI Deletion**: Delete POIs with confirmation dialog
 - **List View**: Displays POIs in card and table views with toggle
+- **POI Filter**: Real-time text-based filtering across all views (cards, table, map markers)
+- **Filter Synchronization**: Filter value synchronized between Map and List pages via localStorage
+- **Zoom Persistence**: Map zoom level persists when navigating between pages
 - **Synchronized Controls**: Latitude, Longitude, and Radius controls synchronized between Map and List pages via localStorage
 - **Fixed Headers**: Scrollable content with pinned headers and controls for better UX
 - **Category Display**: All categories displayed in lowercase for consistency
@@ -16,6 +19,7 @@ This is an ASP.NET Core MVC application that provides the same functionality as 
 - **REST API Integration**: Fetches POI data from the backend service
 - **Responsive Design**: Works on desktop and mobile devices
 - **Mock Data Fallback**: Uses mock data when backend is unavailable
+- **Partial Views**: Reusable UI components for maintainability (DRY principle)
 
 ## Technology Stack
 
@@ -38,13 +42,19 @@ This is an ASP.NET Core MVC application that provides the same functionality as 
 │   └── PointOfInterestService.cs  # API service for backend calls
 ├── Views/
 │   ├── Map/
-│   │   └── Index.cshtml           # Interactive map view
+│   │   └── Index.cshtml           # Interactive map view with filter
 │   ├── PointOfInterest/
-│   │   └── Index.cshtml           # List view with cards
+│   │   └── Index.cshtml           # List view with cards/table and filter
 │   ├── Home/
 │   │   └── Index.cshtml           # Welcome page
 │   └── Shared/
-│       └── _Layout.cshtml         # Common layout with navigation
+│       ├── _Layout.cshtml         # Common layout with navigation
+│       ├── _PoiControls.cshtml    # Reusable Lat/Lon/Radius controls
+│       └── _PoiFilter.cshtml      # Reusable filter input (prepared)
+├── DotNetMapsFrontend.Tests/      # Unit tests
+│   ├── PointOfInterestControllerTests.cs
+│   ├── PointOfInterestFilterTests.cs  # 24 filter & zoom tests
+│   └── ...
 └── wwwroot/                       # Static files (CSS, JS, images)
 ```
 
@@ -191,6 +201,10 @@ GET /api/pointsofinterest?lat=51.0504&lon=13.7373&radius=1000
 | Category Format | ✅ TitleCase | ✅ lowercase | ✅ Implemented |
 | Responsive Design | ✅ | ✅ | ✅ Implemented |
 | Mock Data Fallback | ✅ | ✅ | ✅ Implemented |
+| **POI Text Filter** | ❌ | ✅ All Views | ✅ **Implemented** |
+| **Filter Synchronization** | ❌ | ✅ localStorage | ✅ **Implemented** |
+| **Zoom Persistence** | ❌ | ✅ localStorage | ✅ **Implemented** |
+| **Partial Views (DRY)** | ❌ | ✅ Reusable Components | ✅ **Implemented** |
 | Category Filter | ⚠️ TODO | ⚠️ TODO | 🔄 Future Enhancement |
 
 ## Development Notes
@@ -207,11 +221,42 @@ GET /api/pointsofinterest?lat=51.0504&lon=13.7373&radius=1000
 
 ## Testing
 
-The project is designed with testability in mind:
+The project includes comprehensive unit tests using NUnit, Moq, and AngleSharp:
+
+```bash
+cd DotNetMapsFrontend.Tests
+dotnet test
+```
+
+### Test Coverage
+
+✅ **86 Unit Tests** - All passing
+- **62 Controller Tests**: CRUD operations, validation, error handling
+- **24 Filter & Zoom Tests**: UI presence, functionality, localStorage sync
+
+### Test Files
+
+- `PointOfInterestControllerTests.cs`: Controller logic and API integration tests
+- `PointOfInterestFilterTests.cs`: Filter input field and zoom persistence tests
+  - Filter field presence on both Map and List pages
+  - Case-insensitive filtering (cards, table, map markers)
+  - Filter synchronization via localStorage
+  - Zoom level persistence across page navigation
+  - Session-based state management
+
+### Testing Technologies
+
+- **NUnit 4.6.0**: Testing framework
+- **Moq**: Service mocking for dependency injection
+- **AngleSharp**: HTML parsing and DOM manipulation
+- **WebApplicationFactory**: Integration testing with in-memory server
+
+The project follows testability best practices:
 - Service layer separated for easy unit testing
 - Dependency injection for mocking services
 - Controller logic isolated from business logic
 - Mock data available for integration testing
+- HTML content validation with AngleSharp
 
 ## Current Status
 
@@ -220,23 +265,54 @@ The project is designed with testability in mind:
 - **Full CRUD Operations**: Create, Read, Update, Delete POIs
 - **Edit & Delete**: Real-time validation, change detection, confirmation dialogs
 - **Dual List Views**: Card view and Table view with toggle
+- **POI Text Filter**: Real-time filtering on both pages (cards, table, map markers)
+- **Filter Synchronization**: Filter value persists between Map and List pages
+- **Zoom Persistence**: Map zoom level persists across page navigation
 - **Fixed Layout**: Scrollable content with pinned headers for better UX
 - **Synchronized Settings**: Lat/Lon/Radius synchronized between pages via localStorage
 - **URL Parameters**: Support for `?lat=X&lon=Y&radius=Z` query parameters
 - **Category Normalization**: All categories displayed in lowercase
+- **Partial Views**: Reusable UI components (`_PoiControls.cshtml`) for DRY code
 - Navigation between views
 - Responsive design for mobile/desktop
 - Live MongoDB backend integration
 - Error handling and fallback data
+- **86 Unit Tests**: Comprehensive test coverage with NUnit
 - Clean, maintainable code structure
 - The application follows ASP.NET Core MVC best practices with separation of concerns
 
 **Data Source**: Currently connected to MongoDB backend with live POI data (152,578+ entries).
 
+### Latest Updates (October 2025)
+
+1. ✅ **POI Filter Feature**: Case-insensitive text filtering across all views
+2. ✅ **Zoom Persistence**: Map zoom level saved and restored between pages
+3. ✅ **Code Refactoring**: Extracted duplicate controls into `_PoiControls.cshtml` partial view
+4. ✅ **Test Coverage**: Added 24 new unit tests for filter and zoom functionality
+
+## localStorage Keys
+
+The application uses localStorage for state persistence across pages:
+
+| Key | Purpose | Scope |
+|-----|---------|-------|
+| `poi_latitude` | Latitude coordinate | Session |
+| `poi_longitude` | Longitude coordinate | Session |
+| `poi_radius` | Search radius in meters | Session |
+| `poi_filter` | Text filter value | Session |
+| `poi_map_zoom` | Map zoom level | Session |
+| `poi_view` | View preference (cards/list) | Persistent |
+| `poi_session_start` | Session timestamp | Session |
+| `poi_needs_reload` | Reload trigger flag | Session |
+
+**Session Timeout**: 30 minutes of inactivity automatically clears session data and resets to defaults.
+
 ## Future Enhancements
 
-- [ ] Category filtering (matching Angular TODO)
-- [ ] Real-time updates
+- [ ] Category-based dropdown filtering
+- [ ] Real-time updates with SignalR
 - [ ] Caching for better performance
-- [ ] User preferences/settings
+- [ ] User authentication & preferences
 - [ ] Enhanced error handling UI
+- [ ] POI favorites/bookmarks
+- [ ] Export POIs to CSV/JSON
