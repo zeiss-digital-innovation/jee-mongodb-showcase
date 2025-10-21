@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { environment } from '../environments/environment';
 import { PointOfInterest } from '../model/point_of_interest';
 import { PointOfInterestService } from '../service/point-of-interest.service';
 import * as L from 'leaflet';
@@ -8,6 +9,7 @@ import { ApplicationRef, createComponent, EnvironmentInjector } from '@angular/c
 import { POI_CATEGORIES } from '../model/poi-categories';
 import { PoiDialogComponent } from '../poi-dialog/poi-dialog.component';
 import { PoiFilterService } from '../service/poi-filter.service';
+import { SearchDataService } from '../service/search-data-service';
 
 // Fix for default markers in Leaflet with Angular
 const iconRetinaUrl = 'media/leaflet/marker-icon-2x.png';
@@ -44,30 +46,45 @@ export class PointOfInterestMapComponent implements OnInit {
 
   map: L.Map | undefined;
 
-  latitudeDefault = 51.0504;
-  longitudeDefault = 13.7373;
-  zoomDefault = 13;
+  zoomDefault: number;
 
-  constructor(private poiService: PointOfInterestService, private poiFilterService: PoiFilterService, private mapDataService: MapDataService,
-    private appRef: ApplicationRef, private injector: EnvironmentInjector) {
+  latitude: number;
+  longitude: number;
+  radius: number;
+
+  constructor(private poiService: PointOfInterestService, private poiFilterService: PoiFilterService, private searchDataService: SearchDataService,
+    private mapDataService: MapDataService, private appRef: ApplicationRef, private injector: EnvironmentInjector) {
+    this.latitude = environment.latitudeDefault;
+    this.longitude = environment.longitudeDefault;
+    this.radius = environment.radiusDefault;
+    this.zoomDefault = environment.zoomDefault;
   }
 
   ngOnInit(): void {
+    const searchData = this.searchDataService.getSearchData();
+
+    if (searchData) {
+      this.latitude = searchData.latitude;
+      this.longitude = searchData.longitude;
+      this.radius = searchData.radius;
+    }
+
     // Initialize the map
-    this.map = L.map('map').setView([this.latitudeDefault, this.longitudeDefault], this.zoomDefault);
+    this.map = L.map('map').setView([this.latitude, this.longitude], this.zoomDefault);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(this.map);
 
-    this.loadPointsOfInterest(this.latitudeDefault, this.longitudeDefault, this.mapDataService.getRadiusForZoom(this.zoomDefault));
+    this.loadPointsOfInterest(this.latitude, this.longitude, this.mapDataService.getRadiusForZoom(this.zoomDefault));
 
     this.map.on('moveend', () => {
       const center = this.map!.getCenter();
-      const newLatitude = center.lat;
-      const newLongitude = center.lng;
-      const newRadius = this.mapDataService.getRadiusForZoom(this.map!.getZoom());
-      this.loadPointsOfInterest(newLatitude, newLongitude, newRadius);
+      this.latitude = center.lat;
+      this.longitude = center.lng;
+      this.radius = this.mapDataService.getRadiusForZoom(this.map!.getZoom());
+      this.loadPointsOfInterest(this.latitude, this.longitude, this.radius);
+      this.searchDataService.setSearchData({ latitude: this.latitude, longitude: this.longitude, radius: this.radius });
     });
 
     // use Leaflet's contextmenu event for right-clicks (reliable place to prevent the browser context menu)

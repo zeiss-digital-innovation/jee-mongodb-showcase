@@ -2,12 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { ApplicationRef, createComponent, EnvironmentInjector } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { environment } from '../environments/environment';
 import { PointOfInterestService } from '../service/point-of-interest.service';
 import { PoiFilterService } from '../service/poi-filter.service';
 import { PointOfInterest } from '../model/point_of_interest';
 import { POI_CATEGORIES } from '../model/poi-categories';
 import { FormatDetailsPipe } from '../pipe/format-details-pipe';
 import { PoiDialogComponent } from '../poi-dialog/poi-dialog.component';
+import { SearchDataService } from '../service/search-data-service';
 
 @Component({
   selector: 'app-point-of-interest-list',
@@ -18,13 +20,9 @@ import { PoiDialogComponent } from '../poi-dialog/poi-dialog.component';
 })
 export class PointOfInterestListComponent implements OnInit {
 
-  latitudeDefault = 51.0504;
-  longitudeDefault = 13.7373;
-  radiusDefault = 1000; // in meters
-
-  latitude: number = this.latitudeDefault;
-  longitude: number = this.longitudeDefault;
-  radius: number = this.radiusDefault;
+  latitude: number;
+  longitude: number;
+  radius: number;
 
   categories = POI_CATEGORIES;
 
@@ -34,15 +32,24 @@ export class PointOfInterestListComponent implements OnInit {
   pointsOfInterest: PointOfInterest[] = [];
   pointsOfInterestFiltered: PointOfInterest[] = [];
 
-  constructor(private poiService: PointOfInterestService, private poiFilterService: PoiFilterService, private appRef: ApplicationRef, private injector: EnvironmentInjector) { }
+  constructor(private poiService: PointOfInterestService, private poiFilterService: PoiFilterService,
+    private searchDataService: SearchDataService,
+    private appRef: ApplicationRef, private injector: EnvironmentInjector) {
+    this.latitude = environment.latitudeDefault;
+    this.longitude = environment.longitudeDefault;
+    this.radius = environment.radiusDefault;
+  }
 
   ngOnInit(): void {
-    // Example coordinates and radius
-    const latitude = this.latitudeDefault; // Replace with actual latitude
-    const longitude = this.longitudeDefault; // Replace with actual longitude
-    const radius = this.radiusDefault; // Replace with actual radius in meters
+    const searchData = this.searchDataService.getSearchData();
 
-    this.poiService.getPointsOfInterest(latitude, longitude, radius)
+    if (searchData) {
+      this.latitude = searchData.latitude;
+      this.longitude = searchData.longitude;
+      this.radius = searchData.radius;
+    }
+
+    this.poiService.getPointsOfInterest(this.latitude, this.longitude, this.radius)
       .subscribe(points => {
         this.pointsOfInterest = points;
         this.pointsOfInterestFiltered = this.pointsOfInterest;
@@ -54,7 +61,7 @@ export class PointOfInterestListComponent implements OnInit {
   }
 
   loadPointsOfInterest(): void {
-    //console.log(`Loading POIs for lat=${this.latitude}, lon=${this.longitude}, radius=${this.radius}`);
+    this.searchDataService.setSearchData({ latitude: this.latitude, longitude: this.longitude, radius: this.radius });
 
     this.poiService.getPointsOfInterest(this.latitude, this.longitude, this.radius)
       .subscribe(points => {
