@@ -25,7 +25,10 @@ export class PointOfInterestListComponent implements OnInit {
   longitude: number = this.longitudeDefault;
   radius: number = this.radiusDefault;
 
+  categories = POI_CATEGORIES;
+
   pointsOfInterest: PointOfInterest[] = [];
+  pointsOfInterestFiltered: PointOfInterest[] = [];
 
   constructor(private poiService: PointOfInterestService, private appRef: ApplicationRef, private injector: EnvironmentInjector) { }
 
@@ -38,6 +41,7 @@ export class PointOfInterestListComponent implements OnInit {
     this.poiService.getPointsOfInterest(latitude, longitude, radius)
       .subscribe(points => {
         this.pointsOfInterest = points;
+        this.pointsOfInterestFiltered = this.pointsOfInterest;
       });
   }
 
@@ -51,6 +55,7 @@ export class PointOfInterestListComponent implements OnInit {
     this.poiService.getPointsOfInterest(this.latitude, this.longitude, this.radius)
       .subscribe(points => {
         this.pointsOfInterest = points;
+        this.pointsOfInterestFiltered = this.pointsOfInterest;
       });
 
   }
@@ -124,6 +129,7 @@ export class PointOfInterestListComponent implements OnInit {
         next: () => {
           // Remove the deleted point from the local array
           this.pointsOfInterest = this.pointsOfInterest.filter(p => p !== point);
+          this.pointsOfInterestFiltered = this.pointsOfInterest;
         },
         error: (err) => {
           console.error('Error deleting point of interest:', err);
@@ -131,5 +137,32 @@ export class PointOfInterestListComponent implements OnInit {
         }
       });
     }
+  }
+
+  filterBySearch(event: Event) {
+    const search = (event.target as HTMLInputElement).value;
+
+    if (!search) {
+      return;
+    }
+
+    const lowerCaseSearch = search.toLowerCase();
+
+    this.pointsOfInterestFiltered = this.pointsOfInterest.filter(poi =>
+      poi.details && poi.details.toLowerCase().includes(lowerCaseSearch)
+    );
+  }
+
+  filterByCategory(event: Event) {
+    const category = (event.target as HTMLInputElement).value;
+
+    if (!category || category === 'Choose...') {
+      this.pointsOfInterestFiltered = this.pointsOfInterest;
+      return;
+    }
+
+    this.pointsOfInterestFiltered = this.pointsOfInterest.filter(poi =>
+      poi.category && poi.category.toLowerCase() === category.toLowerCase()
+    );
   }
 }

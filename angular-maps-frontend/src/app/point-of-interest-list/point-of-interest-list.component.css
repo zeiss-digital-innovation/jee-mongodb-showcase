@@ -1,6 +1,6 @@
 /* height of the fixed controls */
 :host {
-    --top-controls-height: 75px;
+    --top-controls-height: 140px;
 }
 
 /* top-controls - height should match the actual height of the fixed controls (including vertical margins) */
@@ -10,8 +10,12 @@
 
     align-items: center;
     background: rgba(255, 255, 255);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.25);
     margin-top: 50px;
+}
+
+.row {
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.25);
 }
 
 /* offset main content by the same amount so it never goes under the fixed header */
@@ -32,7 +36,7 @@
 /* Mobile: header will wrap and be taller, so we need a larger top control height */
 @media (max-width: 767.98px) {
     :host {
-        --top-controls-height: 140px;
+        --top-controls-height: 250px;
     }
 
     .top-controls {
@@ -47,7 +51,7 @@
 /* Tablet: intermediate */
 @media (min-width: 768px) and (max-width: 991.98px) {
     :host {
-        --top-controls-height: 100px;
+        --top-controls-height: 200px;
     }
 
     .top-controls {
