@@ -36,8 +36,10 @@
                            asp-controller="Map" asp-action="Index" title="Point of Interest Map">Point of Interest Map</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "PointOfInterest" ? "active" : "")" 
-                           href="/poi" title="Point of Interest List">Point of Interest List</a>
+                        @* <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "PointOfInterest" ? "active" : "")" 
+                           href="/poi" title="Point of Interest List">Point of Interest List</a> *@
+                        <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "PointOfInterest" ? "active" : "")"
+                            asp-controller="poi" asp-action="Index" title="Point of Interest List">Point of Interest List</a>
                     </li>
                 </ul>
             </div>

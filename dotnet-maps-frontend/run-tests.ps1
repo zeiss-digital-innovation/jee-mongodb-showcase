@@ -89,7 +89,7 @@ try {
         
         # Test PointOfInterest List Endpoint
         try {
-            $listResponse = Invoke-WebRequest -Uri "http://localhost:5148/PointOfInterest" -TimeoutSec 10
+            $listResponse = Invoke-WebRequest -Uri "http://localhost:5148/poi" -TimeoutSec 10
             if ($listResponse.StatusCode -eq 200) {
                 Write-Host "✓ PointOfInterest List Endpoint funktioniert" -ForegroundColor Green
             }
