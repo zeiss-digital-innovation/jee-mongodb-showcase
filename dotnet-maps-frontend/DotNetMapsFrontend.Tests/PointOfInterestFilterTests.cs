@@ -66,7 +66,7 @@ public class PointOfInterestFilterTests
             .ReturnsAsync(testPois);
 
         // Act
-        var response = await _client.GetAsync("/PointOfInterest?lat=51.0504&lon=13.7373&radius=2000");
+        var response = await _client.GetAsync("/poi?lat=51.0504&lon=13.7373&radius=2000");
         var content = await response.Content.ReadAsStringAsync();
 
         // Assert
@@ -99,7 +99,7 @@ public class PointOfInterestFilterTests
             .ReturnsAsync(testPois);
 
         // Act
-        var response = await _client.GetAsync("/PointOfInterest?lat=51.0504&lon=13.7373&radius=2000");
+        var response = await _client.GetAsync("/poi?lat=51.0504&lon=13.7373&radius=2000");
         var content = await response.Content.ReadAsStringAsync();
 
         // Assert - Check for filter JavaScript functions
@@ -134,7 +134,7 @@ public class PointOfInterestFilterTests
             .ReturnsAsync(testPois);
 
         // Act
-        var response = await _client.GetAsync("/PointOfInterest?lat=51.0504&lon=13.7373&radius=2000");
+        var response = await _client.GetAsync("/poi?lat=51.0504&lon=13.7373&radius=2000");
         var content = await response.Content.ReadAsStringAsync();
         
         // Parse HTML
@@ -179,7 +179,7 @@ public class PointOfInterestFilterTests
             .ReturnsAsync(testPois);
 
         // Act
-        var response = await _client.GetAsync("/PointOfInterest?lat=51.0504&lon=13.7373&radius=2000");
+        var response = await _client.GetAsync("/poi?lat=51.0504&lon=13.7373&radius=2000");
         var content = await response.Content.ReadAsStringAsync();
         
         // Parse HTML
@@ -201,7 +201,7 @@ public class PointOfInterestFilterTests
             .ReturnsAsync(testPois);
 
         // Act
-        var response = await _client.GetAsync("/PointOfInterest?lat=51.0504&lon=13.7373&radius=2000");
+        var response = await _client.GetAsync("/poi?lat=51.0504&lon=13.7373&radius=2000");
         var content = await response.Content.ReadAsStringAsync();
 
         // Assert - Check that the filter uses toLowerCase()
@@ -230,7 +230,7 @@ public class PointOfInterestFilterTests
             .ReturnsAsync(testPois);
 
         // Act
-        var response = await _client.GetAsync("/PointOfInterest?lat=51.0504&lon=13.7373&radius=2000");
+        var response = await _client.GetAsync("/poi?lat=51.0504&lon=13.7373&radius=2000");
         var content = await response.Content.ReadAsStringAsync();
 
         // Assert - Check that input event listener is attached
@@ -257,7 +257,7 @@ public class PointOfInterestFilterTests
             .ReturnsAsync(testPois);
 
         // Act
-        var response = await _client.GetAsync("/PointOfInterest?lat=51.0504&lon=13.7373&radius=2000");
+        var response = await _client.GetAsync("/poi?lat=51.0504&lon=13.7373&radius=2000");
         var content = await response.Content.ReadAsStringAsync();
 
         // Assert - Check that filter function handles both cards and table
@@ -276,7 +276,7 @@ public class PointOfInterestFilterTests
             .ReturnsAsync(testPois);
 
         // Act
-        var response = await _client.GetAsync("/PointOfInterest?lat=51.0504&lon=13.7373&radius=2000");
+        var response = await _client.GetAsync("/poi?lat=51.0504&lon=13.7373&radius=2000");
         var content = await response.Content.ReadAsStringAsync();
 
         // Assert - Check that filter function handles table rows
@@ -306,7 +306,7 @@ public class PointOfInterestFilterTests
             .ReturnsAsync(testPois);
 
         // Act
-        var response = await _client.GetAsync("/PointOfInterest?lat=51.0504&lon=13.7373&radius=2000");
+        var response = await _client.GetAsync("/poi?lat=51.0504&lon=13.7373&radius=2000");
         var content = await response.Content.ReadAsStringAsync();
 
         // Assert - Check that filter is applied after updating POI cards/table
@@ -337,7 +337,7 @@ public class PointOfInterestFilterTests
             .ReturnsAsync(testPois);
 
         // Act
-        var response = await _client.GetAsync("/PointOfInterest?lat=51.0504&lon=13.7373&radius=2000");
+        var response = await _client.GetAsync("/poi?lat=51.0504&lon=13.7373&radius=2000");
         var content = await response.Content.ReadAsStringAsync();
 
         // Assert - Check that empty filter shows all POIs
@@ -364,7 +364,7 @@ public class PointOfInterestFilterTests
             .ReturnsAsync(testPois);
 
         // Act - Check Point of Interest List page
-        var response1 = await _client.GetAsync("/PointOfInterest?lat=51.0504&lon=13.7373&radius=2000");
+        var response1 = await _client.GetAsync("/poi?lat=51.0504&lon=13.7373&radius=2000");
         var content1 = await response1.Content.ReadAsStringAsync();
         
         // Parse HTML
@@ -397,7 +397,7 @@ public class PointOfInterestFilterTests
             .ReturnsAsync(testPois);
 
         // Act - Check both pages use the same localStorage key
-        var response1 = await _client.GetAsync("/PointOfInterest?lat=51.0504&lon=13.7373&radius=2000");
+        var response1 = await _client.GetAsync("/poi?lat=51.0504&lon=13.7373&radius=2000");
         var content1 = await response1.Content.ReadAsStringAsync();
         
         var response2 = await _client.GetAsync("/Map");
@@ -406,6 +406,56 @@ public class PointOfInterestFilterTests
         // Assert - Both pages should use 'poi_filter' key
         Assert.That(content1, Does.Contain("'poi_filter'"));
         Assert.That(content2, Does.Contain("'poi_filter'"));
+    }
+
+    [Test]
+    public async Task MapIndex_ShouldContainMapZoomStorageKey()
+    {
+        // Act
+        var response = await _client.GetAsync("/Map");
+        var content = await response.Content.ReadAsStringAsync();
+
+        // Assert - Map page should have mapZoom storage key
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        Assert.That(content, Does.Contain("mapZoom: 'poi_map_zoom'"));
+    }
+
+    [Test]
+    public async Task MapIndex_ShouldSaveZoomOnZoomEnd()
+    {
+        // Act
+        var response = await _client.GetAsync("/Map");
+        var content = await response.Content.ReadAsStringAsync();
+
+        // Assert - Map should have zoomend event listener
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        Assert.That(content, Does.Contain("map.on('zoomend'"));
+        Assert.That(content, Does.Contain("localStorage.setItem(STORAGE_KEYS.mapZoom"));
+    }
+
+    [Test]
+    public async Task MapIndex_ShouldLoadSavedZoomLevel()
+    {
+        // Act
+        var response = await _client.GetAsync("/Map");
+        var content = await response.Content.ReadAsStringAsync();
+
+        // Assert - Map should load saved zoom from localStorage
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        Assert.That(content, Does.Contain("localStorage.getItem(STORAGE_KEYS.mapZoom)"));
+        Assert.That(content, Does.Contain("const savedZoom"));
+    }
+
+    [Test]
+    public async Task MapIndex_ShouldClearZoomOnNewSession()
+    {
+        // Act
+        var response = await _client.GetAsync("/Map");
+        var content = await response.Content.ReadAsStringAsync();
+
+        // Assert - Zoom should be cleared on new session
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        Assert.That(content, Does.Contain("localStorage.removeItem(STORAGE_KEYS.mapZoom)"));
     }
 
     /// <summary>

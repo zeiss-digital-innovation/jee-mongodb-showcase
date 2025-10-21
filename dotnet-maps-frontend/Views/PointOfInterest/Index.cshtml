@@ -141,7 +141,7 @@
                 <input type="number" class="form-control" id="longitudeInput" value="13.7373" step="0.0001" min="-180" max="180">
             </div>
             <div class="col-md-4">
-                <label for="radiusInput" class="form-label">Radius <span id="radiusValue">2000</span> (m)</label>
+                <label for="radiusInput" class="form-label">Radius <span id="radiusValue">2000</span></label>
                 <input type="range" class="form-range" id="radiusInput" min="100" max="5000" value="2000" step="100">
             </div>
             <div class="col-md-2">
@@ -403,7 +403,7 @@
                 $('#latitudeInput').val(actualLat);
                 $('#longitudeInput').val(actualLon);
                 $('#radiusInput').val(actualRadius);
-                $('#radiusValue').text(actualRadius + 'm');
+                $('#radiusValue').text(actualRadius + ' m');
                 
                 // Save to localStorage if they were defaults (ensures consistency)
                 if (!lat) localStorage.setItem(STORAGE_KEYS.latitude, actualLat);
@@ -437,7 +437,7 @@
                     if (lat && lon && radius) {
                         // Clear the reload flag and reload
                         localStorage.removeItem(STORAGE_KEYS.needsReload);
-                        window.location.href = `/PointOfInterest?lat=${lat}&lon=${lon}&radius=${radius}`;
+                        window.location.href = `/poi?lat=${lat}&lon=${lon}&radius=${radius}`;
                     }
                 } else if (urlLat && urlLon) {
                     // We were loaded with URL params, clear the reload flag
@@ -494,7 +494,7 @@
                 localStorage.removeItem(STORAGE_KEYS.needsReload);
                 
                 // Reload page with new parameters
-                window.location.href = `/PointOfInterest?lat=${lat}&lon=${lon}&radius=${radius}`;
+                window.location.href = `/poi?lat=${lat}&lon=${lon}&radius=${radius}`;
             }
             
             function loadAvailableCategories() {

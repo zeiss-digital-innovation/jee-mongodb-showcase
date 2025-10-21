@@ -124,11 +124,11 @@ dotnet dev-certs https --trust
 
 3. **Access the application**:
    - Map View: `http://localhost:4200/Map` (same port as Angular frontend)
-   - List View: `http://localhost:4200/PointOfInterest`
-   - List View with Parameters: `http://localhost:4200/PointOfInterest?lat=51.0504&lon=13.7373&radius=3900`
+   - List View: `http://localhost:4200/poi
+   - List View with Parameters: `http://localhost:4200/poi?lat=51.0504&lon=13.7373&radius=3900`
    - Home: `http://localhost:4200/` (redirects to Map)
-   - API Endpoint: `http://localhost:4200/api/pointsofinterest`
-   - API Endpoint with Parameters: `http://localhost:4200/api/pointsofinterest?lat=51.0504&lon=13.7373&radius=2000`
+   - API Endpoint: `http://localhost:4200/api/poi`
+   - API Endpoint with Parameters: `http://localhost:4200/api/poi?lat=51.0504&lon=13.7373&radius=2000`
 
 ## API Integration
 

@@ -41,7 +41,7 @@
                 <input type="number" class="form-control" id="longitudeInput" value="13.7373" step="0.0001" min="-180" max="180">
             </div>
             <div class="col-md-4">
-                <label for="radiusInput" class="form-label">Radius <span id="radiusValue">2000</span> (m)</label>
+                <label for="radiusInput" class="form-label">Radius <span id="radiusValue">2000</span></label>
                 <input type="range" class="form-range" id="radiusInput" min="100" max="5000" value="2000" step="100">
             </div>
             <div class="col-md-2">
@@ -136,7 +136,8 @@
             view: 'poi_view',
             lastUpdate: 'poi_last_update',
             needsReload: 'poi_needs_reload',
-            sessionStart: 'poi_session_start'
+            sessionStart: 'poi_session_start',
+            mapZoom: 'poi_map_zoom'
         };
         
         // Default coordinates (Dresden)
@@ -161,6 +162,7 @@
                 localStorage.removeItem(STORAGE_KEYS.longitude);
                 localStorage.removeItem(STORAGE_KEYS.radius);
                 localStorage.removeItem(STORAGE_KEYS.needsReload);
+                localStorage.removeItem(STORAGE_KEYS.mapZoom);
                 localStorage.setItem(STORAGE_KEYS.view, 'cards');
             }
             
@@ -195,7 +197,7 @@
             $('#latitudeInput').val(actualLat);
             $('#longitudeInput').val(actualLon);
             $('#radiusInput').val(actualRadius);
-            $('#radiusValue').text(actualRadius + 'm');
+            $('#radiusValue').text(actualRadius + ' m');
             
             // Save to localStorage if they were defaults (ensures consistency)
             if (!lat) localStorage.setItem(STORAGE_KEYS.latitude, actualLat);
@@ -270,8 +272,12 @@
             const currentLon = parseFloat($('#longitudeInput').val());
             const currentRadius = parseInt($('#radiusInput').val());
             
+            // Load saved zoom level or use default
+            const savedZoom = localStorage.getItem(STORAGE_KEYS.mapZoom);
+            const currentZoom = savedZoom ? parseInt(savedZoom) : zoomDefault;
+            
             // Initialize the map with current settings
-            map = L.map('map').setView([currentLat, currentLon], zoomDefault);
+            map = L.map('map').setView([currentLat, currentLon], currentZoom);
             
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -299,6 +305,12 @@
                 // Show modal
                 const modal = new bootstrap.Modal(document.getElementById('createPoiModal'));
                 modal.show();
+            });
+            
+            // Save zoom level to localStorage when user zooms the map
+            map.on('zoomend', function() {
+                const currentZoom = map.getZoom();
+                localStorage.setItem(STORAGE_KEYS.mapZoom, currentZoom);
             });
             
             // Load initial points of interest with current settings
