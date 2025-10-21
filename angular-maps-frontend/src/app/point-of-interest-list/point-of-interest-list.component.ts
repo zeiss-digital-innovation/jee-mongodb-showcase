@@ -3,6 +3,7 @@ import { ApplicationRef, createComponent, EnvironmentInjector } from '@angular/c
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PointOfInterestService } from '../service/point-of-interest.service';
+import { PoiFilterService } from '../service/poi-filter.service';
 import { PointOfInterest } from '../model/point_of_interest';
 import { POI_CATEGORIES } from '../model/poi-categories';
 import { FormatDetailsPipe } from '../pipe/format-details-pipe';
@@ -27,10 +28,13 @@ export class PointOfInterestListComponent implements OnInit {
 
   categories = POI_CATEGORIES;
 
+  categoryFilter: string | undefined;
+  detailsFilter: string | undefined;
+
   pointsOfInterest: PointOfInterest[] = [];
   pointsOfInterestFiltered: PointOfInterest[] = [];
 
-  constructor(private poiService: PointOfInterestService, private appRef: ApplicationRef, private injector: EnvironmentInjector) { }
+  constructor(private poiService: PointOfInterestService, private poiFilterService: PoiFilterService, private appRef: ApplicationRef, private injector: EnvironmentInjector) { }
 
   ngOnInit(): void {
     // Example coordinates and radius
@@ -142,27 +146,20 @@ export class PointOfInterestListComponent implements OnInit {
   filterBySearch(event: Event) {
     const search = (event.target as HTMLInputElement).value;
 
-    if (!search) {
-      return;
-    }
-
-    const lowerCaseSearch = search.toLowerCase();
-
-    this.pointsOfInterestFiltered = this.pointsOfInterest.filter(poi =>
-      poi.details && poi.details.toLowerCase().includes(lowerCaseSearch)
-    );
+    this.detailsFilter = search;
+    this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.detailsFilter);
   }
 
   filterByCategory(event: Event) {
     const category = (event.target as HTMLInputElement).value;
 
+    this.categoryFilter = category;
+
     if (!category || category === 'Choose...') {
-      this.pointsOfInterestFiltered = this.pointsOfInterest;
-      return;
+      this.categoryFilter = undefined;
     }
 
-    this.pointsOfInterestFiltered = this.pointsOfInterest.filter(poi =>
-      poi.category && poi.category.toLowerCase() === category.toLowerCase()
-    );
+    this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.detailsFilter);
   }
+
 }
