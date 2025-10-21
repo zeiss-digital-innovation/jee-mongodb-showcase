@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
 import { ApplicationRef, createComponent, EnvironmentInjector } from '@angular/core';
 import { POI_CATEGORIES } from '../model/poi-categories';
 import { PoiDialogComponent } from '../poi-dialog/poi-dialog.component';
+import { PoiFilterService } from '../service/poi-filter.service';
 
 // Fix for default markers in Leaflet with Angular
 const iconRetinaUrl = 'media/leaflet/marker-icon-2x.png';
@@ -33,14 +34,21 @@ L.Marker.prototype.options.icon = iconDefault;
 })
 export class PointOfInterestMapComponent implements OnInit {
 
+  categories = POI_CATEGORIES;
+
+  categoryFilter: string | undefined;
+  detailsFilter: string | undefined;
+
   pointsOfInterest: PointOfInterest[] = [];
+  pointsOfInterestFiltered: PointOfInterest[] = [];
+
   map: L.Map | undefined;
 
   latitudeDefault = 51.0504;
   longitudeDefault = 13.7373;
   zoomDefault = 13;
 
-  constructor(private poiService: PointOfInterestService, private mapDataService: MapDataService,
+  constructor(private poiService: PointOfInterestService, private poiFilterService: PoiFilterService, private mapDataService: MapDataService,
     private appRef: ApplicationRef, private injector: EnvironmentInjector) {
   }
 
@@ -173,13 +181,13 @@ export class PointOfInterestMapComponent implements OnInit {
   loadPointsOfInterest(latitude: number, longitude: number, radius: number): void {
     this.poiService.getPointsOfInterest(latitude, longitude, radius)
       .subscribe(points => {
-        this.showPointsOnMap(points);
+        this.pointsOfInterest = points;
+        this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.detailsFilter);
+        this.showPointsOnMap();
       });
   }
 
-  showPointsOnMap(points: PointOfInterest[]): void {
-    this.pointsOfInterest = points;
-
+  showPointsOnMap(): void {
     if (!this.map) {
       console.error('Map is not initialized');
       return;
@@ -192,7 +200,7 @@ export class PointOfInterestMapComponent implements OnInit {
       }
     });
 
-    this.pointsOfInterest.forEach(poi => {
+    this.pointsOfInterestFiltered.forEach(poi => {
       const coords = poi.location.coordinates;
 
       L.marker([coords[1], coords[0]]).addTo(this.map!)
@@ -200,9 +208,24 @@ export class PointOfInterestMapComponent implements OnInit {
     });
   }
 
-  onCategoryChange($event: Event) {
-    const selectedCategory = ($event.target as HTMLSelectElement).value;
-    // TODO filter by Category
-    //this.filterPointsOfInterestByCategory(selectedCategory);
+  filterBySearch(event: Event) {
+    const search = (event.target as HTMLInputElement).value;
+
+    this.detailsFilter = search;
+    this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.detailsFilter);
+    this.showPointsOnMap();
+  }
+
+  filterByCategory(event: Event) {
+    const category = (event.target as HTMLInputElement).value;
+
+    this.categoryFilter = category;
+
+    if (!category || category === 'Choose...') {
+      this.categoryFilter = undefined;
+    }
+
+    this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.detailsFilter);
+    this.showPointsOnMap();
   }
 }

@@ -1,5 +1,4 @@
 #map {
-    height: 600px;
     width: 100%;
     border: 1px solid #ccc;
     border-radius: 5px;
@@ -7,4 +6,34 @@
 
 .container {
     margin-top: 20px;
+}
+
+/* heights used to position the fixed controls and content */
+:host {
+    /* height of the global navigation bar (keeps controls below it) */
+    --navbar-height: 30px;
+    /* initial estimate for the controls area (will be adjusted with media queries) */
+    --top-controls-height: 50px;
+}
+
+/* top-controls - height should match the actual height of the fixed controls (including vertical margins) */
+.top-controls {
+    /* keep controls fixed under the global navbar by translating down by the navbar height
+       the navbar remains at top (fixed in app template) and controls are visually below it */
+    z-index: 1030;
+    position: fixed;
+
+    top: var(--navbar-height);
+    height: var(--top-controls-height);
+
+    align-items: center;
+    background: rgba(255, 255, 255);
+}
+
+/* offset main content by the same amount so it never goes under the fixed header */
+.poi-map-content {
+    /* reserve space for both the global navbar and the controls area so the content
+       always sits below them. We compute available height from viewport minus both heights. */
+    margin-top: calc(var(--navbar-height) + var(--top-controls-height));
+    height: calc(90vh - var(--navbar-height) - var(--top-controls-height));
 }

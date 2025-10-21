@@ -1,13 +1,20 @@
-<div class="container">
-    <!-- TODO Filter by category
-    <div class="form-group">
-        <label for="sel1">Choose Category</label>
-        <select class="form-control form-control-sm" (change)="onCategoryChange($event)">
-            <option value=""></option>
-            <option *ngFor="let category of categories" value="{{category}}">{{category}}</option>
-        </select>
+<div class="container top-controls fixed-top">
+    <div class="row">
+        <div class="col-md-4">
+            <label for="latitudeInput" class="form-label">Filter Category</label>
+            <select class="form-control form-control-sm" (change)="filterByCategory($event)">
+                <option selected>Choose...</option>
+                <option *ngFor="let c of categories">{{c | titlecase}}</option>
+            </select>
+        </div>
+        <div class="col-md-8">
+            <label for="latitudeInput" class="form-label">Filter Details</label>
+            <input class="form-control form-control-sm" type="text" placeholder="Search (Details)..."
+                (keyup)="filterBySearch($event)">
+        </div>
     </div>
-    -->
+</div>
+<div class="container poi-map-content">
     <div id="map" class="jumbotron map_large"></div>
     <div class="shortcut-hint" aria-hidden="true">Right click on the map to add a new POI</div>
 </div>
