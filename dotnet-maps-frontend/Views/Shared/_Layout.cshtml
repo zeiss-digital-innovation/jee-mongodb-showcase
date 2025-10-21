@@ -27,14 +27,17 @@
             <div class="navbar-collapse collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Home" asp-action="Index" title="Home">
+                        <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" ? "active" : "")" 
+                           asp-controller="Home" asp-action="Index" title="Home">
                             <i class="bi bi-house"></i> Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Map" asp-action="Index" title="Point of Interest Map">Point of Interest Map</a>
+                        <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Map" ? "active" : "")" 
+                           asp-controller="Map" asp-action="Index" title="Point of Interest Map">Point of Interest Map</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="PointOfInterest" asp-action="Index" title="Point of Interest List">Point of Interest List</a>
+                        <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "PointOfInterest" ? "active" : "")" 
+                           href="/poi" title="Point of Interest List">Point of Interest List</a>
                     </li>
                 </ul>
             </div>
