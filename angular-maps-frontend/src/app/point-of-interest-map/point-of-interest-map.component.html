@@ -21,3 +21,19 @@
     <div id="map" class="jumbotron map_large"></div>
     <div class="shortcut-hint" aria-hidden="true">Right click on the map to add a new POI</div>
 </div>
+
+<!-- message toast -->
+<div class="toast-fixed">
+    <div #messageToast id="messageToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <i [ngClass]="toastData.toastCssClass"></i>&nbsp;
+            <strong class="me-auto">{{toastData.toastTitle}}</strong>
+            <!-- format duration to only 2 digits after comma -->
+            <small>{{toastData.toastMessageSmall}}</small>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            {{toastData.toastMessage}}
+        </div>
+    </div>
+</div>

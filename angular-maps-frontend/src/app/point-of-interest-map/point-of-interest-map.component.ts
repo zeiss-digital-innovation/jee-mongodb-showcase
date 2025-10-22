@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { environment } from '../environments/environment';
 import { PointOfInterest } from '../model/point_of_interest';
 import { PointOfInterestService } from '../service/point-of-interest.service';
@@ -10,6 +10,8 @@ import { POI_CATEGORIES } from '../model/poi-categories';
 import { PoiDialogComponent } from '../poi-dialog/poi-dialog.component';
 import { PoiFilterService } from '../service/poi-filter.service';
 import { SearchCriteriaService } from '../service/search-criteria-service';
+
+export interface ToastData { toastTitle: string; toastMessage: string; toastMessageSmall: string; toastCssClass: string; }
 
 // Fix for default markers in Leaflet with Angular
 const iconRetinaUrl = 'media/leaflet/marker-icon-2x.png';
@@ -34,7 +36,7 @@ L.Marker.prototype.options.icon = iconDefault;
   templateUrl: './point-of-interest-map.component.html',
   styleUrl: './point-of-interest-map.component.css'
 })
-export class PointOfInterestMapComponent implements OnInit {
+export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
 
   categories = POI_CATEGORIES;
 
@@ -51,6 +53,19 @@ export class PointOfInterestMapComponent implements OnInit {
   latitude: number;
   longitude: number;
   radius: number;
+
+  durationOfRequest: number = 0;
+
+  private toastRetryDelay = 50;
+  private toastRetryCount = 6;
+  private toastTitleDefault = 'POI Service';
+  private toastCssClassSuccess = 'bi bi-check-lg text-success';
+  private toastCssClassError = 'bi bi-x-lg text-danger';
+
+  toastData: ToastData = { toastTitle: this.toastTitleDefault, toastMessage: '', toastMessageSmall: '', toastCssClass: '' };
+
+  @ViewChild('messageToast', { static: false }) messageToastRef!: ElementRef<HTMLElement>;
+  private messageToastInstance?: any;
 
   constructor(private poiService: PointOfInterestService, public poiFilterService: PoiFilterService,
     private searchCriteriaService: SearchCriteriaService, private mapDataService: MapDataService,
@@ -123,6 +138,25 @@ export class PointOfInterestMapComponent implements OnInit {
     }
   }
 
+  ngAfterViewInit(): void {
+    // instantiate the Toast via dynamic import to avoid TypeScript module resolution issues
+    // If bootstrap is included globally (via angular.json scripts) the fallback will use window.bootstrap
+    import('bootstrap/js/dist/toast')
+      .then(mod => {
+        const ToastClass = (mod && (mod as any).default) ? (mod as any).default : (mod as any);
+        this.messageToastInstance = new ToastClass(this.messageToastRef.nativeElement);
+      })
+      .catch(() => {
+        const G = (window as any).bootstrap;
+        if (G && G.Toast) {
+          this.messageToastInstance = new G.Toast(this.messageToastRef.nativeElement);
+        } else {
+          // as last resort, no Toast available
+          console.warn('Bootstrap Toast not available');
+        }
+      });
+  }
+
   addMarkerAt(latitude: number, longitude: number): void {
     if (!this.map) {
       console.error('Map is not initialized');
@@ -176,8 +210,12 @@ export class PointOfInterestMapComponent implements OnInit {
         }
       };
 
+      const startTime = performance.now();
+
       this.poiService.createPointOfInterest(poi).subscribe({
         next: (created) => {
+          this.durationOfRequest = performance.now() - startTime;
+
           const displayPoi = created ?? poi;
           let popupContent = '';
           try {
@@ -189,11 +227,16 @@ export class PointOfInterestMapComponent implements OnInit {
           L.marker([latitude, longitude]).addTo(this.map!)
             .bindPopup(popupContent);
           this.pointsOfInterest.push(displayPoi);
+
+          this.showToastMessage(this.toastTitleDefault, //
+            'Successfully added new point of interest',//
+            this.durationOfRequest.toFixed(2) + ' ms', this.toastCssClassSuccess);
+
           cleanupComponent();
         },
         error: (err) => {
           console.error('Failed to create POI', err);
-          alert('Failed to create POI');
+          this.showToastMessage(this.toastTitleDefault, 'Failed to create POI. Please try again later.', '', this.toastCssClassError);
           cleanupComponent();
         }
       });
@@ -203,14 +246,27 @@ export class PointOfInterestMapComponent implements OnInit {
     document.body.appendChild((compRef.location.nativeElement as HTMLElement));
   }
 
-
   loadPointsOfInterest(latitude: number, longitude: number, radius: number): void {
+    // determine the time duration of the request
+    const startTime = performance.now();
+
     this.poiService.getPointsOfInterest(latitude, longitude, radius)
-      .subscribe(points => {
-        this.pointsOfInterest = points;
-        this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.detailsFilter);
-        this.updateFiltering();
-        this.showPointsOnMap();
+      .subscribe({
+        next: points => {
+          this.pointsOfInterest = points;
+          this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.detailsFilter);
+          this.updateFiltering();
+          this.showPointsOnMap();
+
+          this.durationOfRequest = performance.now() - startTime;
+          this.showToastMessage(this.toastTitleDefault, //
+            'Successfully loaded ' + this.pointsOfInterest.length + ' points of interest',//
+            this.durationOfRequest.toFixed(2) + ' ms', this.toastCssClassSuccess);
+        },
+        error: err => {
+          console.error('Failed to load POIs', err);
+          this.showToastMessage(this.toastTitleDefault, 'POI Service is currently not available. Please try again later.', '', this.toastCssClassError);
+        }
       });
   }
 
@@ -252,6 +308,19 @@ export class PointOfInterestMapComponent implements OnInit {
     }
 
     this.updateFiltering();
+  }
+
+  showToastMessage(title: string, message: string, smallMessage: string, cssClass: string, attempt = 0) {
+    if (this.messageToastInstance) {
+      this.toastData = { toastTitle: title, toastMessage: message, toastMessageSmall: smallMessage, toastCssClass: cssClass };
+      this.messageToastInstance.show();
+      return;
+    }
+    if (attempt < this.toastRetryCount) {
+      setTimeout(() => this.showToastMessage(title, message, smallMessage, cssClass, attempt + 1), this.toastRetryDelay);
+    } else {
+      console.warn('Success toast not available to show');
+    }
   }
 
   private updateFiltering() {
