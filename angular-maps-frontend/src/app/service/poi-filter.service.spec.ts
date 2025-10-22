@@ -49,4 +49,24 @@ describe('PoiFilterService', () => {
         const res = service.filter([], 'coffee', 'http');
         expect(res.length).toBe(0);
     });
+
+    it('noCategoryFilterSet should return true for undefined/empty/Choose...', () => {
+        expect(service.noCategoryFilterSet(undefined)).toBeTrue();
+
+        expect(service.noCategoryFilterSet('')).toBeTrue();
+
+        expect(service.noCategoryFilterSet('Choose...')).toBeTrue();
+
+        expect(service.noCategoryFilterSet('coffee')).toBeFalse();
+    });
+
+    it('matchesCategoryCriteria should compare case-insensitively and handle undefined', () => {
+        expect(service.matchesCategoryCriteria('coffee', undefined)).toBeFalse();
+
+        expect(service.matchesCategoryCriteria('coffee', 'CoFfEe')).toBeTrue();
+        expect(service.matchesCategoryCriteria('CoFfEe', 'CoFfEe')).toBeTrue();
+
+        expect(service.matchesCategoryCriteria('post', 'coffee')).toBeFalse();
+        expect(service.matchesCategoryCriteria(undefined, 'coffee')).toBeFalse();
+    });
 });

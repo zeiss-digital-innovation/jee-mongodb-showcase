@@ -10,7 +10,6 @@ export interface SearchData { latitude: number; longitude: number; radius: numbe
 export class SearchDataService {
 
     private searchData$ = new BehaviorSubject<SearchData | null>(null);
-    readonly searchDataObservable$ = this.searchData$.asObservable();
 
     latitudeDefault: number;
     longitudeDefault: number;

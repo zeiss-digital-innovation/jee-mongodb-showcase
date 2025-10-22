@@ -52,7 +52,7 @@ export class PointOfInterestMapComponent implements OnInit {
   longitude: number;
   radius: number;
 
-  constructor(private poiService: PointOfInterestService, private poiFilterService: PoiFilterService, private searchDataService: SearchDataService,
+  constructor(private poiService: PointOfInterestService, public poiFilterService: PoiFilterService, private searchDataService: SearchDataService,
     private mapDataService: MapDataService, private appRef: ApplicationRef, private injector: EnvironmentInjector) {
     this.latitude = environment.latitudeDefault;
     this.longitude = environment.longitudeDefault;
@@ -61,6 +61,13 @@ export class PointOfInterestMapComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    const filterCriteria = this.poiFilterService.getFilterCriteria();
+
+    if (filterCriteria) {
+      this.categoryFilter = filterCriteria.categoryFilter;
+      this.detailsFilter = filterCriteria.detailsFilter;
+    }
+
     const searchData = this.searchDataService.getSearchData();
 
     if (searchData) {
@@ -200,6 +207,7 @@ export class PointOfInterestMapComponent implements OnInit {
       .subscribe(points => {
         this.pointsOfInterest = points;
         this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.detailsFilter);
+        this.updateFiltering();
         this.showPointsOnMap();
       });
   }
@@ -229,8 +237,7 @@ export class PointOfInterestMapComponent implements OnInit {
     const search = (event.target as HTMLInputElement).value;
 
     this.detailsFilter = search;
-    this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.detailsFilter);
-    this.showPointsOnMap();
+    this.updateFiltering();
   }
 
   filterByCategory(event: Event) {
@@ -242,6 +249,11 @@ export class PointOfInterestMapComponent implements OnInit {
       this.categoryFilter = undefined;
     }
 
+    this.updateFiltering();
+  }
+
+  private updateFiltering() {
+    this.poiFilterService.setFilterCriteria({ detailsFilter: this.detailsFilter, categoryFilter: this.categoryFilter });
     this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.detailsFilter);
     this.showPointsOnMap();
   }

@@ -2,15 +2,18 @@
     <div class="row">
         <div class="col-md-4">
             <label for="latitudeInput" class="form-label">Filter Category</label>
-            <select class="form-control form-control-sm" (change)="filterByCategory($event)">
-                <option selected>Choose...</option>
-                <option *ngFor="let c of categories">{{c | titlecase}}</option>
+            <select class="form-control form-control-sm" (change)="filterByCategory($event)" [value]="categoryFilter">
+                <option [selected]="poiFilterService.noCategoryFilterSet(categoryFilter)">
+                    Choose...</option>
+                <option *ngFor="let c of categories"
+                    [selected]="poiFilterService.matchesCategoryCriteria(c, categoryFilter)">{{c | titlecase}}
+                </option>
             </select>
         </div>
         <div class="col-md-8">
             <label for="latitudeInput" class="form-label">Filter Details</label>
             <input class="form-control form-control-sm" type="text" placeholder="Search (Details)..."
-                (keyup)="filterBySearch($event)">
+                value="{{detailsFilter}}" (keyup)="filterBySearch($event)">
         </div>
     </div>
 </div>

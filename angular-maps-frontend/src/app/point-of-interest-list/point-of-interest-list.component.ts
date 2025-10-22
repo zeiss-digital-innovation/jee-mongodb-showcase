@@ -32,7 +32,7 @@ export class PointOfInterestListComponent implements OnInit {
   pointsOfInterest: PointOfInterest[] = [];
   pointsOfInterestFiltered: PointOfInterest[] = [];
 
-  constructor(private poiService: PointOfInterestService, private poiFilterService: PoiFilterService,
+  constructor(private poiService: PointOfInterestService, public poiFilterService: PoiFilterService,
     private searchDataService: SearchDataService,
     private appRef: ApplicationRef, private injector: EnvironmentInjector) {
     this.latitude = environment.latitudeDefault;
@@ -41,6 +41,14 @@ export class PointOfInterestListComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    const filterCriteria = this.poiFilterService.getFilterCriteria();
+
+    if (filterCriteria) {
+      this.categoryFilter = filterCriteria.categoryFilter;
+      console.log('Category filter on init:', this.categoryFilter);
+      this.detailsFilter = filterCriteria.detailsFilter;
+    }
+
     const searchData = this.searchDataService.getSearchData();
 
     if (searchData) {
@@ -53,6 +61,7 @@ export class PointOfInterestListComponent implements OnInit {
       .subscribe(points => {
         this.pointsOfInterest = points;
         this.pointsOfInterestFiltered = this.pointsOfInterest;
+        this.updateFiltering();
       });
   }
 
@@ -67,6 +76,7 @@ export class PointOfInterestListComponent implements OnInit {
       .subscribe(points => {
         this.pointsOfInterest = points;
         this.pointsOfInterestFiltered = this.pointsOfInterest;
+        this.updateFiltering();
       });
 
   }
@@ -154,7 +164,7 @@ export class PointOfInterestListComponent implements OnInit {
     const search = (event.target as HTMLInputElement).value;
 
     this.detailsFilter = search;
-    this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.detailsFilter);
+    this.updateFiltering();
   }
 
   filterByCategory(event: Event) {
@@ -166,6 +176,11 @@ export class PointOfInterestListComponent implements OnInit {
       this.categoryFilter = undefined;
     }
 
+    this.updateFiltering();
+  }
+
+  private updateFiltering() {
+    this.poiFilterService.setFilterCriteria({ detailsFilter: this.detailsFilter, categoryFilter: this.categoryFilter });
     this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.detailsFilter);
   }
 
