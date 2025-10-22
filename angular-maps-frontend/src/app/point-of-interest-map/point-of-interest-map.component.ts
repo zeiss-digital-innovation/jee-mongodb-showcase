@@ -9,7 +9,7 @@ import { ApplicationRef, createComponent, EnvironmentInjector } from '@angular/c
 import { POI_CATEGORIES } from '../model/poi-categories';
 import { PoiDialogComponent } from '../poi-dialog/poi-dialog.component';
 import { PoiFilterService } from '../service/poi-filter.service';
-import { SearchDataService } from '../service/search-data-service';
+import { SearchCriteriaService } from '../service/search-criteria-service';
 
 // Fix for default markers in Leaflet with Angular
 const iconRetinaUrl = 'media/leaflet/marker-icon-2x.png';
@@ -52,8 +52,10 @@ export class PointOfInterestMapComponent implements OnInit {
   longitude: number;
   radius: number;
 
-  constructor(private poiService: PointOfInterestService, public poiFilterService: PoiFilterService, private searchDataService: SearchDataService,
-    private mapDataService: MapDataService, private appRef: ApplicationRef, private injector: EnvironmentInjector) {
+  constructor(private poiService: PointOfInterestService, public poiFilterService: PoiFilterService,
+    private searchCriteriaService: SearchCriteriaService, private mapDataService: MapDataService,
+    private appRef: ApplicationRef, private injector: EnvironmentInjector) {
+
     this.latitude = environment.latitudeDefault;
     this.longitude = environment.longitudeDefault;
     this.radius = environment.radiusDefault;
@@ -68,7 +70,7 @@ export class PointOfInterestMapComponent implements OnInit {
       this.detailsFilter = filterCriteria.detailsFilter;
     }
 
-    const searchData = this.searchDataService.getSearchData();
+    const searchData = this.searchCriteriaService.getSearchCriteria();
 
     if (searchData) {
       this.latitude = searchData.latitude;
@@ -91,7 +93,7 @@ export class PointOfInterestMapComponent implements OnInit {
       this.longitude = center.lng;
       this.radius = this.mapDataService.getRadiusForZoom(this.map!.getZoom());
       this.loadPointsOfInterest(this.latitude, this.longitude, this.radius);
-      this.searchDataService.setSearchData({ latitude: this.latitude, longitude: this.longitude, radius: this.radius });
+      this.searchCriteriaService.setSearchCriteria({ latitude: this.latitude, longitude: this.longitude, radius: this.radius });
     });
 
     // use Leaflet's contextmenu event for right-clicks (reliable place to prevent the browser context menu)

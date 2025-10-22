@@ -2,14 +2,14 @@ import { Injectable } from "@angular/core";
 import { BehaviorSubject } from "rxjs";
 import { environment } from '../environments/environment';
 
-export interface SearchData { latitude: number; longitude: number; radius: number; }
+export interface SearchCriteria { latitude: number; longitude: number; radius: number; }
 
 @Injectable({
     providedIn: 'root'
 })
-export class SearchDataService {
+export class SearchCriteriaService {
 
-    private searchData$ = new BehaviorSubject<SearchData | null>(null);
+    private searchData$ = new BehaviorSubject<SearchCriteria | null>(null);
 
     latitudeDefault: number;
     longitudeDefault: number;
@@ -25,11 +25,11 @@ export class SearchDataService {
         this.searchData$.next({ latitude: this.latitudeDefault, longitude: this.longitudeDefault, radius: this.radiusDefault });
     }
 
-    setSearchData(data: SearchData) {
+    setSearchCriteria(data: SearchCriteria) {
         this.searchData$.next(data);
     }
 
-    getSearchData(): SearchData | null {
+    getSearchCriteria(): SearchCriteria | null {
         return this.searchData$.getValue();
     }
 

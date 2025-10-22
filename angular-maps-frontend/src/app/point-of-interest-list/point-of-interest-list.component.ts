@@ -9,7 +9,7 @@ import { PointOfInterest } from '../model/point_of_interest';
 import { POI_CATEGORIES } from '../model/poi-categories';
 import { FormatDetailsPipe } from '../pipe/format-details-pipe';
 import { PoiDialogComponent } from '../poi-dialog/poi-dialog.component';
-import { SearchDataService } from '../service/search-data-service';
+import { SearchCriteriaService } from '../service/search-criteria-service';
 
 @Component({
   selector: 'app-point-of-interest-list',
@@ -33,8 +33,9 @@ export class PointOfInterestListComponent implements OnInit {
   pointsOfInterestFiltered: PointOfInterest[] = [];
 
   constructor(private poiService: PointOfInterestService, public poiFilterService: PoiFilterService,
-    private searchDataService: SearchDataService,
+    private searchCriteriaService: SearchCriteriaService,
     private appRef: ApplicationRef, private injector: EnvironmentInjector) {
+
     this.latitude = environment.latitudeDefault;
     this.longitude = environment.longitudeDefault;
     this.radius = environment.radiusDefault;
@@ -49,7 +50,7 @@ export class PointOfInterestListComponent implements OnInit {
       this.detailsFilter = filterCriteria.detailsFilter;
     }
 
-    const searchData = this.searchDataService.getSearchData();
+    const searchData = this.searchCriteriaService.getSearchCriteria();
 
     if (searchData) {
       this.latitude = searchData.latitude;
@@ -70,7 +71,7 @@ export class PointOfInterestListComponent implements OnInit {
   }
 
   loadPointsOfInterest(): void {
-    this.searchDataService.setSearchData({ latitude: this.latitude, longitude: this.longitude, radius: this.radius });
+    this.searchCriteriaService.setSearchCriteria({ latitude: this.latitude, longitude: this.longitude, radius: this.radius });
 
     this.poiService.getPointsOfInterest(this.latitude, this.longitude, this.radius)
       .subscribe(points => {
