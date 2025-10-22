@@ -165,6 +165,50 @@ public class PointOfInterestService : IPointOfInterestService
     }
 
     /// <summary>
+    /// Find POIs near a geographic location filtered by multiple categories
+    /// NEW: MongoDB-based category filtering with $in operator
+    /// </summary>
+    public async Task<List<PointOfInterest>> GetNearbyPoisByCategoriesAsync(double longitude, double latitude, double radiusInKm, List<string> categories)
+    {
+        try
+        {
+            // Use GeoWithin for geographic search
+            var radiusInRadians = radiusInKm / 6378.1; // Earth radius in km
+
+            var geoWithinFilter = Builders<PointOfInterest>.Filter.GeoWithinCenterSphere(
+                p => p.Location,
+                longitude,
+                latitude,
+                radiusInRadians
+            );
+
+            // Category filter: case-insensitive match with $in operator
+            // Convert all categories to lowercase for consistent matching
+            var normalizedCategories = categories.Select(c => c.ToLower()).ToList();
+            
+            var categoryFilter = Builders<PointOfInterest>.Filter.In(
+                p => p.Category,
+                normalizedCategories
+            );
+
+            // Combine both filters with AND
+            var combinedFilter = Builders<PointOfInterest>.Filter.And(geoWithinFilter, categoryFilter);
+
+            _logger.LogInformation(
+                "MongoDB Query: GeoWithin({Longitude}, {Latitude}, {RadiusKm}km) AND Category IN [{Categories}]",
+                longitude, latitude, radiusInKm, string.Join(", ", normalizedCategories));
+
+            return await _poisCollection.Find(combinedFilter).ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving POIs near ({Longitude}, {Latitude}) with categories: {Categories}",
+                longitude, latitude, string.Join(", ", categories));
+            throw;
+        }
+    }
+
+    /// <summary>
     /// Create POI
     /// </summary>
     public async Task<PointOfInterest> CreatePoiAsync(PointOfInterest poi)

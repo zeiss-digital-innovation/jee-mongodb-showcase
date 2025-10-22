@@ -45,23 +45,26 @@ public class PointOfInterestController : ControllerBase
     }
 
     /// <summary>
-    /// GET /geoservice/poi - Get all POIs
+    /// GET /poi - Get all POIs with optional filters
+    /// BACKWARD COMPATIBLE: Old parameters still work
+    /// NEW: Multiple category filtering via repeated 'category' parameter
     /// </summary>
-    /// <param name="category">Filter by category</param>
+    /// <param name="category">Filter by single category OR multiple categories (repeated parameter)</param>
     /// <param name="search">Full-text search in name and tags</param>
     /// <param name="limit">Maximum number of results to return</param>
     /// <param name="lat">Latitude for geographic search</param>
     /// <param name="lng">Longitude for geographic search</param>
-    /// <param name="radius">Radius for geographic search</param>
+    /// <param name="lon">Alternative longitude parameter (frontend compatibility)</param>
+    /// <param name="radius">Radius for geographic search in meters</param>
     /// <returns>List of POIs</returns>
     [HttpGet]
     public async Task<ActionResult<List<PointOfInterest>>> GetAllPois(
-        [FromQuery] string? category = null,
+        [FromQuery] List<string>? category = null,  // CHANGED: Now accepts multiple categories
         [FromQuery] string? search = null,
         [FromQuery] int? limit = null,
         [FromQuery] double? lat = null,
         [FromQuery] double? lng = null,
-        [FromQuery] double? lon = null,  // Alternative for frontend compatibility
+        [FromQuery] double? lon = null,
         [FromQuery] double? radius = null)
     {
         try
@@ -71,43 +74,56 @@ public class PointOfInterestController : ControllerBase
             // Normalize lon/lng parameter
             double? longitude = lng ?? lon;
 
-            _logger.LogInformation("GetAllPois called: lat={Lat}, lng={Lng}, lon={Lon}, radius={Radius}",
-                lat, lng, lon, radius);
+            _logger.LogInformation("GetAllPois called: lat={Lat}, lng={Lng}, lon={Lon}, radius={Radius}, categories={Categories}",
+                lat, lng, lon, radius, category != null ? string.Join(", ", category) : "none");
 
-            // IMPORTANT: Geographic search has priority (as in JEE reference)
-            if (lat.HasValue && longitude.HasValue)
+            // PRIORITY 1: Geographic search with category filter (NEW!)
+            if (lat.HasValue && longitude.HasValue && category != null && category.Count > 0)
             {
-                var radiusMeters = radius ?? 10000.0; // Default 10km (10000m) like JEE
-                var radiusKm = radiusMeters / 1000.0; // Convert meters to kilometers
+                var radiusMeters = radius ?? 10000.0; // Default 10km
+                var radiusKm = radiusMeters / 1000.0;
+
+                _logger.LogInformation("Performing geographic search WITH category filter: lat={Lat}, lng={Lng}, radius={Radius}m, categories=[{Categories}]",
+                    lat, longitude, radiusMeters, string.Join(", ", category));
+
+                pois = await _poiService.GetNearbyPoisByCategoriesAsync(longitude.Value, lat.Value, radiusKm, category);
+
+                _logger.LogInformation("Geographic search with categories completed: {Count} POIs found", pois.Count);
+            }
+            // PRIORITY 2: Geographic search WITHOUT category filter (BACKWARD COMPATIBLE)
+            else if (lat.HasValue && longitude.HasValue)
+            {
+                var radiusMeters = radius ?? 10000.0;
+                var radiusKm = radiusMeters / 1000.0;
 
                 _logger.LogInformation("Performing geographic search: lat={Lat}, lng={Lng}, radius={Radius}m ({RadiusKm}km)",
                     lat, longitude, radiusMeters, radiusKm);
 
                 pois = await _poiService.GetNearbyPoisAsync(longitude.Value, lat.Value, radiusKm);
 
-                _logger.LogInformation("Geographic search completed: {Count} POIs found within radius {Radius}m ({RadiusKm}km)",
-                    pois.Count, radiusMeters, radiusKm);
+                _logger.LogInformation("Geographic search completed: {Count} POIs found within radius {Radius}m",
+                    pois.Count, radiusMeters);
             }
-            // Category filter
-            else if (!string.IsNullOrWhiteSpace(category))
+            // PRIORITY 3: Category filter only (BACKWARD COMPATIBLE - single category)
+            else if (category != null && category.Count == 1 && !string.IsNullOrWhiteSpace(category[0]))
             {
-                _logger.LogInformation("Performing category filter: {Category}", category);
-                pois = await _poiService.GetPoisByCategoryAsync(category);
+                _logger.LogInformation("Performing single category filter: {Category}", category[0]);
+                pois = await _poiService.GetPoisByCategoryAsync(category[0]);
             }
-            // Full-text search
+            // PRIORITY 4: Full-text search
             else if (!string.IsNullOrWhiteSpace(search))
             {
                 _logger.LogInformation("Performing full-text search: {Search}, limit={Limit}", search, limit);
                 pois = await _poiService.SearchPoisAsync(search, limit);
             }
-            // All POIs (only as last fallback)
+            // PRIORITY 5: All POIs (fallback)
             else
             {
                 _logger.LogWarning("Fallback: All POIs retrieved (no filters specified) - this can be very slow!");
                 pois = await _poiService.GetAllPoisAsync();
             }
 
-            // set absolute href for each poi
+            // Set absolute href for each poi
             foreach (var p in pois)
             {
                 GenerateHref(p);
