@@ -26,6 +26,11 @@
         height: 100%;
         width: 100%;
     }
+    
+    /* Move Leaflet zoom controls below fixed controls */
+    .leaflet-top.leaflet-left {
+        top: 80px; /* Position below top-controls (navbar is 56px)
+    }
 </style>
 
 <!-- Fixed Top Controls -->
@@ -215,13 +220,34 @@
         function setupControlHandlers() {
             // Update radius display when slider changes and save to storage
             $('#radiusInput').on('input', function () {
-                $('#radiusValue').text($(this).val());
+                const newRadius = $(this).val();
+                $('#radiusValue').text(newRadius + ' m');
                 saveSettingsToStorage();
+                
+                // Reload POIs with new radius
+                const center = map.getCenter();
+                loadPointsOfInterest(center.lat, center.lng, parseInt(newRadius));
             });
             
-            // Save settings when inputs change
+            // When user changes coordinates manually, move map center
             $('#latitudeInput, #longitudeInput').on('change', function () {
-                saveSettingsToStorage();
+                const lat = parseFloat($('#latitudeInput').val());
+                const lon = parseFloat($('#longitudeInput').val());
+                
+                // Validate coordinates
+                if (!isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+                    // Move map to new center (keeps current zoom level)
+                    map.setView([lat, lon], map.getZoom());
+                    
+                    // Save to localStorage
+                    saveSettingsToStorage();
+                    
+                    // POIs will be automatically reloaded by moveend event handler
+                } else {
+                    alert('Invalid coordinates. Latitude must be between -90 and 90, Longitude between -180 and 180.');
+                    // Restore previous valid values
+                    loadSettingsFromStorage();
+                }
             });
             
             // Load POIs button handler
@@ -294,6 +320,22 @@
                 localStorage.setItem(STORAGE_KEYS.mapZoom, currentZoom);
             });
             
+            // Auto-reload POIs when map is moved or zoomed
+            map.on('moveend', function() {
+                const center = map.getCenter();
+                const currentRadius = parseInt($('#radiusInput').val()); // Keep user's radius constant
+                
+                // Update input fields with new center coordinates only
+                $('#latitudeInput').val(center.lat.toFixed(6));
+                $('#longitudeInput').val(center.lng.toFixed(6));
+                
+                // Save to localStorage (this will trigger List page to reload when navigated to)
+                saveSettingsToStorage();
+                
+                // Load POIs for new position with current radius
+                loadPointsOfInterest(center.lat, center.lng, currentRadius);
+            });
+            
             // Load initial points of interest with current settings
             loadPointsOfInterest(currentLat, currentLon, currentRadius);
             
@@ -307,9 +349,6 @@
                 map.setView([lat, lon], map.getZoom());
                 loadPointsOfInterest(lat, lon, radius);
             }
-            
-            // REMOVED: Auto-reload on map movement - user must click "Load POIs" button
-            // This ensures synchronization with the List page
         }
         
         function loadAvailableCategories() {
