@@ -132,15 +132,6 @@
 <div class="top-controls fixed-top">
     <div class="container">
         <partial name="_PoiControls" />
-        <!-- Filter Input Field -->
-        <div class="row mt-3">
-            <div class="col-12">
-                <label for="poiFilterInput" class="form-label">
-                    Filter POIs by Details
-                </label>
-                <input type="text" class="form-control" id="poiFilterInput" placeholder="Enter text to filter POIs...">
-            </div>
-        </div>
     </div>
 </div>
 
@@ -303,6 +294,9 @@
 </div>
 
 @section Scripts {
+    <!-- Category Manager - Shared module -->
+    <script src="~/js/category-manager.js"></script>
+    
     <script>
         // Shared localStorage keys for synchronization with Map page
         const STORAGE_KEYS = {
@@ -322,7 +316,25 @@
         // Session timeout: 30 minutes of inactivity = new session
         const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
         
-        $(document).ready(function() {
+        $(document).ready(async function() {
+            // Initialize Category Manager FIRST
+            await CategoryManager.init();
+            
+            // Listen for category selection changes
+            document.addEventListener('categorySelectionChanged', function(e) {
+                console.log('Category selection changed, reloading POIs...');
+                reloadCurrentPois();
+            });
+            
+            // Check if selected categories exist in localStorage
+            // If yes, reload POIs to apply category filter (server-side rendering doesn't know about localStorage)
+            const selectedCategories = CategoryManager.getSelectedCategories();
+            if (selectedCategories && selectedCategories.length > 0) {
+                console.log('[List] Found saved category selection, reloading POIs:', selectedCategories);
+                // Small delay to ensure DOM is ready
+                setTimeout(() => reloadCurrentPois(), 100);
+            }
+            
             // Check if this is a new browser session
             const lastActivity = localStorage.getItem(STORAGE_KEYS.sessionStart);
             const now = Date.now();
@@ -361,14 +373,11 @@
             // Setup control event handlers for saving to localStorage
             setupControlHandlers();
             
-            // Load available categories on page load
-            loadAvailableCategories();
+            // Load categories for Edit Modal dropdown
+            loadEditModalCategories();
             
             // Setup Edit Modal event handlers
             setupEditModalHandlers();
-            
-            // Setup filter functionality
-            setupFilterFunctionality();
             
             function loadSettingsFromStorage() {
                 // Load values from localStorage or use defaults
@@ -478,20 +487,28 @@
                 window.location.href = `/poi?lat=${lat}&lon=${lon}&radius=${radius}`;
             }
             
-            function loadAvailableCategories() {
-                $.ajax({
-                    url: '/api/categories',
-                    type: 'GET',
-                    success: function (categories) {
-                        populateCategoryDropdown(categories);
-                    },
-                    error: function (xhr, status, error) {
-                        console.warn('Could not load categories from backend:', error);
-                    }
-                });
+            function loadEditModalCategories() {
+                // Use categories from CategoryManager (already loaded)
+                const categories = CategoryManager.getAllCategories();
+                
+                if (categories && categories.length > 0) {
+                    populateEditModalCategoryDropdown(categories);
+                } else {
+                    // Fallback: load directly from API if CategoryManager failed
+                    $.ajax({
+                        url: '/api/categories',
+                        type: 'GET',
+                        success: function (categories) {
+                            populateEditModalCategoryDropdown(categories);
+                        },
+                        error: function (xhr, status, error) {
+                            console.warn('Could not load categories for edit modal:', error);
+                        }
+                    });
+                }
             }
             
-            function populateCategoryDropdown(categories) {
+            function populateEditModalCategoryDropdown(categories) {
                 const $categorySelect = $('#editPoiCategory');
                 $categorySelect.empty();
                 $categorySelect.append('<option value="">-- Select Category --</option>');
@@ -622,12 +639,31 @@
                 const originalHtml = $btn.html();
                 $btn.html('<span class="spinner-border spinner-border-sm me-1"></span>Loading...').prop('disabled', true);
                 
+                // Get selected categories
+                const selectedCategories = CategoryManager.getSelectedCategories();
+                
+                // Build data object with categories
+                const requestData = { 
+                    lat: lat, 
+                    lon: lon, 
+                    radius: radius 
+                };
+                
+                // Add category parameters (repeated parameter pattern)
+                selectedCategories.forEach((category, index) => {
+                    requestData[`category[${index}]`] = category;
+                });
+                
+                console.log('Loading POIs with categories:', selectedCategories);
+                
                 // Make AJAX request
                 $.ajax({
                     url: '/api/pointsofinterest',
                     method: 'GET',
-                    data: { lat: lat, lon: lon, radius: radius },
+                    traditional: true, // Important for array parameters
+                    data: requestData,
                     success: function(data) {
+                        console.log(`Loaded ${data.length} POIs`);
                         // Update both views with new data
                         updatePoiCards(data);
                         updatePoiTable(data);
@@ -941,65 +977,36 @@
             const lon = parseFloat($('#longitudeInput').val());
             const radius = parseInt($('#radiusInput').val());
             
+            // Get selected categories
+            const selectedCategories = CategoryManager.getSelectedCategories();
+            
+            // Build data object with categories
+            const requestData = { 
+                lat: lat, 
+                lon: lon, 
+                radius: radius 
+            };
+            
+            // Add category parameters
+            selectedCategories.forEach((category, index) => {
+                requestData[`category[${index}]`] = category;
+            });
+            
+            console.log('Reloading POIs with categories:', selectedCategories);
+            
             // Reload POIs with current parameters
             $.ajax({
                 url: '/api/pointsofinterest',
                 method: 'GET',
-                data: { lat: lat, lon: lon, radius: radius },
+                traditional: true,
+                data: requestData,
                 success: function(data) {
+                    console.log(`Reloaded ${data.length} POIs`);
                     updatePoiCards(data);
                     updatePoiTable(data);
                 },
                 error: function() {
                     console.error('Failed to reload POIs');
-                }
-            });
-        }
-        
-        function setupFilterFunctionality() {
-            const filterInput = $('#poiFilterInput');
-            
-            // Load filter value from localStorage
-            const savedFilter = localStorage.getItem('poi_filter') || '';
-            filterInput.val(savedFilter);
-            
-            // Apply initial filter if exists
-            if (savedFilter) {
-                applyFilter(savedFilter);
-            }
-            
-            // Apply filter on input
-            filterInput.on('input', function() {
-                const filterValue = $(this).val();
-                localStorage.setItem('poi_filter', filterValue);
-                applyFilter(filterValue);
-            });
-        }
-        
-        function applyFilter(filterValue) {
-            const filterLower = filterValue.toLowerCase();
-            
-            // Filter cards view
-            $('#poiCardsContainer .col').each(function() {
-                const $card = $(this);
-                const details = $card.find('.card-text').text().toLowerCase();
-                
-                if (filterLower === '' || details.includes(filterLower)) {
-                    $card.show();
-                } else {
-                    $card.hide();
-                }
-            });
-            
-            // Filter list view (table rows)
-            $('#poiTableBody tr').each(function() {
-                const $row = $(this);
-                const details = $row.find('.details-cell').text().toLowerCase();
-                
-                if (filterLower === '' || details.includes(filterLower)) {
-                    $row.show();
-                } else {
-                    $row.hide();
                 }
             });
         }

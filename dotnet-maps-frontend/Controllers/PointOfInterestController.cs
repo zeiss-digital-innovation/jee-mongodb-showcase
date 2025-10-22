@@ -36,7 +36,7 @@ namespace DotNetMapsFrontend.Controllers
 
         [HttpGet]
         [Route("api/pointsofinterest")]
-        public async Task<IActionResult> GetAll(double? lat, double? lon, int? radius)
+        public async Task<IActionResult> GetAll(double? lat, double? lon, int? radius, [FromQuery] List<string>? category = null)
         {
             try
             {
@@ -46,7 +46,9 @@ namespace DotNetMapsFrontend.Controllers
                 {
                     // Use provided coordinates and radius (default 2000m if not specified)
                     var searchRadius = radius ?? 2000;
-                    points = await _poiService.GetPointsOfInterestAsync(lat.Value, lon.Value, searchRadius);
+                    var categories = category ?? new List<string>();
+                    
+                    points = await _poiService.GetPointsOfInterestAsync(lat.Value, lon.Value, searchRadius, categories);
                 }
                 else
                 {

@@ -37,15 +37,6 @@
 <div class="top-controls">
     <div class="container">
         <partial name="_PoiControls" />
-        <!-- Filter Input Field -->
-        <div class="row mt-3">
-            <div class="col-12">
-                <label for="poiFilterInput" class="form-label">
-                    Filter POIs by Details
-                </label>
-                <input type="text" class="form-control" id="poiFilterInput" placeholder="Enter text to filter POIs...">
-            </div>
-        </div>
     </div>
 </div>
 
@@ -106,6 +97,7 @@
 </div>
 
 @section Scripts {
+    <script src="~/js/category-manager.js"></script>
     <script>
         let map;
         let pointsOfInterest = [];
@@ -136,7 +128,15 @@
         const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
         
         // Initialize the map when the page loads
-        $(document).ready(function () {
+        $(document).ready(async function () {
+            // Initialize CategoryManager
+            await CategoryManager.init();
+            
+            // Listen for category selection changes and reload POIs
+            document.addEventListener('categorySelectionChanged', function() {
+                console.log('[Map] Category selection changed - reloading POIs');
+                reloadCurrentPois();
+            });
             // Check if this is a new browser session
             const lastActivity = localStorage.getItem(STORAGE_KEYS.sessionStart);
             const now = Date.now();
@@ -163,10 +163,9 @@
             
             // Initialize map with loaded settings
             initializeMap();
-            loadAvailableCategories();
+            loadEditModalCategories();
             setupModalEventHandlers();
             setupControlHandlers();
-            setupFilterFunctionality();
         });
         
         function loadSettingsFromStorage() {
@@ -351,13 +350,24 @@
             }
         }
         
-        function loadAvailableCategories() {
+        function loadEditModalCategories() {
+            // Try to reuse already loaded categories from CategoryManager
+            const loadedCategories = CategoryManager.getAllCategories();
+            if (loadedCategories && loadedCategories.length > 0) {
+                console.log('[Map] Reusing categories from CategoryManager:', loadedCategories);
+                availableCategories = loadedCategories;
+                populateEditModalCategoryDropdown(loadedCategories);
+                return;
+            }
+            
+            // Fallback: Load directly from API if CategoryManager failed
+            console.log('[Map] CategoryManager has no categories, loading directly from API');
             $.ajax({
                 url: '/api/categories',
                 type: 'GET',
                 success: function (categories) {
                     availableCategories = categories;
-                    populateCategoryDropdown(categories);
+                    populateEditModalCategoryDropdown(categories);
                 },
                 error: function (xhr, status, error) {
                     console.warn('Could not load categories from backend, using fallback:', error);
@@ -368,12 +378,12 @@
                         'shop', 'bank', 'school', 'library', 'theater'
                     ];
                     availableCategories = fallbackCategories;
-                    populateCategoryDropdown(fallbackCategories);
+                    populateEditModalCategoryDropdown(fallbackCategories);
                 }
             });
         }
         
-        function populateCategoryDropdown(categories) {
+        function populateEditModalCategoryDropdown(categories) {
             const $categorySelect = $('#poiCategory');
             $categorySelect.empty();
             $categorySelect.append('<option value="">-- Select Category --</option>');
@@ -508,14 +518,27 @@
         }
         
         function loadPointsOfInterest(latitude, longitude, radius) {
+            // Get selected categories from CategoryManager
+            const selectedCategories = CategoryManager.getSelectedCategories();
+            console.log(`[Map] Loading POIs with ${selectedCategories.length} categories:`, selectedCategories);
+            
+            // Build data object with lat, lon, radius
+            const requestData = {
+                lat: latitude,
+                lon: longitude,
+                radius: radius
+            };
+            
+            // Add categories using array index notation for ASP.NET Core binding
+            selectedCategories.forEach((category, index) => {
+                requestData[`category[${index}]`] = category;
+            });
+            
             $.ajax({
                 url: '/api/pointsofinterest',
                 type: 'GET',
-                data: {
-                    lat: latitude,
-                    lon: longitude,
-                    radius: radius
-                },
+                traditional: true, // Important for array parameter serialization
+                data: requestData,
                 success: function (points) {
                     console.log(`Loaded ${points.length} POIs for coordinates (${latitude.toFixed(4)}, ${longitude.toFixed(4)}) with radius ${radius}m`);
                     showPointsOnMap(points);
@@ -528,6 +551,15 @@
             });
         }
         
+        function reloadCurrentPois() {
+            const lat = parseFloat($('#latitudeInput').val());
+            const lon = parseFloat($('#longitudeInput').val());
+            const radius = parseInt($('#radiusInput').val());
+            
+            console.log('[Map] Reloading POIs with current settings:', lat, lon, radius);
+            loadPointsOfInterest(lat, lon, radius);
+        }
+        
         function showPointsOnMap(points) {
             pointsOfInterest = points;
             
@@ -536,24 +568,25 @@
                 return;
             }
             
-            // Apply filter if exists
-            const currentFilter = $('#poiFilterInput').val();
-            if (currentFilter) {
-                applyMapFilter(currentFilter);
-            } else {
-                // Clear existing markers from the layer group
-                markersLayer.clearLayers();
+            // Clear existing markers from the layer group
+            markersLayer.clearLayers();
+            
+            // Add new markers to the layer group
+            pointsOfInterest.forEach(function (poi) {
+                const coords = poi.location.coordinates;
+                const lat = coords[1];
+                const lng = coords[0];
                 
-                // Add new markers to the layer group
-                pointsOfInterest.forEach(function (poi) {
-                    const coords = poi.location.coordinates;
-                    const lat = coords[1];
-                    const lng = coords[0];
-                    
-                    const marker = L.marker([lat, lng]);
-                    marker.bindPopup(getMarkerPopupFor(poi));
-                    markersLayer.addLayer(marker);
-                });
+                const marker = L.marker([lat, lng]);
+                marker.bindPopup(getMarkerPopupFor(poi));
+                markersLayer.addLayer(marker);
+            });
+            
+            // Apply current text filter if exists
+            const currentFilter = $('#poiFilterInput').val();
+            if (currentFilter && typeof applyFilter === 'function') {
+                console.log('[Map] Applying text filter after loading POIs:', currentFilter);
+                applyFilter(currentFilter);
             }
         }
         
@@ -591,47 +624,6 @@
             return 1000;
         }
         
-        function setupFilterFunctionality() {
-            const filterInput = $('#poiFilterInput');
-            
-            // Load filter value from localStorage
-            const savedFilter = localStorage.getItem('poi_filter') || '';
-            filterInput.val(savedFilter);
-            
-            // Apply initial filter if exists
-            if (savedFilter && pointsOfInterest.length > 0) {
-                applyMapFilter(savedFilter);
-            }
-            
-            // Apply filter on input
-            filterInput.on('input', function() {
-                const filterValue = $(this).val();
-                localStorage.setItem('poi_filter', filterValue);
-                applyMapFilter(filterValue);
-            });
-        }
-        
-        function applyMapFilter(filterValue) {
-            const filterLower = filterValue.toLowerCase();
-            
-            // Clear existing markers
-            markersLayer.clearLayers();
-            
-            // Filter and add markers
-            pointsOfInterest.forEach(function (poi) {
-                const details = (poi.details || '').toLowerCase();
-                
-                // Show marker if filter is empty or details contain the filter text
-                if (filterLower === '' || details.includes(filterLower)) {
-                    const coords = poi.location.coordinates;
-                    const lat = coords[1];
-                    const lng = coords[0];
-                    
-                    const marker = L.marker([lat, lng]);
-                    marker.bindPopup(getMarkerPopupFor(poi));
-                    markersLayer.addLayer(marker);
-                }
-            });
-        }
+
     </script>
 }
