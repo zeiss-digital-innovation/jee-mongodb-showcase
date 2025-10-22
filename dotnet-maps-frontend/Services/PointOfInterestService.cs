@@ -8,6 +8,7 @@ namespace DotNetMapsFrontend.Services
     {
         Task<List<PointOfInterest>> GetPointsOfInterestAsync();
         Task<List<PointOfInterest>> GetPointsOfInterestAsync(double latitude, double longitude, int radiusInMeters);
+        Task<List<PointOfInterest>> GetPointsOfInterestAsync(double latitude, double longitude, int radiusInMeters, List<string> categories);
         Task<PointOfInterest?> GetPointOfInterestByIdAsync(string id);
         Task<PointOfInterest> CreatePointOfInterestAsync(PointOfInterest pointOfInterest);
         Task<PointOfInterest?> UpdatePointOfInterestAsync(string id, PointOfInterest pointOfInterest);
@@ -40,6 +41,12 @@ namespace DotNetMapsFrontend.Services
 
         public async Task<List<PointOfInterest>> GetPointsOfInterestAsync(double latitude, double longitude, int radiusInMeters)
         {
+            // Call overload without category filter (backward compatible)
+            return await GetPointsOfInterestAsync(latitude, longitude, radiusInMeters, new List<string>());
+        }
+
+        public async Task<List<PointOfInterest>> GetPointsOfInterestAsync(double latitude, double longitude, int radiusInMeters, List<string> categories)
+        {
             try
             {
                 var apiBaseUrl = _configuration["PointOfInterestApi:BaseUrl"];
@@ -50,7 +57,25 @@ namespace DotNetMapsFrontend.Services
                 }
 
                 var httpClient = _httpClientFactory.CreateClient();
-                var url = $"{apiBaseUrl}/poi?lat={latitude.ToString("F6", CultureInfo.InvariantCulture)}&lon={longitude.ToString("F6", CultureInfo.InvariantCulture)}&radius={radiusInMeters}&expand=details";
+                
+                // Build URL with category parameters
+                var urlBuilder = new System.Text.StringBuilder();
+                urlBuilder.Append($"{apiBaseUrl}/poi?lat={latitude.ToString("F6", CultureInfo.InvariantCulture)}");
+                urlBuilder.Append($"&lon={longitude.ToString("F6", CultureInfo.InvariantCulture)}");
+                urlBuilder.Append($"&radius={radiusInMeters}");
+                
+                // Add category parameters (repeated parameter pattern: ?category=x&category=y)
+                if (categories != null && categories.Count > 0)
+                {
+                    foreach (var category in categories)
+                    {
+                        urlBuilder.Append($"&category={Uri.EscapeDataString(category)}");
+                    }
+                    _logger.LogInformation("Requesting POIs with {Count} category filters: {Categories}", 
+                        categories.Count, string.Join(", ", categories));
+                }
+                
+                var url = urlBuilder.ToString();
                 _logger.LogInformation("Fetching POIs from: {Url}", url);
                 
                 var response = await httpClient.GetAsync(url);
@@ -77,8 +102,8 @@ namespace DotNetMapsFrontend.Services
                         }
                     }
                     
-                    _logger.LogInformation("Successfully loaded {Count} POIs for coordinates ({Lat}, {Lon}) with radius {Radius}m", 
-                        points?.Count ?? 0, latitude, longitude, radiusInMeters);
+                    _logger.LogInformation("Successfully loaded {Count} POIs for coordinates ({Lat}, {Lon}) with radius {Radius}m and {CategoryCount} categories", 
+                        points?.Count ?? 0, latitude, longitude, radiusInMeters, categories?.Count ?? 0);
                     return points ?? new List<PointOfInterest>();
                 }
                 
