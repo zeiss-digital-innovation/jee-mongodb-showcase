@@ -5,7 +5,7 @@ import { environment } from '../environments/environment';
 
 import { PointOfInterest } from '../model/point_of_interest';
 import { POI_CATEGORIES } from '../model/poi-categories';
-import { ToastData } from '../model/toast_data';
+import { ToastNotification } from '../model/toast_notification';
 
 import { MapDataService } from '../service/map-data.service';
 import { PointOfInterestService } from '../service/point-of-interest.service';
@@ -59,13 +59,7 @@ export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
 
   durationOfRequest: number = 0;
 
-  private toastRetryDelay = 50;
-  private toastRetryCount = 6;
-  private toastTitleDefault = 'POI Service';
-  private toastCssClassSuccess = 'bi bi-check-lg text-success';
-  private toastCssClassError = 'bi bi-x-lg text-danger';
-
-  toastData: ToastData = { title: this.toastTitleDefault, message: '', messageSmall: '', cssClass: '' };
+  toastNotification: ToastNotification = new ToastNotification(ToastNotification.titleDefault, '', '', '');
 
   @ViewChild('messageToast', { static: false }) messageToastRef!: ElementRef<HTMLElement>;
   private messageToastInstance?: any;
@@ -231,15 +225,15 @@ export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
             .bindPopup(popupContent);
           this.pointsOfInterest.push(displayPoi);
 
-          this.showToastMessage(this.toastTitleDefault, //
+          this.showToastMessage(ToastNotification.titleDefault, //
             'Successfully added new point of interest',//
-            this.durationOfRequest.toFixed(2) + ' ms', this.toastCssClassSuccess);
+            this.durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
 
           cleanupComponent();
         },
         error: (err) => {
           console.error('Failed to create POI', err);
-          this.showToastMessage(this.toastTitleDefault, 'Failed to create POI. Please try again later.', '', this.toastCssClassError);
+          this.showToastMessage(ToastNotification.titleDefault, 'Failed to create POI. Please try again later.', '', ToastNotification.cssClassError);
           cleanupComponent();
         }
       });
@@ -262,13 +256,13 @@ export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
           this.showPointsOnMap();
 
           this.durationOfRequest = performance.now() - startTime;
-          this.showToastMessage(this.toastTitleDefault, //
+          this.showToastMessage(ToastNotification.titleDefault, //
             'Successfully loaded ' + this.pointsOfInterest.length + ' points of interest',//
-            this.durationOfRequest.toFixed(2) + ' ms', this.toastCssClassSuccess);
+            this.durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
         },
         error: err => {
           console.error('Failed to load POIs', err);
-          this.showToastMessage(this.toastTitleDefault, 'POI Service is currently not available. Please try again later.', '', this.toastCssClassError);
+          this.showToastMessage(ToastNotification.titleDefault, 'POI Service is currently not available. Please try again later.', '', ToastNotification.cssClassError);
         }
       });
   }
@@ -315,12 +309,12 @@ export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
 
   showToastMessage(title: string, message: string, smallMessage: string, cssClass: string, attempt = 0) {
     if (this.messageToastInstance) {
-      this.toastData = { title: title, message: message, messageSmall: smallMessage, cssClass: cssClass };
+      this.toastNotification = new ToastNotification(title, message, smallMessage, cssClass);
       this.messageToastInstance.show();
       return;
     }
-    if (attempt < this.toastRetryCount) {
-      setTimeout(() => this.showToastMessage(title, message, smallMessage, cssClass, attempt + 1), this.toastRetryDelay);
+    if (attempt < ToastNotification.retryCount) {
+      setTimeout(() => this.showToastMessage(title, message, smallMessage, cssClass, attempt + 1), ToastNotification.retryDelay);
     } else {
       console.warn('Success toast not available to show');
     }
