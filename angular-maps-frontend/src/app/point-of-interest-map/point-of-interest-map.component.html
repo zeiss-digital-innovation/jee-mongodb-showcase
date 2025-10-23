@@ -26,14 +26,14 @@
 <div class="toast-fixed">
     <div #messageToast id="messageToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="toast-header">
-            <i [ngClass]="toastData.toastCssClass"></i>&nbsp;
-            <strong class="me-auto">{{toastData.toastTitle}}</strong>
+            <i [ngClass]="toastData.cssClass"></i>&nbsp;
+            <strong class="me-auto">{{toastData.title}}</strong>
             <!-- format duration to only 2 digits after comma -->
-            <small>{{toastData.toastMessageSmall}}</small>
+            <small>{{toastData.messageSmall}}</small>
             <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
         </div>
         <div class="toast-body">
-            {{toastData.toastMessage}}
+            {{toastData.message}}
         </div>
     </div>
 </div>

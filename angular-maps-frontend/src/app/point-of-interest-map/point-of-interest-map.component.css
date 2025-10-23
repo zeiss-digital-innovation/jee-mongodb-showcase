@@ -1,5 +1,6 @@
 #map {
     width: 100%;
+    height: 100%;
     border: 1px solid #ccc;
     border-radius: 5px;
 }
@@ -36,4 +37,11 @@
        always sits below them. We compute available height from viewport minus both heights. */
     margin-top: calc(var(--navbar-height) + var(--top-controls-height));
     height: calc(90vh - var(--navbar-height) - var(--top-controls-height));
+}
+
+/* Mobile: header will wrap and be taller, so we need a larger top control height */
+@media (max-width: 767.98px) {
+    :host {
+        --top-controls-height: 100px;
+    }
 }

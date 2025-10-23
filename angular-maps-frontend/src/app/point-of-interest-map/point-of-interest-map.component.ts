@@ -1,17 +1,20 @@
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
-import { environment } from '../environments/environment';
-import { PointOfInterest } from '../model/point_of_interest';
-import { PointOfInterestService } from '../service/point-of-interest.service';
-import * as L from 'leaflet';
-import { MapDataService } from '../service/map-data.service';
+import { AfterViewInit, ApplicationRef, Component, createComponent, ElementRef, EnvironmentInjector, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ApplicationRef, createComponent, EnvironmentInjector } from '@angular/core';
+
+import { environment } from '../environments/environment';
+
+import { PointOfInterest } from '../model/point_of_interest';
 import { POI_CATEGORIES } from '../model/poi-categories';
-import { PoiDialogComponent } from '../poi-dialog/poi-dialog.component';
+import { ToastData } from '../model/toast_data';
+
+import { MapDataService } from '../service/map-data.service';
+import { PointOfInterestService } from '../service/point-of-interest.service';
 import { PoiFilterService } from '../service/poi-filter.service';
 import { SearchCriteriaService } from '../service/search-criteria-service';
 
-export interface ToastData { toastTitle: string; toastMessage: string; toastMessageSmall: string; toastCssClass: string; }
+import { PoiDialogComponent } from '../poi-dialog/poi-dialog.component';
+
+import * as L from 'leaflet';
 
 // Fix for default markers in Leaflet with Angular
 const iconRetinaUrl = 'media/leaflet/marker-icon-2x.png';
@@ -62,7 +65,7 @@ export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
   private toastCssClassSuccess = 'bi bi-check-lg text-success';
   private toastCssClassError = 'bi bi-x-lg text-danger';
 
-  toastData: ToastData = { toastTitle: this.toastTitleDefault, toastMessage: '', toastMessageSmall: '', toastCssClass: '' };
+  toastData: ToastData = { title: this.toastTitleDefault, message: '', messageSmall: '', cssClass: '' };
 
   @ViewChild('messageToast', { static: false }) messageToastRef!: ElementRef<HTMLElement>;
   private messageToastInstance?: any;
@@ -312,7 +315,7 @@ export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
 
   showToastMessage(title: string, message: string, smallMessage: string, cssClass: string, attempt = 0) {
     if (this.messageToastInstance) {
-      this.toastData = { toastTitle: title, toastMessage: message, toastMessageSmall: smallMessage, toastCssClass: cssClass };
+      this.toastData = { title: title, message: message, messageSmall: smallMessage, cssClass: cssClass };
       this.messageToastInstance.show();
       return;
     }
