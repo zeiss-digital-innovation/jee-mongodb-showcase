@@ -165,6 +165,13 @@ The application connects to the MongoDB backend REST API with optimized paramete
 - ✅ **MongoDB .NET Backend**: Full parameter support (`/zdi-geo-service/api/poi?lat=X&lon=Y&radius=Z&expand=details`)
 - ✅ **JEE Backend**: Full parameter support (`/zdi-geo-service/api/poi?lat=X&lon=Y&radius=Z&expand=details`)
 
+### Category Loading with Fallback:
+The frontend attempts to load available categories from the backend at startup:
+- **Success**: Uses categories provided by backend via `/categories` endpoint
+- **Backend has no /categories endpoint** (e.g., JEE-Backend): Uses **DEFAULT_CATEGORIES** constant as fallback
+- **Fallback Categories**: `landmark`, `museum`, `castle`, `cathedral`, `park`, `restaurant`, `hotel`, `gasstation`, `hospital`, `pharmacy`, `shop`, `bank`, `school`, `library`, `theater`
+- **Compatibility**: Ensures the application works with older backend versions (JEE reference implementation)
+
 ### Performance Benefits:
 - **Reduced Data Transfer**: Only loads POIs within visible area
 - **Faster Response**: Server-side filtering by location  
@@ -194,15 +201,15 @@ GET /api/pointsofinterest?lat=51.0504&lon=13.7373&radius=1000
 | List View (Cards) | ❌ | ✅ | ✅ Implemented |
 | View Toggle (Cards/Table) | ❌ | ✅ | ✅ Implemented |
 | Fixed Headers & Scrolling | ✅ | ✅ | ✅ Implemented |
-| Synchronized Controls | ❌ | ✅ localStorage | ✅ Implemented |
+| Synchronized Controls | ✅ | ✅ localStorage | ✅ Implemented |
 | Query Parameters | ❌ | ✅ URL Parameters | ✅ Implemented |
 | Bootstrap Navigation | ✅ | ✅ | ✅ Implemented |
 | Category Icons | ✅ Bootstrap Icons | ✅ Bootstrap Icons | ✅ Implemented |
 | Category Format | ✅ TitleCase | ✅ lowercase | ✅ Implemented |
 | Responsive Design | ✅ | ✅ | ✅ Implemented |
 | Mock Data Fallback | ✅ | ✅ | ✅ Implemented |
-| **POI Text Filter** | ❌ | ✅ All Views | ✅ **Implemented** |
-| **Filter Synchronization** | ❌ | ✅ localStorage | ✅ **Implemented** |
+| **POI Text Filter** | ✅ | ✅ All Views | ✅ **Implemented** |
+| **Filter Synchronization** | ✅ | ✅ localStorage | ✅ **Implemented** |
 | **Zoom Persistence** | ❌ | ✅ localStorage | ✅ **Implemented** |
 | **Partial Views (DRY)** | ❌ | ✅ Reusable Components | ✅ **Implemented** |
 | Category Filter | ⚠️ TODO | ⚠️ TODO | 🔄 Future Enhancement |

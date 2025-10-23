@@ -18,6 +18,29 @@ namespace DotNetMapsFrontend.Services
 
     public class PointOfInterestService : IPointOfInterestService
     {
+        /// <summary>
+        /// Default categories for fallback when backend does not provide a /categories endpoint.
+        /// Compatible with JEE-Backend + Angular-Frontend reference implementation.
+        /// </summary>
+        private static readonly List<string> DEFAULT_CATEGORIES = new()
+        {
+            "landmark",
+            "museum", 
+            "castle",
+            "cathedral",
+            "park",
+            "restaurant",
+            "hotel",
+            "gasstation",
+            "hospital",
+            "pharmacy",
+            "shop",
+            "bank",
+            "school",
+            "library",
+            "theater"
+        };
+
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly ILogger<PointOfInterestService> _logger;
@@ -366,11 +389,11 @@ namespace DotNetMapsFrontend.Services
                     // Convert all categories to lowercase for consistency
                     var lowercaseCategories = categories?.Select(c => c.ToLower()).ToList();
                     
-                    _logger.LogInformation("Successfully loaded {Count} categories", lowercaseCategories?.Count ?? 0);
+                    _logger.LogInformation("Successfully loaded {Count} categories from backend", lowercaseCategories?.Count ?? 0);
                     return lowercaseCategories ?? GetFallbackCategories();
                 }
                 
-                _logger.LogWarning("Categories API call failed with status: {StatusCode}, using fallback", response.StatusCode);
+                _logger.LogWarning("Categories API call failed with status: {StatusCode}, using fallback (JEE-Backend may not have /categories endpoint)", response.StatusCode);
                 return GetFallbackCategories();
             }
             catch (Exception ex)
@@ -380,26 +403,15 @@ namespace DotNetMapsFrontend.Services
             }
         }
 
+        /// <summary>
+        /// Returns the default fallback categories.
+        /// Used when backend does not have a /categories endpoint (e.g., JEE-Backend).
+        /// </summary>
         private List<string> GetFallbackCategories()
         {
-            return new List<string>
-            {
-                "landmark",
-                "museum", 
-                "castle",
-                "cathedral",
-                "park",
-                "restaurant",
-                "hotel",
-                "gasstation",
-                "hospital",
-                "pharmacy",
-                "shop",
-                "bank",
-                "school",
-                "library",
-                "theater"
-            };
+            _logger.LogInformation("Using default fallback categories ({Count} categories, JEE-Backend compatible)", 
+                DEFAULT_CATEGORIES.Count);
+            return new List<string>(DEFAULT_CATEGORIES);
         }
 
         private List<PointOfInterest> GetMockData()
