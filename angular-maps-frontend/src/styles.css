@@ -21,3 +21,17 @@
 body {
     padding-top: 50px;
 }
+
+/* Ensure Bootstrap toasts sit above Leaflet maps and other stacking contexts on small screens */
+.toast-fixed {
+    /* equivalent of: position-fixed bottom-0 end-0 p-3 */
+    position: fixed !important;
+    bottom: 0 !important;
+    right: 0 !important;
+    /* end-0 maps to right:0 in LTR */
+    padding: .75rem !important;
+    /* p-3 */
+    z-index: 10750 !important;
+    /* higher than Leaflet overlays */
+    pointer-events: auto !important;
+}

@@ -1,26 +1,41 @@
-/* height of the fixed controls */
+/* heights used to position the fixed controls and content */
 :host {
-    --top-controls-height: 75px;
+    /* height of the global navigation bar (keeps controls below it) */
+    --navbar-height: 50px;
+    /* initial estimate for the controls area (will be adjusted with media queries) */
+    --top-controls-height: 110px;
 }
 
 /* top-controls - height should match the actual height of the fixed controls (including vertical margins) */
 .top-controls {
+    /* keep controls fixed under the global navbar by translating down by the navbar height
+       the navbar remains at top (fixed in app template) and controls are visually below it */
     z-index: 1030;
+    position: fixed;
+
+    top: var(--navbar-height);
     height: var(--top-controls-height);
 
     align-items: center;
     background: rgba(255, 255, 255);
+}
+
+.row {
+    padding-bottom: 5px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.25);
-    margin-top: 50px;
 }
 
 /* offset main content by the same amount so it never goes under the fixed header */
 .poi-list-content {
-    /* calculating the height for the content by using max height subtracting the fixed header height plus some extra gap */
-    height: calc(100vh - var(--top-controls-height));
-    padding-top: var(--top-controls-height);
-    /* keeps content below header */
+    /* reserve space for both the global navbar and the controls area so the content
+       always sits below them. We compute available height from viewport minus both heights. */
+    margin-top: calc(var(--navbar-height) + var(--top-controls-height));
+    height: calc(90vh - var(--navbar-height) - var(--top-controls-height));
     overflow: auto;
+}
+
+.poi-list-content-column-right {
+    align-items: flex-end;
 }
 
 /* keeping the table header visible while scrolling the tbody */
@@ -32,29 +47,22 @@
 /* Mobile: header will wrap and be taller, so we need a larger top control height */
 @media (max-width: 767.98px) {
     :host {
-        --top-controls-height: 140px;
+        --top-controls-height: 230px;
     }
 
     .top-controls {
         padding: 0.75rem;
     }
 
-    .poi-list-content {
-        height: calc(100vh - var(--top-controls-height));
-    }
 }
 
 /* Tablet: intermediate */
 @media (min-width: 768px) and (max-width: 991.98px) {
     :host {
-        --top-controls-height: 100px;
+        --top-controls-height: 140px;
     }
 
     .top-controls {
         padding: 0.6rem 0.75rem;
-    }
-
-    .poi-list-content {
-        height: calc(100vh - var(--top-controls-height));
     }
 }

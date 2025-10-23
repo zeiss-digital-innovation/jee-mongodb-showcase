@@ -86,10 +86,6 @@ export class MapDataService {
         return iconImg;
     }
 
-
-
-
-
     /**
      * Determines the search radius for points of interest based on the current zoom level.
      * @param zoom Current map zoom level.
@@ -97,18 +93,18 @@ export class MapDataService {
      */
     getRadiusForZoom(zoom: number): number {
         if (zoom <= 8) {
-            return 20000;
+            return 50000;
         }
         if (zoom <= 11) {
-            return 10000;
+            return 20000;
         }
         if (zoom == 12) {
-            return 5000;
+            return 10000;
         }
         if (zoom == 13) {
-            return 2000;
+            return 3000;
         }
-        return 1000;
+        return 2000;
     }
 
 }

@@ -1,12 +1,20 @@
-import { Component, OnInit } from '@angular/core';
-import { PointOfInterest } from '../model/point_of_interest';
-import { PointOfInterestService } from '../service/point-of-interest.service';
-import * as L from 'leaflet';
-import { MapDataService } from '../service/map-data.service';
+import { AfterViewInit, ApplicationRef, Component, createComponent, ElementRef, EnvironmentInjector, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ApplicationRef, createComponent, EnvironmentInjector } from '@angular/core';
+
+import { environment } from '../environments/environment';
+
+import { PointOfInterest } from '../model/point_of_interest';
 import { POI_CATEGORIES } from '../model/poi-categories';
+import { ToastNotification } from '../model/toast_notification';
+
+import { MapDataService } from '../service/map-data.service';
+import { PointOfInterestService } from '../service/point-of-interest.service';
+import { PoiFilterService } from '../service/poi-filter.service';
+import { SearchCriteriaService } from '../service/search-criteria-service';
+
 import { PoiDialogComponent } from '../poi-dialog/poi-dialog.component';
+
+import * as L from 'leaflet';
 
 // Fix for default markers in Leaflet with Angular
 const iconRetinaUrl = 'media/leaflet/marker-icon-2x.png';
@@ -31,35 +39,71 @@ L.Marker.prototype.options.icon = iconDefault;
   templateUrl: './point-of-interest-map.component.html',
   styleUrl: './point-of-interest-map.component.css'
 })
-export class PointOfInterestMapComponent implements OnInit {
+export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
+
+  categories = POI_CATEGORIES;
+
+  categoryFilter: string | undefined;
+  detailsFilter: string | undefined;
 
   pointsOfInterest: PointOfInterest[] = [];
+  pointsOfInterestFiltered: PointOfInterest[] = [];
+
   map: L.Map | undefined;
 
-  latitudeDefault = 51.0504;
-  longitudeDefault = 13.7373;
-  zoomDefault = 13;
+  zoomDefault: number;
 
-  constructor(private poiService: PointOfInterestService, private mapDataService: MapDataService,
+  latitude: number;
+  longitude: number;
+  radius: number;
+
+  toastNotification: ToastNotification = new ToastNotification(ToastNotification.titleDefault, '', '', '');
+
+  @ViewChild('messageToast', { static: false }) messageToastRef!: ElementRef<HTMLElement>;
+  private messageToastInstance?: any;
+
+  constructor(private poiService: PointOfInterestService, public poiFilterService: PoiFilterService,
+    private searchCriteriaService: SearchCriteriaService, private mapDataService: MapDataService,
     private appRef: ApplicationRef, private injector: EnvironmentInjector) {
+
+    this.latitude = environment.latitudeDefault;
+    this.longitude = environment.longitudeDefault;
+    this.radius = environment.radiusDefault;
+    this.zoomDefault = environment.zoomDefault;
   }
 
   ngOnInit(): void {
+    const filterCriteria = this.poiFilterService.getFilterCriteria();
+
+    if (filterCriteria) {
+      this.categoryFilter = filterCriteria.categoryFilter;
+      this.detailsFilter = filterCriteria.detailsFilter;
+    }
+
+    const searchData = this.searchCriteriaService.getSearchCriteria();
+
+    if (searchData) {
+      this.latitude = searchData.latitude;
+      this.longitude = searchData.longitude;
+      this.radius = searchData.radius;
+    }
+
     // Initialize the map
-    this.map = L.map('map').setView([this.latitudeDefault, this.longitudeDefault], this.zoomDefault);
+    this.map = L.map('map').setView([this.latitude, this.longitude], this.zoomDefault);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(this.map);
 
-    this.loadPointsOfInterest(this.latitudeDefault, this.longitudeDefault, this.mapDataService.getRadiusForZoom(this.zoomDefault));
+    this.loadPointsOfInterest(this.latitude, this.longitude, this.mapDataService.getRadiusForZoom(this.zoomDefault));
 
     this.map.on('moveend', () => {
       const center = this.map!.getCenter();
-      const newLatitude = center.lat;
-      const newLongitude = center.lng;
-      const newRadius = this.mapDataService.getRadiusForZoom(this.map!.getZoom());
-      this.loadPointsOfInterest(newLatitude, newLongitude, newRadius);
+      this.latitude = center.lat;
+      this.longitude = center.lng;
+      this.radius = this.mapDataService.getRadiusForZoom(this.map!.getZoom());
+      this.loadPointsOfInterest(this.latitude, this.longitude, this.radius);
+      this.searchCriteriaService.setSearchCriteria({ latitude: this.latitude, longitude: this.longitude, radius: this.radius });
     });
 
     // use Leaflet's contextmenu event for right-clicks (reliable place to prevent the browser context menu)
@@ -89,6 +133,25 @@ export class PointOfInterestMapComponent implements OnInit {
     }
   }
 
+  ngAfterViewInit(): void {
+    // instantiate the Toast via dynamic import to avoid TypeScript module resolution issues
+    // If bootstrap is included globally (via angular.json scripts) the fallback will use window.bootstrap
+    import('bootstrap/js/dist/toast')
+      .then(mod => {
+        const ToastClass = (mod && (mod as any).default) ? (mod as any).default : (mod as any);
+        this.messageToastInstance = new ToastClass(this.messageToastRef.nativeElement);
+      })
+      .catch(() => {
+        const G = (window as any).bootstrap;
+        if (G && G.Toast) {
+          this.messageToastInstance = new G.Toast(this.messageToastRef.nativeElement);
+        } else {
+          // as last resort, no Toast available
+          console.warn('Bootstrap Toast not available');
+        }
+      });
+  }
+
   addMarkerAt(latitude: number, longitude: number): void {
     if (!this.map) {
       console.error('Map is not initialized');
@@ -96,9 +159,9 @@ export class PointOfInterestMapComponent implements OnInit {
     }
     // create and attach the Angular dialog component to the document
     const compRef = createComponent(PoiDialogComponent, { environmentInjector: this.injector });
-    // set inputs before attaching the view so CD picks them up
-    compRef.instance.latitude = latitude;
-    compRef.instance.longitude = longitude;
+
+    // create a new point of interest with given coordinates
+    compRef.instance.pointOfInterest = PointOfInterest.createEmptyFromCoordinates(latitude, longitude);
     compRef.instance.categories = POI_CATEGORIES as unknown as string[];
 
     // attach the component view to the application so change detection runs
@@ -131,55 +194,71 @@ export class PointOfInterestMapComponent implements OnInit {
       cleanupComponent();
     });
 
-    compRef.instance.save.subscribe(({ category, details }) => {
-      const poi: PointOfInterest = {
-        href: '',
-        category: category,
-        details: details,
-        location: {
-          coordinates: [longitude, latitude],
-          type: 'Point'
-        }
-      };
-
-      this.poiService.createPointOfInterest(poi).subscribe({
-        next: (created) => {
-          const displayPoi = created ?? poi;
-          let popupContent = '';
-          try {
-            popupContent = this.mapDataService.getMarkerPopupFor(displayPoi);
-          } catch (e) {
-            console.warn('getMarkerPopupFor failed, falling back to plain details', e);
-            popupContent = displayPoi.details || '';
-          }
-          L.marker([latitude, longitude]).addTo(this.map!)
-            .bindPopup(popupContent);
-          this.pointsOfInterest.push(displayPoi);
-          cleanupComponent();
-        },
-        error: (err) => {
-          console.error('Failed to create POI', err);
-          alert('Failed to create POI');
-          cleanupComponent();
-        }
-      });
+    compRef.instance.save.subscribe(({ pointOfInterest }) => {
+      if (pointOfInterest) {
+        this.createPointOfInterest(pointOfInterest);
+      }
+      cleanupComponent();
     });
 
     // attach to body so that CSS position:fixed backdrop works
     document.body.appendChild((compRef.location.nativeElement as HTMLElement));
   }
 
+  createPointOfInterest(pointOfInterest: PointOfInterest): void {
+    const startTime = performance.now();
+
+    this.poiService.createPointOfInterest(pointOfInterest).subscribe({
+      next: (created) => {
+        const durationOfRequest = performance.now() - startTime;
+
+        const displayPoi = created ?? pointOfInterest;
+        let popupContent = '';
+        try {
+          popupContent = this.mapDataService.getMarkerPopupFor(displayPoi);
+        } catch (e) {
+          console.warn('getMarkerPopupFor failed, falling back to plain details', e);
+          popupContent = displayPoi.details || '';
+        }
+        L.marker([pointOfInterest.location.coordinates[1], pointOfInterest.location.coordinates[0]]).addTo(this.map!)
+          .bindPopup(popupContent);
+        this.pointsOfInterest.push(displayPoi);
+
+        this.showToastMessage(ToastNotification.titleDefault, //
+          'Successfully added new point of interest',//
+          durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
+      },
+      error: (err) => {
+        console.error('Failed to create POI', err);
+        this.showToastMessage(ToastNotification.titleDefault, 'Failed to create POI. Please try again later.', '', ToastNotification.cssClassError);
+
+      }
+    });
+  }
 
   loadPointsOfInterest(latitude: number, longitude: number, radius: number): void {
+    // determine the time duration of the request
+    const startTime = performance.now();
+
     this.poiService.getPointsOfInterest(latitude, longitude, radius)
-      .subscribe(points => {
-        this.showPointsOnMap(points);
+      .subscribe({
+        next: points => {
+          this.pointsOfInterest = points;
+          this.updateFiltering();
+
+          const durationOfRequest = performance.now() - startTime;
+          this.showToastMessage(ToastNotification.titleDefault, //
+            'Successfully loaded ' + this.pointsOfInterest.length + ' point(s) of interest. ' + this.pointsOfInterestFiltered.length + ' point(s) match the current filters.',//
+            durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
+        },
+        error: err => {
+          console.error('Failed to load POIs', err);
+          this.showToastMessage(ToastNotification.titleDefault, 'POI Service is currently not available. Please try again later.', '', ToastNotification.cssClassError);
+        }
       });
   }
 
-  showPointsOnMap(points: PointOfInterest[]): void {
-    this.pointsOfInterest = points;
-
+  showPointsOnMap(): void {
     if (!this.map) {
       console.error('Map is not initialized');
       return;
@@ -192,7 +271,7 @@ export class PointOfInterestMapComponent implements OnInit {
       }
     });
 
-    this.pointsOfInterest.forEach(poi => {
+    this.pointsOfInterestFiltered.forEach(poi => {
       const coords = poi.location.coordinates;
 
       L.marker([coords[1], coords[0]]).addTo(this.map!)
@@ -200,9 +279,41 @@ export class PointOfInterestMapComponent implements OnInit {
     });
   }
 
-  onCategoryChange($event: Event) {
-    const selectedCategory = ($event.target as HTMLSelectElement).value;
-    // TODO filter by Category
-    //this.filterPointsOfInterestByCategory(selectedCategory);
+  filterBySearch(event: Event) {
+    const search = (event.target as HTMLInputElement).value;
+
+    this.detailsFilter = search;
+    this.updateFiltering();
+  }
+
+  filterByCategory(event: Event) {
+    const category = (event.target as HTMLInputElement).value;
+
+    this.categoryFilter = category;
+
+    if (!category || category === 'Choose...') {
+      this.categoryFilter = undefined;
+    }
+
+    this.updateFiltering();
+  }
+
+  showToastMessage(title: string, message: string, smallMessage: string, cssClass: string, attempt = 0) {
+    if (this.messageToastInstance) {
+      this.toastNotification = new ToastNotification(title, message, smallMessage, cssClass);
+      this.messageToastInstance.show();
+      return;
+    }
+    if (attempt < ToastNotification.retryCount) {
+      setTimeout(() => this.showToastMessage(title, message, smallMessage, cssClass, attempt + 1), ToastNotification.retryDelay);
+    } else {
+      console.warn('Success toast not available to show');
+    }
+  }
+
+  private updateFiltering() {
+    this.poiFilterService.setFilterCriteria({ detailsFilter: this.detailsFilter, categoryFilter: this.categoryFilter });
+    this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.detailsFilter);
+    this.showPointsOnMap();
   }
 }

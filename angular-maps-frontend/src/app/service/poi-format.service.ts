@@ -4,8 +4,8 @@ import { Sanitizer } from '../util/sanitization.util';
 @Injectable({ providedIn: 'root' })
 export class PoiFormatService {
 
-    private iconPhone = `<i class="bi bi-telephone"></i>`;
-    private iconLink = `<i class="bi bi-link-45deg"></i>`;
+    public iconPhone = `<i class="bi bi-telephone"></i>`;
+    public iconLink = `<i class="bi bi-link-45deg"></i>`;
 
     constructor(private sanitizer: Sanitizer) { }
 

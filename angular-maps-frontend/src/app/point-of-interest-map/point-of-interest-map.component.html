@@ -1,13 +1,39 @@
-<div class="container">
-    <!-- TODO Filter by category
-    <div class="form-group">
-        <label for="sel1">Choose Category</label>
-        <select class="form-control form-control-sm" (change)="onCategoryChange($event)">
-            <option value=""></option>
-            <option *ngFor="let category of categories" value="{{category}}">{{category}}</option>
-        </select>
+<div class="container top-controls fixed-top">
+    <div class="row">
+        <div class="col-md-4">
+            <label for="latitudeInput" class="form-label"><i class="bi bi-funnel"></i>&nbsp;Category</label>
+            <select class="form-control form-control-sm" (change)="filterByCategory($event)" [value]="categoryFilter">
+                <option [selected]="poiFilterService.noCategoryFilterSet(categoryFilter)">
+                    Choose...</option>
+                <option *ngFor="let c of categories"
+                    [selected]="poiFilterService.matchesCategoryCriteria(c, categoryFilter)">{{c | titlecase}}
+                </option>
+            </select>
+        </div>
+        <div class="col-md-8">
+            <label for="latitudeInput" class="form-label"><i class="bi bi-funnel"></i>&nbsp;Details</label>
+            <input class="form-control form-control-sm" type="text" placeholder="Search (Details)..."
+                value="{{detailsFilter}}" (keyup)="filterBySearch($event)">
+        </div>
     </div>
-    -->
+</div>
+<div class="container poi-map-content">
     <div id="map" class="jumbotron map_large"></div>
     <div class="shortcut-hint" aria-hidden="true">Right click on the map to add a new POI</div>
+</div>
+
+<!-- message toast -->
+<div class="toast-fixed">
+    <div #messageToast id="messageToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <i [ngClass]="toastNotification.cssClass"></i>&nbsp;
+            <strong class="me-auto">{{toastNotification.title}}</strong>
+            <!-- format duration to only 2 digits after comma -->
+            <small>{{toastNotification.messageSmall}}</small>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            {{toastNotification.message}}
+        </div>
+    </div>
 </div>

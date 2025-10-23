@@ -1,6 +1,8 @@
-import { Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
+import { PointOfInterest } from '../model/point_of_interest';
 
 /**
  * Lightweight standalone dialog component used to collect POI details from the user.
@@ -15,20 +17,24 @@ import { FormsModule } from '@angular/forms';
   template: `
     <div class="poidialog-backdrop">
       <div class="poidialog">
-        <h5>Add Point of Interest</h5>
+        <h5><i [ngClass]="cssClass"></i>&nbsp;{{action}} Point of Interest</h5>
         <div class="form-group">
           <label>Category</label>
-          <select class="form-control" [(ngModel)]="model.category">
+          <select class="form-control" [(ngModel)]="pointOfInterest!.category">
             <option *ngFor="let c of categories" [value]="c">{{c | titlecase}}</option>
           </select>
         </div>
         <div class="form-group mt-2">
           <label>Details</label>
-          <textarea class="form-control" rows="4" [(ngModel)]="model.details"></textarea>
+          <textarea class="form-control" rows="4" [(ngModel)]="pointOfInterest!.details"></textarea>
+        </div>
+        <div class="form-group mt-2">
+          <label><i class="bi bi-geo-alt"></i>&nbsp;Location</label>
+          <textarea class="form-control" rows="2" disabled>Lat: {{ pointOfInterest!.location.coordinates[1] }}\nLng: {{ pointOfInterest!.location.coordinates[0] }}</textarea>
         </div>
         <div class="d-flex justify-content-end gap-2 mt-3">
-          <button class="btn btn-secondary" type="button" (click)="onCancel()">Cancel</button>
-          <button class="btn btn-primary" type="button" (click)="onSave()">Save</button>
+          <button class="btn btn-danger btn-sm" type="button" (click)="onCancel()"><i class="bi bi-x-circle"></i>&nbsp;Cancel</button>
+          <button class="btn btn-success btn-sm" type="button" (click)="onSave()"><i class="bi bi-floppy2-fill"></i>&nbsp;Save</button>
         </div>
         <div class="shortcut-hint" aria-hidden="true">Esc to cancel · Enter to save</div>
       </div>
@@ -56,34 +62,26 @@ import { FormsModule } from '@angular/forms';
     `
   ]
 })
-export class PoiDialogComponent implements OnInit {
-  @Input() latitude = 0;
-  @Input() longitude = 0;
+export class PoiDialogComponent {
   @Input() categories: string[] = [];
 
-  @Input() category: string | null = null;
-  @Input() details: string | null = null;
+  @Input() pointOfInterest: PointOfInterest | null = null;
 
-  @Output() save = new EventEmitter<{ category: string; details: string }>();
+  @Output() save = new EventEmitter<{ pointOfInterest: PointOfInterest | null }>();
   @Output() cancel = new EventEmitter<void>();
 
-  model = { category: '', details: '' };
-
-  ngOnInit(): void {
-    if (this.category) {
-      this.model.category = this.category.toLocaleLowerCase();
-    } else {
-      this.model.category = this.categories && this.categories.length > 0 ? this.categories[0] : '';
-    }
-    this.model.details = this.details || '';
-  }
+  action = 'Add';
+  cssClass = 'bi bi-file-earmark-plus';
 
   onSave(): void {
-    if (!this.model.details || this.model.details.trim().length === 0) {
+    if (!this.pointOfInterest?.details || this.pointOfInterest.details.trim().length === 0) {
       alert('Please enter details');
       return;
     }
-    this.save.emit({ category: this.model.category, details: this.model.details.trim() });
+
+    this.pointOfInterest.details.trim();
+
+    this.save.emit({ pointOfInterest: this.pointOfInterest });
   }
 
   onCancel(): void {

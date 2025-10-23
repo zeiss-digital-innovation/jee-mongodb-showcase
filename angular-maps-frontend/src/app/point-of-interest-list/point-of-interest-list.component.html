@@ -2,23 +2,42 @@
     <div class="row">
         <div class="col">
             <label for="latitudeInput" class="form-label">Latitude (Range: -90 to 90)</label>
-            <input type="number" class="form-control" id="latitudeInput" [(ngModel)]="latitude">
+            <input type="number" class="form-control form-control-sm" id="latitudeInput" [(ngModel)]="latitude">
         </div>
         <div class="col">
             <label for="longitudeInput" class="form-label">Longitude (Range: -180 to 180)</label>
-            <input type="number" class="form-control" id="longitudeInput" [(ngModel)]="longitude">
+            <input type="number" class="form-control form-control-sm" id="longitudeInput" [(ngModel)]="longitude">
         </div>
         <div class="col">
             <label for="radiusInput" class="form-label">Radius {{ radius }} (m)</label>
-            <input type="range" class="form-range" min="100" max="5000" [(ngModel)]="radius" id="customRange2">
+            <input type="range" class="form-range" min="250" max="20000" step="250" [(ngModel)]="radius"
+                id="customRange2">
         </div>
         <div class="col">
-            <button type="button" class="btn btn-outline-primary mt-4" (click)="loadPointsOfInterest()"
-                [disabled]="!coordsValid">Load
-                POIs</button>
+            <button type="button" class="btn btn-outline-primary mt-4 btn-sm" (click)="loadPointsOfInterest()"
+                [disabled]="!coordsValid">
+                <i class="bi bi-arrow-clockwise me-1"></i>Load POIs</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <label for="latitudeInput" class="form-label"><i class="bi bi-funnel"></i>&nbsp;Category</label>
+            <select class="form-control form-control-sm" (change)="filterByCategory($event)" [value]="categoryFilter"
+                id="categoryFilter">
+                <option [selected]="poiFilterService.noCategoryFilterSet(categoryFilter)">Choose...</option>
+                <option *ngFor="let c of categories"
+                    [selected]="poiFilterService.matchesCategoryCriteria(c, categoryFilter)">{{c | titlecase}}
+                </option>
+            </select>
+        </div>
+        <div class="col-md-8">
+            <label for="latitudeInput" class="form-label"><i class="bi bi-funnel"></i>&nbsp;Details</label>
+            <input class="form-control form-control-sm" type="text" placeholder="Search (Details)..."
+                value="{{detailsFilter}}" (keyup)="filterBySearch($event)">
         </div>
     </div>
 </div>
+
 <div class="container poi-list-content">
     <table class="table table-striped table-hover">
         <thead>
@@ -26,21 +45,41 @@
                 <th scope="col">#</th>
                 <th scope="col">Category</th>
                 <th scope="col">Details</th>
+                <th scope="col"><i class="bi bi-geo-alt"></i>&nbsp;Location</th>
                 <th scope="col">Action</th>
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let poi of pointsOfInterest; let i = index">
+            <tr *ngFor="let poi of pointsOfInterestFiltered; let i = index">
                 <th scope="row">{{ i + 1 }}</th>
                 <!-- lets display the category with first letter upper case -->
                 <td>{{ poi.category | titlecase }}</td>
                 <td [innerHTML]="poi.details | formatDetails"></td>
-                <td>
-                    <button type="button" class="btn btn-sm btn-outline-primary" (click)="editPoi(poi)">Edit</button>
+                <td>Lat: {{ poi.location.coordinates[1] }}, Lng: {{ poi.location.coordinates[0] }}</td>
+                <td class="poi-list-content-column-right">
+                    <button type="button" class="btn btn-outline-primary btn-sm" (click)="editPoi(poi)"><i
+                            class="bi bi-pencil"></i> Edit</button>
                     &nbsp;
-                    <button type="button" class="btn btn-sm btn-outline-danger" (click)="deletePoi(poi)">Delete</button>
+                    <button type="button" class="btn btn-outline-danger btn-sm" (click)="deletePoi(poi)"><i
+                            class="bi bi-trash"></i> Delete</button>
                 </td>
             </tr>
         </tbody>
     </table>
+</div>
+
+<!-- message toast -->
+<div class="toast-fixed">
+    <div #messageToast id="messageToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <i [ngClass]="toastNotification.cssClass"></i>&nbsp;
+            <strong class="me-auto">{{toastNotification.title}}</strong>
+            <!-- format duration to only 2 digits after comma -->
+            <small>{{toastNotification.messageSmall}}</small>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            {{toastNotification.message}}
+        </div>
+    </div>
 </div>
