@@ -135,9 +135,7 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
     // create and attach the Angular dialog component to the document
     const compRef = createComponent(PoiDialogComponent, { environmentInjector: this.injector });
     // set inputs before attaching the view so CD picks them up
-    //compRef.instance.details = point.details;
     compRef.instance.categories = POI_CATEGORIES as unknown as string[];
-    //compRef.instance.category = point.category;
     compRef.instance.pointOfInterest = point;
     compRef.instance.action = 'Edit';
     compRef.instance.cssClass = 'bi bi-pencil';
@@ -174,8 +172,6 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
 
     compRef.instance.save.subscribe(({ pointOfInterest }) => {
       console.log(`Saving changes to POI ${pointOfInterest?.href}: category=${pointOfInterest?.category}, details=${pointOfInterest?.details}`);
-      //point.category = pointOfInterest?.category;
-      //pointOfInterest.details = pointOfInterest?.details;
 
       // determine the time duration of the request
       const startTime = performance.now();
