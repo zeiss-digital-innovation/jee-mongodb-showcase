@@ -29,7 +29,7 @@
     
     /* Move Leaflet zoom controls below fixed controls */
     .leaflet-top.leaflet-left {
-        top: 80px; /* Position below top-controls (navbar is 56px)
+        top: 80px; /* Position below top-controls (navbar is 56px) */
     }
 </style>
 
@@ -127,6 +127,9 @@
         // Session timeout: 30 minutes of inactivity = new session
         const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
         
+        // Flag to prevent moveend from overwriting manual input changes
+        let programmaticMapMove = false;
+        
         // Initialize the map when the page loads
         $(document).ready(async function () {
             // Initialize CategoryManager
@@ -166,6 +169,44 @@
             loadEditModalCategories();
             setupModalEventHandlers();
             setupControlHandlers();
+            
+            // Listen for page visibility changes to sync with List page
+            // This ensures input fields are updated when navigating back from List page
+            window.addEventListener('pageshow', function(event) {
+                console.log('[Map] pageshow event - reloading settings from localStorage');
+                const lat = parseFloat(localStorage.getItem(STORAGE_KEYS.latitude));
+                const lon = parseFloat(localStorage.getItem(STORAGE_KEYS.longitude));
+                const radius = parseInt(localStorage.getItem(STORAGE_KEYS.radius));
+                
+                if (!isNaN(lat) && !isNaN(lon) && !isNaN(radius)) {
+                    $('#latitudeInput').val(lat);
+                    $('#longitudeInput').val(lon);
+                    $('#radiusInput').val(radius);
+                    $('#radiusValue').text(radius + ' m');
+                    
+                    // Update map center if coordinates changed
+                    const currentCenter = map.getCenter();
+                    if (Math.abs(currentCenter.lat - lat) > 0.0001 || Math.abs(currentCenter.lng - lon) > 0.0001) {
+                        console.log('[Map] Coordinates changed, updating map center');
+                        map.setView([lat, lon], map.getZoom());
+                    }
+                }
+            });
+            
+            // Also listen for focus events (when user returns to this tab)
+            window.addEventListener('focus', function() {
+                console.log('[Map] window focus event - reloading settings from localStorage');
+                const lat = parseFloat(localStorage.getItem(STORAGE_KEYS.latitude));
+                const lon = parseFloat(localStorage.getItem(STORAGE_KEYS.longitude));
+                const radius = parseInt(localStorage.getItem(STORAGE_KEYS.radius));
+                
+                if (!isNaN(lat) && !isNaN(lon) && !isNaN(radius)) {
+                    $('#latitudeInput').val(lat);
+                    $('#longitudeInput').val(lon);
+                    $('#radiusInput').val(radius);
+                    $('#radiusValue').text(radius + ' m');
+                }
+            });
         });
         
         function loadSettingsFromStorage() {
@@ -230,32 +271,50 @@
             
             // When user changes coordinates manually, move map center
             $('#latitudeInput, #longitudeInput').on('change', function () {
+                console.log('[Map] Coordinate input changed');
                 const lat = parseFloat($('#latitudeInput').val());
                 const lon = parseFloat($('#longitudeInput').val());
                 
+                console.log(`[Map] New coordinates: lat=${lat}, lon=${lon}`);
+                
                 // Validate coordinates
                 if (!isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
+                    console.log('[Map] Coordinates valid, updating map view');
+                    
+                    // Set flag to prevent moveend from overwriting input fields
+                    programmaticMapMove = true;
+                    
+                    // Save to localStorage BEFORE moving map
+                    saveSettingsToStorage();
+                    
                     // Move map to new center (keeps current zoom level)
                     map.setView([lat, lon], map.getZoom());
                     
-                    // Save to localStorage
-                    saveSettingsToStorage();
-                    
                     // POIs will be automatically reloaded by moveend event handler
+                    console.log('[Map] Map moved, moveend event will trigger POI reload');
                 } else {
+                    console.log('[Map] Invalid coordinates');
                     alert('Invalid coordinates. Latitude must be between -90 and 90, Longitude between -180 and 180.');
                     // Restore previous valid values
                     loadSettingsFromStorage();
                 }
             });
             
-            // Load POIs button handler
-            $('#loadPoisBtn').on('click', function () {
+            // Load POIs button handler - using event delegation for reliability
+            $(document).on('click', '#loadPoisBtn', function (e) {
+                console.log('[Map] Load POIs button clicked');
+                e.preventDefault(); // Prevent any default behavior
+                
                 const lat = parseFloat($('#latitudeInput').val());
                 const lon = parseFloat($('#longitudeInput').val());
                 const radius = parseInt($('#radiusInput').val());
                 
-                // Save to localStorage (this sets needsReload flag for List page)
+                console.log(`[Map] Loading POIs for: lat=${lat}, lon=${lon}, radius=${radius}`);
+                
+                // Set flag to prevent moveend from overwriting input fields
+                programmaticMapMove = true;
+                
+                // Save to localStorage BEFORE moving map
                 saveSettingsToStorage();
                 
                 // Update map center and reload POIs
@@ -321,17 +380,31 @@
             
             // Auto-reload POIs when map is moved or zoomed
             map.on('moveend', function() {
+                console.log('[Map] moveend event fired, programmaticMapMove=' + programmaticMapMove);
                 const center = map.getCenter();
                 const currentRadius = parseInt($('#radiusInput').val()); // Keep user's radius constant
                 
-                // Update input fields with new center coordinates only
-                $('#latitudeInput').val(center.lat.toFixed(6));
-                $('#longitudeInput').val(center.lng.toFixed(6));
+                console.log(`[Map] Map center: lat=${center.lat}, lon=${center.lng}, radius=${currentRadius}`);
                 
-                // Save to localStorage (this will trigger List page to reload when navigated to)
-                saveSettingsToStorage();
+                // Only update input fields if this was a USER-initiated map move (drag/pan)
+                // NOT if triggered by programmatic map.setView() from input change
+                if (!programmaticMapMove) {
+                    console.log('[Map] User dragged map - updating input fields with map center');
+                    // Update input fields with new center coordinates only
+                    $('#latitudeInput').val(center.lat.toFixed(6));
+                    $('#longitudeInput').val(center.lng.toFixed(6));
+                    
+                    // Save to localStorage (this will trigger List page to reload when navigated to)
+                    saveSettingsToStorage();
+                } else {
+                    console.log('[Map] Programmatic map move - keeping input fields as-is');
+                }
                 
-                // Load POIs for new position with current radius
+                // Reset flag for next event
+                programmaticMapMove = false;
+                
+                // Always load POIs for new position with current radius
+                console.log('[Map] Loading POIs from moveend handler');
                 loadPointsOfInterest(center.lat, center.lng, currentRadius);
             });
             
@@ -351,8 +424,11 @@
         }
         
         function loadEditModalCategories() {
+            console.log('[Map] loadEditModalCategories() called');
             // Try to reuse already loaded categories from CategoryManager
             const loadedCategories = CategoryManager.getAllCategories();
+            console.log('[Map] CategoryManager.getAllCategories() returned:', loadedCategories);
+            
             if (loadedCategories && loadedCategories.length > 0) {
                 console.log('[Map] Reusing categories from CategoryManager:', loadedCategories);
                 availableCategories = loadedCategories;
@@ -366,6 +442,7 @@
                 url: '/api/categories',
                 type: 'GET',
                 success: function (categories) {
+                    console.log('[Map] Loaded categories from API:', categories);
                     availableCategories = categories;
                     populateEditModalCategoryDropdown(categories);
                 },
@@ -384,13 +461,19 @@
         }
         
         function populateEditModalCategoryDropdown(categories) {
+            console.log('[Map] populateEditModalCategoryDropdown() called with:', categories);
             const $categorySelect = $('#poiCategory');
+            console.log('[Map] Found dropdown element:', $categorySelect.length > 0 ? 'YES' : 'NO');
             $categorySelect.empty();
             $categorySelect.append('<option value="">-- Select Category --</option>');
             
             categories.forEach(function (category) {
-                $categorySelect.append(`<option value="${category}">${capitalizeFirstLetter(category)}</option>`);
+                // Value and display text both lowercase (consistent with List page)
+                const lowerCategory = category.toLowerCase();
+                $categorySelect.append(`<option value="${lowerCategory}">${lowerCategory}</option>`);
             });
+            
+            console.log('[Map] Dropdown populated, total options:', $categorySelect.find('option').length);
         }
         
         function setupModalEventHandlers() {
