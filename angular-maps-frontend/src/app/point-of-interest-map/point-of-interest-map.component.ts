@@ -159,10 +159,9 @@ export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
     }
     // create and attach the Angular dialog component to the document
     const compRef = createComponent(PoiDialogComponent, { environmentInjector: this.injector });
-    // create a new point of interest with given coordinates
-    const pointOfInterest = PointOfInterest.createEmptyFromCoordinates(latitude, longitude);
 
-    compRef.instance.pointOfInterest = pointOfInterest;
+    // create a new point of interest with given coordinates
+    compRef.instance.pointOfInterest = PointOfInterest.createEmptyFromCoordinates(latitude, longitude);
     compRef.instance.categories = POI_CATEGORIES as unknown as string[];
 
     // attach the component view to the application so change detection runs
@@ -196,45 +195,45 @@ export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
     });
 
     compRef.instance.save.subscribe(({ pointOfInterest }) => {
-      const startTime = performance.now();
-
-      if (!pointOfInterest) {
-        cleanupComponent();
-        return;
+      if (pointOfInterest) {
+        this.createPointOfInterest(pointOfInterest);
       }
-
-      this.poiService.createPointOfInterest(pointOfInterest).subscribe({
-        next: (created) => {
-          const durationOfRequest = performance.now() - startTime;
-
-          const displayPoi = created ?? pointOfInterest;
-          let popupContent = '';
-          try {
-            popupContent = this.mapDataService.getMarkerPopupFor(displayPoi);
-          } catch (e) {
-            console.warn('getMarkerPopupFor failed, falling back to plain details', e);
-            popupContent = displayPoi.details || '';
-          }
-          L.marker([latitude, longitude]).addTo(this.map!)
-            .bindPopup(popupContent);
-          this.pointsOfInterest.push(displayPoi);
-
-          this.showToastMessage(ToastNotification.titleDefault, //
-            'Successfully added new point of interest',//
-            durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
-
-          cleanupComponent();
-        },
-        error: (err) => {
-          console.error('Failed to create POI', err);
-          this.showToastMessage(ToastNotification.titleDefault, 'Failed to create POI. Please try again later.', '', ToastNotification.cssClassError);
-          cleanupComponent();
-        }
-      });
+      cleanupComponent();
     });
 
     // attach to body so that CSS position:fixed backdrop works
     document.body.appendChild((compRef.location.nativeElement as HTMLElement));
+  }
+
+  createPointOfInterest(pointOfInterest: PointOfInterest): void {
+    const startTime = performance.now();
+
+    this.poiService.createPointOfInterest(pointOfInterest).subscribe({
+      next: (created) => {
+        const durationOfRequest = performance.now() - startTime;
+
+        const displayPoi = created ?? pointOfInterest;
+        let popupContent = '';
+        try {
+          popupContent = this.mapDataService.getMarkerPopupFor(displayPoi);
+        } catch (e) {
+          console.warn('getMarkerPopupFor failed, falling back to plain details', e);
+          popupContent = displayPoi.details || '';
+        }
+        L.marker([pointOfInterest.location.coordinates[1], pointOfInterest.location.coordinates[0]]).addTo(this.map!)
+          .bindPopup(popupContent);
+        this.pointsOfInterest.push(displayPoi);
+
+        this.showToastMessage(ToastNotification.titleDefault, //
+          'Successfully added new point of interest',//
+          durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
+      },
+      error: (err) => {
+        console.error('Failed to create POI', err);
+        this.showToastMessage(ToastNotification.titleDefault, 'Failed to create POI. Please try again later.', '', ToastNotification.cssClassError);
+
+      }
+    });
   }
 
   loadPointsOfInterest(latitude: number, longitude: number, radius: number): void {
