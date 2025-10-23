@@ -57,8 +57,6 @@ export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
   longitude: number;
   radius: number;
 
-  durationOfRequest: number = 0;
-
   toastNotification: ToastNotification = new ToastNotification(ToastNotification.titleDefault, '', '', '');
 
   @ViewChild('messageToast', { static: false }) messageToastRef!: ElementRef<HTMLElement>;
@@ -211,7 +209,7 @@ export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
 
       this.poiService.createPointOfInterest(poi).subscribe({
         next: (created) => {
-          this.durationOfRequest = performance.now() - startTime;
+          const durationOfRequest = performance.now() - startTime;
 
           const displayPoi = created ?? poi;
           let popupContent = '';
@@ -227,7 +225,7 @@ export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
 
           this.showToastMessage(ToastNotification.titleDefault, //
             'Successfully added new point of interest',//
-            this.durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
+            durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
 
           cleanupComponent();
         },
@@ -255,10 +253,10 @@ export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
           this.updateFiltering();
           this.showPointsOnMap();
 
-          this.durationOfRequest = performance.now() - startTime;
+          const durationOfRequest = performance.now() - startTime;
           this.showToastMessage(ToastNotification.titleDefault, //
             'Successfully loaded ' + this.pointsOfInterest.length + ' points of interest',//
-            this.durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
+            durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
         },
         error: err => {
           console.error('Failed to load POIs', err);

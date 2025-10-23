@@ -1,15 +1,19 @@
-import { Component, OnInit } from '@angular/core';
-import { ApplicationRef, createComponent, EnvironmentInjector } from '@angular/core';
+import { AfterViewInit, ApplicationRef, Component, createComponent, ElementRef, EnvironmentInjector, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
 import { environment } from '../environments/environment';
-import { PointOfInterestService } from '../service/point-of-interest.service';
-import { PoiFilterService } from '../service/poi-filter.service';
+
 import { PointOfInterest } from '../model/point_of_interest';
 import { POI_CATEGORIES } from '../model/poi-categories';
+import { ToastNotification } from '../model/toast_notification';
+
+import { PointOfInterestService } from '../service/point-of-interest.service';
+import { PoiFilterService } from '../service/poi-filter.service';
+import { SearchCriteriaService } from '../service/search-criteria-service';
+
 import { FormatDetailsPipe } from '../pipe/format-details-pipe';
 import { PoiDialogComponent } from '../poi-dialog/poi-dialog.component';
-import { SearchCriteriaService } from '../service/search-criteria-service';
 
 @Component({
   selector: 'app-point-of-interest-list',
@@ -18,7 +22,7 @@ import { SearchCriteriaService } from '../service/search-criteria-service';
   templateUrl: './point-of-interest-list.component.html',
   styleUrl: './point-of-interest-list.component.css'
 })
-export class PointOfInterestListComponent implements OnInit {
+export class PointOfInterestListComponent implements OnInit, AfterViewInit {
 
   latitude: number;
   longitude: number;
@@ -31,6 +35,11 @@ export class PointOfInterestListComponent implements OnInit {
 
   pointsOfInterest: PointOfInterest[] = [];
   pointsOfInterestFiltered: PointOfInterest[] = [];
+
+  toastNotification: ToastNotification = new ToastNotification(ToastNotification.titleDefault, '', '', '');
+
+  @ViewChild('messageToast', { static: false }) messageToastRef!: ElementRef<HTMLElement>;
+  private messageToastInstance?: any;
 
   constructor(private poiService: PointOfInterestService, public poiFilterService: PoiFilterService,
     private searchCriteriaService: SearchCriteriaService,
@@ -66,6 +75,25 @@ export class PointOfInterestListComponent implements OnInit {
       });
   }
 
+  ngAfterViewInit(): void {
+    // instantiate the Toast via dynamic import to avoid TypeScript module resolution issues
+    // If bootstrap is included globally (via angular.json scripts) the fallback will use window.bootstrap
+    import('bootstrap/js/dist/toast')
+      .then(mod => {
+        const ToastClass = (mod && (mod as any).default) ? (mod as any).default : (mod as any);
+        this.messageToastInstance = new ToastClass(this.messageToastRef.nativeElement);
+      })
+      .catch(() => {
+        const G = (window as any).bootstrap;
+        if (G && G.Toast) {
+          this.messageToastInstance = new G.Toast(this.messageToastRef.nativeElement);
+        } else {
+          // as last resort, no Toast available
+          console.warn('Bootstrap Toast not available');
+        }
+      });
+  }
+
   setRadius(event: Event): void {
     this.radius = Number((event.target as HTMLInputElement).value);
   }
@@ -73,11 +101,26 @@ export class PointOfInterestListComponent implements OnInit {
   loadPointsOfInterest(): void {
     this.searchCriteriaService.setSearchCriteria({ latitude: this.latitude, longitude: this.longitude, radius: this.radius });
 
+    // determine the time duration of the request
+    const startTime = performance.now();
+
     this.poiService.getPointsOfInterest(this.latitude, this.longitude, this.radius)
-      .subscribe(points => {
-        this.pointsOfInterest = points;
-        this.pointsOfInterestFiltered = this.pointsOfInterest;
-        this.updateFiltering();
+      .subscribe({
+        next: (points) => {
+          this.pointsOfInterest = points;
+
+          const durationOfRequest = performance.now() - startTime;
+          this.showToastMessage(ToastNotification.titleDefault, //
+            'Successfully loaded ' + this.pointsOfInterest.length + ' points of interest',//
+            durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
+
+          this.pointsOfInterestFiltered = this.pointsOfInterest;
+          this.updateFiltering();
+        },
+        error: err => {
+          console.error('Failed to load POIs', err);
+          this.showToastMessage(ToastNotification.titleDefault, 'POI Service is currently not available. Please try again later.', '', ToastNotification.cssClassError);
+        }
       });
 
   }
@@ -131,13 +174,21 @@ export class PointOfInterestListComponent implements OnInit {
       point.category = category;
       point.details = details;
 
+      // determine the time duration of the request
+      const startTime = performance.now();
+
       this.poiService.updatePointOfInterest(point).subscribe({
         next: (updated) => {
+          const durationOfRequest = performance.now() - startTime;
           console.log('POI updated:', updated);
+
+          this.showToastMessage(ToastNotification.titleDefault, //
+            'Successfully updated point of interest',//
+            durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
         },
         error: (err) => {
           console.error('Error updating POI:', err);
-          alert('Failed to update the point of interest. Please try again.');
+          this.showToastMessage(ToastNotification.titleDefault, 'Failed to update the point of interest. Please try again later.', '', ToastNotification.cssClassError);
         }
       });
 
@@ -147,15 +198,24 @@ export class PointOfInterestListComponent implements OnInit {
 
   deletePoi(point: PointOfInterest): void {
     if (confirm('Are you sure you want to delete this point of interest?\n' + point.details)) {
+      // determine the time duration of the request
+      const startTime = performance.now();
+
       this.poiService.deletePointOfInterest(point).subscribe({
         next: () => {
+          const durationOfRequest = performance.now() - startTime;
+
           // Remove the deleted point from the local array
           this.pointsOfInterest = this.pointsOfInterest.filter(p => p !== point);
           this.pointsOfInterestFiltered = this.pointsOfInterest;
+
+          this.showToastMessage(ToastNotification.titleDefault, //
+            'Successfully deleted point of interest',//
+            durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
         },
         error: (err) => {
           console.error('Error deleting point of interest:', err);
-          alert('Failed to delete the point of interest. Please try again.');
+          this.showToastMessage(ToastNotification.titleDefault, 'Failed to delete the point of interest. Please try again later.', '', ToastNotification.cssClassError);
         }
       });
     }
@@ -178,6 +238,19 @@ export class PointOfInterestListComponent implements OnInit {
     }
 
     this.updateFiltering();
+  }
+
+  showToastMessage(title: string, message: string, smallMessage: string, cssClass: string, attempt = 0) {
+    if (this.messageToastInstance) {
+      this.toastNotification = new ToastNotification(title, message, smallMessage, cssClass);
+      this.messageToastInstance.show();
+      return;
+    }
+    if (attempt < ToastNotification.retryCount) {
+      setTimeout(() => this.showToastMessage(title, message, smallMessage, cssClass, attempt + 1), ToastNotification.retryDelay);
+    } else {
+      console.warn('Success toast not available to show');
+    }
   }
 
   private updateFiltering() {
