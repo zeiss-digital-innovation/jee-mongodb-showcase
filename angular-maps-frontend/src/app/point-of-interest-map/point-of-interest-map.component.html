@@ -1,7 +1,7 @@
 <div class="container top-controls fixed-top">
     <div class="row">
         <div class="col-md-4">
-            <label for="latitudeInput" class="form-label">Filter Category</label>
+            <label for="latitudeInput" class="form-label"><i class="bi bi-funnel"></i>&nbsp;Category</label>
             <select class="form-control form-control-sm" (change)="filterByCategory($event)" [value]="categoryFilter">
                 <option [selected]="poiFilterService.noCategoryFilterSet(categoryFilter)">
                     Choose...</option>
@@ -11,7 +11,7 @@
             </select>
         </div>
         <div class="col-md-8">
-            <label for="latitudeInput" class="form-label">Filter Details</label>
+            <label for="latitudeInput" class="form-label"><i class="bi bi-funnel"></i>&nbsp;Details</label>
             <input class="form-control form-control-sm" type="text" placeholder="Search (Details)..."
                 value="{{detailsFilter}}" (keyup)="filterBySearch($event)">
         </div>

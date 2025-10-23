@@ -10,7 +10,8 @@
         </div>
         <div class="col">
             <label for="radiusInput" class="form-label">Radius {{ radius }} (m)</label>
-            <input type="range" class="form-range" min="100" max="5000" [(ngModel)]="radius" id="customRange2">
+            <input type="range" class="form-range" min="250" max="20000" step="250" [(ngModel)]="radius"
+                id="customRange2">
         </div>
         <div class="col">
             <button type="button" class="btn btn-outline-primary mt-4 btn-sm" (click)="loadPointsOfInterest()"
@@ -20,7 +21,7 @@
     </div>
     <div class="row">
         <div class="col-md-4">
-            <label for="latitudeInput" class="form-label">Filter Category</label>
+            <label for="latitudeInput" class="form-label"><i class="bi bi-funnel"></i>&nbsp;Category</label>
             <select class="form-control form-control-sm" (change)="filterByCategory($event)" [value]="categoryFilter"
                 id="categoryFilter">
                 <option [selected]="poiFilterService.noCategoryFilterSet(categoryFilter)">Choose...</option>
@@ -30,7 +31,7 @@
             </select>
         </div>
         <div class="col-md-8">
-            <label for="latitudeInput" class="form-label">Filter Details</label>
+            <label for="latitudeInput" class="form-label"><i class="bi bi-funnel"></i>&nbsp;Details</label>
             <input class="form-control form-control-sm" type="text" placeholder="Search (Details)..."
                 value="{{detailsFilter}}" (keyup)="filterBySearch($event)">
         </div>
@@ -44,6 +45,7 @@
                 <th scope="col">#</th>
                 <th scope="col">Category</th>
                 <th scope="col">Details</th>
+                <th scope="col"><i class="bi bi-geo-alt"></i>&nbsp;Location</th>
                 <th scope="col">Action</th>
             </tr>
         </thead>
@@ -53,11 +55,12 @@
                 <!-- lets display the category with first letter upper case -->
                 <td>{{ poi.category | titlecase }}</td>
                 <td [innerHTML]="poi.details | formatDetails"></td>
+                <td>Lat: {{ poi.location.coordinates[1] }}, Lng: {{ poi.location.coordinates[0] }}</td>
                 <td class="poi-list-content-column-right">
-                    <button type="button" class="btn btn-sm btn-outline-primary btn-sm" (click)="editPoi(poi)"><i
+                    <button type="button" class="btn btn-outline-primary btn-sm" (click)="editPoi(poi)"><i
                             class="bi bi-pencil"></i> Edit</button>
                     &nbsp;
-                    <button type="button" class="btn btn-sm btn-outline-danger btn-sm" (click)="deletePoi(poi)"><i
+                    <button type="button" class="btn btn-outline-danger btn-sm" (click)="deletePoi(poi)"><i
                             class="bi bi-trash"></i> Delete</button>
                 </td>
             </tr>

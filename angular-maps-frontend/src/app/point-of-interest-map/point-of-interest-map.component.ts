@@ -159,9 +159,10 @@ export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
     }
     // create and attach the Angular dialog component to the document
     const compRef = createComponent(PoiDialogComponent, { environmentInjector: this.injector });
-    // set inputs before attaching the view so CD picks them up
-    compRef.instance.latitude = latitude;
-    compRef.instance.longitude = longitude;
+    // create a new point of interest with given coordinates
+    const pointOfInterest = PointOfInterest.createEmptyFromCoordinates(latitude, longitude);
+
+    compRef.instance.pointOfInterest = pointOfInterest;
     compRef.instance.categories = POI_CATEGORIES as unknown as string[];
 
     // attach the component view to the application so change detection runs
@@ -194,24 +195,19 @@ export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
       cleanupComponent();
     });
 
-    compRef.instance.save.subscribe(({ category, details }) => {
-      const poi: PointOfInterest = {
-        href: '',
-        category: category,
-        details: details,
-        location: {
-          coordinates: [longitude, latitude],
-          type: 'Point'
-        }
-      };
-
+    compRef.instance.save.subscribe(({ pointOfInterest }) => {
       const startTime = performance.now();
 
-      this.poiService.createPointOfInterest(poi).subscribe({
+      if (!pointOfInterest) {
+        cleanupComponent();
+        return;
+      }
+
+      this.poiService.createPointOfInterest(pointOfInterest).subscribe({
         next: (created) => {
           const durationOfRequest = performance.now() - startTime;
 
-          const displayPoi = created ?? poi;
+          const displayPoi = created ?? pointOfInterest;
           let popupContent = '';
           try {
             popupContent = this.mapDataService.getMarkerPopupFor(displayPoi);
@@ -249,13 +245,11 @@ export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: points => {
           this.pointsOfInterest = points;
-          this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.detailsFilter);
           this.updateFiltering();
-          this.showPointsOnMap();
 
           const durationOfRequest = performance.now() - startTime;
           this.showToastMessage(ToastNotification.titleDefault, //
-            'Successfully loaded ' + this.pointsOfInterest.length + ' points of interest',//
+            'Successfully loaded ' + this.pointsOfInterest.length + ' point(s) of interest. ' + this.pointsOfInterestFiltered.length + ' point(s) match the current filters.',//
             durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
         },
         error: err => {

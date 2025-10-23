@@ -100,7 +100,7 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
 
   loadPointsOfInterest(): void {
     this.searchCriteriaService.setSearchCriteria({ latitude: this.latitude, longitude: this.longitude, radius: this.radius });
-
+    console.log('Loading POIs for lat=' + this.latitude + ', lon=' + this.longitude + ', radius=' + this.radius);
     // determine the time duration of the request
     const startTime = performance.now();
 
@@ -111,7 +111,7 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
 
           const durationOfRequest = performance.now() - startTime;
           this.showToastMessage(ToastNotification.titleDefault, //
-            'Successfully loaded ' + this.pointsOfInterest.length + ' points of interest',//
+            'Successfully loaded ' + this.pointsOfInterest.length + ' point(s) of interest. ' + this.pointsOfInterestFiltered.length + ' point(s) match the current filters.',//
             durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
 
           this.pointsOfInterestFiltered = this.pointsOfInterest;
@@ -135,9 +135,12 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
     // create and attach the Angular dialog component to the document
     const compRef = createComponent(PoiDialogComponent, { environmentInjector: this.injector });
     // set inputs before attaching the view so CD picks them up
-    compRef.instance.details = point.details;
+    //compRef.instance.details = point.details;
     compRef.instance.categories = POI_CATEGORIES as unknown as string[];
-    compRef.instance.category = point.category;
+    //compRef.instance.category = point.category;
+    compRef.instance.pointOfInterest = point;
+    compRef.instance.action = 'Edit';
+    compRef.instance.cssClass = 'bi bi-pencil';
 
     // attach the component view to the application so change detection runs
     this.appRef.attachView(compRef.hostView);
@@ -169,28 +172,30 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
       cleanupComponent();
     });
 
-    compRef.instance.save.subscribe(({ category, details }) => {
-      console.log(`Saving changes to POI ${point.href}: category=${category}, details=${details}`);
-      point.category = category;
-      point.details = details;
+    compRef.instance.save.subscribe(({ pointOfInterest }) => {
+      console.log(`Saving changes to POI ${pointOfInterest?.href}: category=${pointOfInterest?.category}, details=${pointOfInterest?.details}`);
+      //point.category = pointOfInterest?.category;
+      //pointOfInterest.details = pointOfInterest?.details;
 
       // determine the time duration of the request
       const startTime = performance.now();
 
-      this.poiService.updatePointOfInterest(point).subscribe({
-        next: (updated) => {
-          const durationOfRequest = performance.now() - startTime;
-          console.log('POI updated:', updated);
+      if (pointOfInterest) {
+        this.poiService.updatePointOfInterest(pointOfInterest).subscribe({
+          next: (updated) => {
+            const durationOfRequest = performance.now() - startTime;
+            console.log('POI updated:', updated);
 
-          this.showToastMessage(ToastNotification.titleDefault, //
-            'Successfully updated point of interest',//
-            durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
-        },
-        error: (err) => {
-          console.error('Error updating POI:', err);
-          this.showToastMessage(ToastNotification.titleDefault, 'Failed to update the point of interest. Please try again later.', '', ToastNotification.cssClassError);
-        }
-      });
+            this.showToastMessage(ToastNotification.titleDefault, //
+              'Successfully updated point of interest',//
+              durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
+          },
+          error: (err) => {
+            console.error('Error updating POI:', err);
+            this.showToastMessage(ToastNotification.titleDefault, 'Failed to update the point of interest. Please try again later.', '', ToastNotification.cssClassError);
+          }
+        });
+      }
 
       cleanupComponent();
     });
