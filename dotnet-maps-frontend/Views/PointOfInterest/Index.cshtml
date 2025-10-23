@@ -373,6 +373,19 @@
             // Setup control event handlers for saving to localStorage
             setupControlHandlers();
             
+            // Listen for page visibility changes to sync with Map page
+            // This ensures input fields are updated when navigating back from Map page
+            window.addEventListener('pageshow', function(event) {
+                console.log('[List] pageshow event - reloading settings from localStorage');
+                loadSettingsFromStorage();
+            });
+            
+            // Also listen for focus events (when user returns to this tab)
+            window.addEventListener('focus', function() {
+                console.log('[List] window focus event - reloading settings from localStorage');
+                loadSettingsFromStorage();
+            });
+            
             // Load categories for Edit Modal dropdown
             loadEditModalCategories();
             
