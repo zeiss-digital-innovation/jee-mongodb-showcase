@@ -1,0 +1,16 @@
+# Production profile: leave context path to the servlet container (Tomcat/Jetty) or set via container configuration
+# Do not set server.servlet.context-path here so the container controls the deployed context.
+# Activate with: --spring.profiles.active=prod
+
+# Optional: keep the DispatcherServlet path consistent across environments
+
+logging:
+  level:
+    root: WARN
+
+# management and other prod-specific settings can go here
+# management:
+#   endpoints:
+#     web:
+#       base-path: /actuator
+

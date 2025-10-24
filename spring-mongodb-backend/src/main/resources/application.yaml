@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: spring-geo-service
+  # map DispatcherServlet to '/api' so final URL becomes {context-path}/api/...
+  mvc:
+    servlet:
+      path: /api
+  profiles:
+    active: dev
+server:
+  port: 8080
+
+# Keep context-path out of the base file; use profile-specific files (application-dev.yaml/application-prod.yaml)
+# Default content-negotiation settings are left commented; enable via profiles if needed
+#spring.mvc.contentnegotiation.default-content-type=application/json
+#spring.mvc.contentnegotiation.ignore-accept-header=true

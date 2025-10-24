@@ -1,0 +1,11 @@
+server:
+  servlet:
+    context-path: /zdi-geo-service
+
+logging:
+  level:
+    root: INFO
+
+# Dev-specific settings (kept minimal) - this profile is intended for local development
+# Activate with: --spring.profiles.active=dev
+
