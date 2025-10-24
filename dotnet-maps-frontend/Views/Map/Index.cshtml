@@ -45,11 +45,13 @@
 </div>
 
 <!-- POI Creation Modal -->
-<div class="modal fade" id="createPoiModal" tabindex="-1" aria-labelledby="createPoiModalLabel" aria-hidden="true">
+<div class="modal fade modal-sm" id="createPoiModal" tabindex="-1" aria-labelledby="createPoiModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="createPoiModalLabel">Create New Point of Interest</h5>
+                <h6 class="modal-title" id="createPoiModalLabel">
+                    <i class="bi bi-plus-circle me-2"></i>Create New Point of Interest
+                </h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -79,17 +81,17 @@
                     
                     <div class="mb-3">
                         <small class="text-muted">
-                            Location: <span id="selectedCoordinates"></span>
+                            <i class="bi bi-geo-fill"></i> Location: <span id="selectedCoordinates"></span>
                         </small>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelPoiBtn">
-                    Cancel (Esc)
+                <button type="button" class="btn btn-warning btn-sm" data-bs-dismiss="modal" id="cancelPoiBtn">
+                    <i class="bi bi-x-lg me-1"></i>Cancel (Esc)
                 </button>
-                <button type="button" class="btn btn-primary" id="savePoiBtn" disabled>
-                    Save (Enter)
+                <button type="button" class="btn btn-primary btn-sm" id="savePoiBtn" disabled>
+                    <i class="bi bi-check2 me-1"></i>Save (Enter)
                 </button>
             </div>
         </div>
