@@ -240,11 +240,13 @@
 </div> <!-- End of poi-scrollable-content -->
 
 <!-- Edit POI Modal -->
-<div class="modal fade" id="editPoiModal" tabindex="-1" aria-labelledby="editPoiModalLabel" aria-hidden="true">
+<div class="modal fade modal-sm" id="editPoiModal" tabindex="-1" aria-labelledby="editPoiModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editPoiModalLabel">Edit Point of Interest</h5>
+                <h6 class="modal-title" id="editPoiModalLabel">
+                    <i class="bi bi-pencil-square me-2"></i>Edit Point of Interest
+                </h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -276,17 +278,17 @@
                     
                     <div class="mb-3">
                         <small class="text-muted">
-                            Location: <span id="editPoiCoordinates"></span> (read-only)
+                             <i class="bi bi-geo-fill"></i> Location: <span id="editPoiCoordinates"></span>
                         </small>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelEditBtn">
-                    Cancel (Esc)
+                <button type="button" class="btn btn-warning btn-sm" data-bs-dismiss="modal" id="cancelEditBtn">
+                    <i class="bi bi-x-lg me-1"></i>Cancel (Esc)
                 </button>
-                <button type="button" class="btn btn-primary" id="saveEditBtn" disabled>
-                    Save (Enter)
+                <button type="button" class="btn btn-primary btn-sm" id="saveEditBtn" disabled>
+                    <i class="bi bi-check2 me-1"></i>Save (Enter)
                 </button>
             </div>
         </div>
@@ -823,7 +825,7 @@
                     'company': 'bi-building',
                     'pharmacy': 'bi-plus-square'
                 };
-                return icons[category?.toLowerCase()] || 'bi-geo-alt';
+                return icons[category?.toLowerCase()] || 'bi-geo';
             }
             
             function formatDetails(details) {
@@ -1061,7 +1063,7 @@
             "gas station" => "bi-fuel-pump",
             "company" => "bi-building",
             "pharmacy" => "bi-plus-square",
-            _ => "bi-geo-alt"
+            _ => "bi-geo"
         };
     }
     
