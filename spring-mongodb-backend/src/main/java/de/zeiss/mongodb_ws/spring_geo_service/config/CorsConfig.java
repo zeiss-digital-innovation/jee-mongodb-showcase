@@ -4,6 +4,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+/**
+ * Sets up CORS configuration to allow requests from localhost for development purposes.
+ */
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
 
