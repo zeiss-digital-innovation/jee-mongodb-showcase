@@ -1,4 +1,5 @@
 using DotNetMapsFrontend.Models;
+using DotNetMapsFrontend.Constants;
 using System.Text.Json;
 using System.Globalization;
 
@@ -18,31 +19,6 @@ namespace DotNetMapsFrontend.Services
 
     public class PointOfInterestService : IPointOfInterestService
     {
-        /// <summary>
-        /// Default categories for fallback when backend does not provide a /categories endpoint.
-        /// Compatible with JEE-Backend + Angular-Frontend reference implementation.
-        /// </summary>
-        private static readonly List<string> DEFAULT_CATEGORIES = new()
-        {
-            "bank",
-            "cash",
-            "castle",
-            "coffee",
-            "company",
-            "gasstation",
-            "hotel",
-            "landmark",
-            "lodging",
-            "museum",
-            "parking",
-            "pharmacy",
-            "police",
-            "post",
-            "restaurant",
-            "supermarket",
-            "toilet"
-        };
-
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
         private readonly ILogger<PointOfInterestService> _logger;
@@ -412,8 +388,8 @@ namespace DotNetMapsFrontend.Services
         private List<string> GetFallbackCategories()
         {
             _logger.LogInformation("Using default fallback categories ({Count} categories, JEE-Backend compatible)", 
-                DEFAULT_CATEGORIES.Count);
-            return new List<string>(DEFAULT_CATEGORIES);
+                CategoryConstants.DEFAULT_CATEGORIES.Count);
+            return new List<string>(CategoryConstants.DEFAULT_CATEGORIES);
         }
 
         private List<PointOfInterest> GetMockData()

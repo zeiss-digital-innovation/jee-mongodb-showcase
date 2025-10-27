@@ -1,5 +1,6 @@
 using DotNetMapsFrontend.Models;
 using DotNetMapsFrontend.Services;
+using DotNetMapsFrontend.Constants;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DotNetMapsFrontend.Controllers
@@ -200,13 +201,7 @@ namespace DotNetMapsFrontend.Controllers
             catch (Exception)
             {
                 // Return fallback categories if service fails
-                var fallbackCategories = new List<string>
-                {
-                    "landmark", "museum", "castle", "cathedral", "park",
-                    "restaurant", "hotel", "gasstation", "hospital", "pharmacy",
-                    "shop", "bank", "school", "library", "theater"
-                };
-                return Json(fallbackCategories);
+                return Json(CategoryConstants.DEFAULT_CATEGORIES);
             }
         }
     }

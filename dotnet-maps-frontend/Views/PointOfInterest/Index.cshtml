@@ -1,3 +1,4 @@
+@using DotNetMapsFrontend.Constants
 @model List<DotNetMapsFrontend.Models.PointOfInterest>
 @{
     ViewData["Title"] = "Point of Interest List";
@@ -167,7 +168,7 @@
                         <div class="card poi-card h-100">
                             <div class="card-body">
                                 <h5 class="card-title">
-                                    <i class="bi @GetCategoryIcon(poi.Category) text-primary"></i>
+                                    <i class="bi @CategoryConstants.GetCategoryIcon(poi.Category) text-primary"></i>
                                     @poi.Category.ToLower()
                                 </h5>
                                 <p class="card-text">@Html.Raw(FormatDetails(poi.Details))</p>
@@ -212,7 +213,7 @@
                         var poi = Model[i];
                         <tr>
                             <td class="category-cell" style="width: 250px;">
-                                @(i + 1). @poi.Category.ToLower() <i class="bi @GetCategoryIcon(poi.Category)"></i>
+                                @(i + 1). @poi.Category.ToLower() <i class="bi @CategoryConstants.GetCategoryIcon(poi.Category)"></i>
                             </td>
                             <td class="details-cell">@Html.Raw(FormatDetails(poi.Details))</td>
                             <td class="action-buttons">
@@ -811,21 +812,7 @@
             }
             
             function getCategoryIcon(category) {
-                const icons = {
-                    'restaurant': 'bi-cup-hot',
-                    'cash': 'bi-credit-card',
-                    'supermarket': 'bi-shop',
-                    'post': 'bi-mailbox',
-                    'lodging': 'bi-house',
-                    'police': 'bi-shield-check',
-                    'toilet': 'bi-person-standing',
-                    'coffee': 'bi-cup-hot',
-                    'parking': 'bi-car-front',
-                    'gas station': 'bi-fuel-pump',
-                    'company': 'bi-building',
-                    'pharmacy': 'bi-plus-square'
-                };
-                return icons[category?.toLowerCase()] || 'bi-geo';
+                return CATEGORY_ICONS[category?.toLowerCase()] || CATEGORY_ICONS['_default'] || 'bi-geo';
             }
             
             function formatDetails(details) {
@@ -1044,34 +1031,4 @@
             }, 3000);
         }
     </script>
-}
-
-@functions {
-    string GetCategoryIcon(string category)
-    {
-        return category?.ToLower() switch
-        {
-            "restaurant" => "bi-cup-hot",
-            "cash" => "bi-credit-card",
-            "supermarket" => "bi-shop",
-            "post" => "bi-mailbox",
-            "lodging" => "bi-house",
-            "police" => "bi-shield-check",
-            "toilet" => "bi-person-standing",
-            "coffee" => "bi-cup-hot",
-            "parking" => "bi-car-front",
-            "gas station" => "bi-fuel-pump",
-            "company" => "bi-building",
-            "pharmacy" => "bi-plus-square",
-            _ => "bi-geo"
-        };
-    }
-    
-    string FormatDetails(string details)
-    {
-        if (string.IsNullOrEmpty(details))
-            return string.Empty;
-            
-        return details.Replace("\n", "<br>");
-    }
 }
