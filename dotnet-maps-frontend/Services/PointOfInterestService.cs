@@ -64,7 +64,7 @@ namespace DotNetMapsFrontend.Services
                 urlBuilder.Append($"{apiBaseUrl}/poi?lat={latitude.ToString("F6", CultureInfo.InvariantCulture)}");
                 urlBuilder.Append($"&lon={longitude.ToString("F6", CultureInfo.InvariantCulture)}");
                 urlBuilder.Append($"&radius={radiusInMeters}");
-                
+
                 // Add category parameters (repeated parameter pattern: ?category=x&category=y)
                 if (categories != null && categories.Count > 0)
                 {
@@ -72,9 +72,13 @@ namespace DotNetMapsFrontend.Services
                     {
                         urlBuilder.Append($"&category={Uri.EscapeDataString(category)}");
                     }
-                    _logger.LogInformation("Requesting POIs with {Count} category filters: {Categories}", 
+                    _logger.LogInformation("Requesting POIs with {Count} category filters: {Categories}",
                         categories.Count, string.Join(", ", categories));
                 }
+
+                // For compatibility-purposes, to correct work with JEE-Backend, toget full information to POIs.
+                // This parameter will be ignored by dotnet frontend
+                urlBuilder.Append("&expand=details");
                 
                 var url = urlBuilder.ToString();
                 _logger.LogInformation("Fetching POIs from: {Url}", url);
