@@ -47,6 +47,11 @@ public class MongoDBClientProvider {
     @PostConstruct
     public void init() {
         // TODO add user and password support
+        LOG.info("Creating a MongoDB client for " + hostname + ":" + port + "/" + databaseName);
+        LOG.info("To set a different host, port or database name, please adjust the configuration properties " +
+                "'mongodb.host', 'mongodb.port' and 'mongodb.database' by supplying custom microprofile.properties in 'src/main/webapp/META-INF'" +
+                " by creating a copy of the template file 'microprofile-config.properties.template'." +
+                " Default values are 'localhost', '27017' and 'demo-campus'.");
         mongoClient = MongoClients.create("mongodb://" + hostname + ":" + port);
 
         datastore = Morphia.createDatastore(mongoClient, databaseName);
