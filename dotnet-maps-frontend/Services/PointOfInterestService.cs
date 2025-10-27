@@ -38,7 +38,6 @@ namespace DotNetMapsFrontend.Services
             "pharmacy",
             "police",
             "post",
-            "Restaurant",
             "restaurant",
             "supermarket",
             "toilet"
