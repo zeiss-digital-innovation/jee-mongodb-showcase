@@ -1032,3 +1032,13 @@
         }
     </script>
 }
+
+@functions {
+    string FormatDetails(string details)
+    {
+        if (string.IsNullOrEmpty(details))
+            return string.Empty;
+            
+        return details.Replace("\n", "<br>");
+    }
+}
