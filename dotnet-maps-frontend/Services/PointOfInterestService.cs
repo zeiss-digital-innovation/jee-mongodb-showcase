@@ -24,21 +24,24 @@ namespace DotNetMapsFrontend.Services
         /// </summary>
         private static readonly List<string> DEFAULT_CATEGORIES = new()
         {
-            "landmark",
-            "museum", 
-            "castle",
-            "cathedral",
-            "park",
-            "restaurant",
-            "hotel",
-            "gasstation",
-            "hospital",
-            "pharmacy",
-            "shop",
             "bank",
-            "school",
-            "library",
-            "theater"
+            "cash",
+            "castle",
+            "coffee",
+            "company",
+            "gasstation",
+            "hotel",
+            "landmark",
+            "lodging",
+            "museum",
+            "parking",
+            "pharmacy",
+            "police",
+            "post",
+            "Restaurant",
+            "restaurant",
+            "supermarket",
+            "toilet"
         };
 
         private readonly IHttpClientFactory _httpClientFactory;
