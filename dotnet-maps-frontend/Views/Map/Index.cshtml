@@ -1,3 +1,4 @@
+@using DotNetMapsFrontend.Constants
 @{
     ViewData["Title"] = "Point of Interest Map";
 }
@@ -125,6 +126,14 @@
         const longitudeDefault = 13.7373;
         const radiusDefault = 2000;
         const zoomDefault = 13;
+        
+        // Category icon mapping from server-side CategoryConstants
+        const CATEGORY_ICONS = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(CategoryConstants.GetIconMappingDictionary()));
+        
+        // Function to get Bootstrap icon class for a category
+        function getCategoryIcon(category) {
+            return CATEGORY_ICONS[category?.toLowerCase()] || CATEGORY_ICONS['_default'] || 'bi-geo';
+        }
         
         // Session timeout: 30 minutes of inactivity = new session
         const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
@@ -676,8 +685,10 @@
         }
         
         function getMarkerPopupFor(poi) {
+            const iconClass = getCategoryIcon(poi.category);
+            
             let popupContent = '<div>';
-            popupContent += '<h6>' + poi.category + '</h6>';
+            popupContent += '<h6><i class="bi ' + iconClass + ' text-primary me-2"></i>' + poi.category + '</h6>';
             
             if (poi.details) {
                 const lines = poi.details.split('\n');
