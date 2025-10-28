@@ -68,9 +68,7 @@ public class GeoDataService {
         if (entity == null) {
             return null;
         }
-
-        entity.setCategory(poi.getCategory());
-        entity.setDetails(poi.getDetails());
+        PointOfInterestMapper.updateEntityFromModel(poi, entity);
 
         entity = persistenceService.updatePointOfInterest(entity);
 
