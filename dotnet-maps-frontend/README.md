@@ -5,11 +5,21 @@ This is an ASP.NET Core MVC application that provides the same functionality as 
 ## Features
 
 - **Interactive Map View**: Uses Leaflet.js to display POIs on an OpenStreetMap
-- **List View**: Displays POIs in a structured card layout  
+- **POI Creation**: Create new POIs directly on the map by clicking
+- **POI Editing**: Edit existing POI categories and details with real-time validation
+- **POI Deletion**: Delete POIs with confirmation dialog
+- **List View**: Displays POIs in card and table views with toggle
+- **POI Filter**: Real-time text-based filtering across all views (cards, table, map markers)
+- **Filter Synchronization**: Filter value synchronized between Map and List pages via localStorage
+- **Zoom Persistence**: Map zoom level persists when navigating between pages
+- **Synchronized Controls**: Latitude, Longitude, and Radius controls synchronized between Map and List pages via localStorage
+- **Fixed Headers**: Scrollable content with pinned headers and controls for better UX
+- **Category Display**: All categories displayed in lowercase for consistency
 - **Bootstrap Navigation**: Clean navigation between map and list views
 - **REST API Integration**: Fetches POI data from the backend service
 - **Responsive Design**: Works on desktop and mobile devices
 - **Mock Data Fallback**: Uses mock data when backend is unavailable
+- **Partial Views**: Reusable UI components for maintainability (DRY principle)
 
 ## Technology Stack
 
@@ -32,13 +42,19 @@ This is an ASP.NET Core MVC application that provides the same functionality as 
 │   └── PointOfInterestService.cs  # API service for backend calls
 ├── Views/
 │   ├── Map/
-│   │   └── Index.cshtml           # Interactive map view
+│   │   └── Index.cshtml           # Interactive map view with filter
 │   ├── PointOfInterest/
-│   │   └── Index.cshtml           # List view with cards
+│   │   └── Index.cshtml           # List view with cards/table and filter
 │   ├── Home/
 │   │   └── Index.cshtml           # Welcome page
 │   └── Shared/
-│       └── _Layout.cshtml         # Common layout with navigation
+│       ├── _Layout.cshtml         # Common layout with navigation
+│       ├── _PoiControls.cshtml    # Reusable Lat/Lon/Radius controls
+│       └── _PoiFilter.cshtml      # Reusable filter input (prepared)
+├── DotNetMapsFrontend.Tests/      # Unit tests
+│   ├── PointOfInterestControllerTests.cs
+│   ├── PointOfInterestFilterTests.cs  # 24 filter & zoom tests
+│   └── ...
 └── wwwroot/                       # Static files (CSS, JS, images)
 ```
 
@@ -50,11 +66,58 @@ The application can be configured via `appsettings.json`:
 {
   "PointOfInterestApi": {
     "BaseUrl": "http://localhost:8080/zdi-geo-service/api"
+  },
+  "Server": {
+    "UseHttps": false,
+    "HttpPort": 4200,
+    "HttpsPort": 7225
   }
 }
 ```
 
-**Port Configuration**: The application runs on port 4200 (same as Angular frontend) for consistency. This is configured in `Properties/launchSettings.json`.
+### Server Configuration
+
+**HTTPS Support**: The application supports both HTTP and HTTPS modes:
+
+- **`UseHttps`** (boolean, default: `false`):
+  - `false`: Run on HTTP only, no HTTPS redirection, no warnings
+  - `true`: Enable HTTPS with automatic HTTP to HTTPS redirection
+  
+- **`HttpPort`** (integer, default: `4200`):
+  - Port for HTTP traffic (matches Angular frontend port)
+  
+- **`HttpsPort`** (integer, default: `7225`):
+  - Port for HTTPS traffic (only used when `UseHttps` is `true`)
+
+**Examples:**
+
+HTTP Only (Default):
+```json
+{
+  "Server": {
+    "UseHttps": false,
+    "HttpPort": 4200
+  }
+}
+```
+→ Application runs on: `http://localhost:4200`
+
+HTTPS Enabled:
+```json
+{
+  "Server": {
+    "UseHttps": true,
+    "HttpPort": 4200,
+    "HttpsPort": 7225
+  }
+}
+```
+→ Application runs on: `https://localhost:7225` (HTTP on 4200 redirects to HTTPS)
+
+**Development Certificate**: For HTTPS in development, ensure you have a valid development certificate:
+```powershell
+dotnet dev-certs https --trust
+```
 
 **Backend Integration**: Connects to MongoDB .NET/JEE Backend on `/zdi-geo-service/api/poi` endpoint.
 
@@ -71,9 +134,11 @@ The application can be configured via `appsettings.json`:
 
 3. **Access the application**:
    - Map View: `http://localhost:4200/Map` (same port as Angular frontend)
-   - List View: `http://localhost:4200/PointOfInterest`
+   - List View: `http://localhost:4200/poi
+   - List View with Parameters: `http://localhost:4200/poi?lat=51.0504&lon=13.7373&radius=3900`
    - Home: `http://localhost:4200/` (redirects to Map)
-   - API Endpoint: `http://localhost:4200/api/pointsofinterest`
+   - API Endpoint: `http://localhost:4200/api/poi`
+   - API Endpoint with Parameters: `http://localhost:4200/api/poi?lat=51.0504&lon=13.7373&radius=2000`
 
 ## API Integration
 
@@ -100,6 +165,13 @@ The application connects to the MongoDB backend REST API with optimized paramete
 - ✅ **MongoDB .NET Backend**: Full parameter support (`/zdi-geo-service/api/poi?lat=X&lon=Y&radius=Z&expand=details`)
 - ✅ **JEE Backend**: Full parameter support (`/zdi-geo-service/api/poi?lat=X&lon=Y&radius=Z&expand=details`)
 
+### Category Loading with Fallback:
+The frontend attempts to load available categories from the backend at startup:
+- **Success**: Uses categories provided by backend via `/categories` endpoint
+- **Backend has no /categories endpoint** (e.g., JEE-Backend): Uses **DEFAULT_CATEGORIES** constant as fallback
+- **Fallback Categories**: `landmark`, `museum`, `castle`, `cathedral`, `park`, `restaurant`, `hotel`, `gasstation`, `hospital`, `pharmacy`, `shop`, `bank`, `school`, `library`, `theater`
+- **Compatibility**: Ensures the application works with older backend versions (JEE reference implementation)
+
 ### Performance Benefits:
 - **Reduced Data Transfer**: Only loads POIs within visible area
 - **Faster Response**: Server-side filtering by location  
@@ -121,12 +193,25 @@ GET /api/pointsofinterest?lat=51.0504&lon=13.7373&radius=1000
 |---------|------------------|------------------|--------|
 | Interactive Map | ✅ Leaflet.js | ✅ Leaflet.js | ✅ Implemented |
 | POI Markers | ✅ | ✅ | ✅ Implemented |
+| POI Creation | ✅ Map Page | ✅ Map Page | ✅ Implemented |
+| POI Editing | ✅ List Page | ✅ List & Map Pages | ✅ Implemented |
+| POI Deletion | ✅ List Page | ✅ List & Map Pages | ✅ Implemented |
 | Map Movement API Calls | ✅ | ✅ | ✅ Implemented |
-| List View | ✅ | ✅ | ✅ Implemented |
+| List View (Table) | ✅ | ✅ | ✅ Implemented |
+| List View (Cards) | ❌ | ✅ | ✅ Implemented |
+| View Toggle (Cards/Table) | ❌ | ✅ | ✅ Implemented |
+| Fixed Headers & Scrolling | ✅ | ✅ | ✅ Implemented |
+| Synchronized Controls | ✅ | ✅ localStorage | ✅ Implemented |
+| Query Parameters | ❌ | ✅ URL Parameters | ✅ Implemented |
 | Bootstrap Navigation | ✅ | ✅ | ✅ Implemented |
 | Category Icons | ✅ Bootstrap Icons | ✅ Bootstrap Icons | ✅ Implemented |
+| Category Format | ✅ TitleCase | ✅ lowercase | ✅ Implemented |
 | Responsive Design | ✅ | ✅ | ✅ Implemented |
 | Mock Data Fallback | ✅ | ✅ | ✅ Implemented |
+| **POI Text Filter** | ✅ | ✅ All Views | ✅ **Implemented** |
+| **Filter Synchronization** | ✅ | ✅ localStorage | ✅ **Implemented** |
+| **Zoom Persistence** | ❌ | ✅ localStorage | ✅ **Implemented** |
+| **Partial Views (DRY)** | ❌ | ✅ Reusable Components | ✅ **Implemented** |
 | Category Filter | ⚠️ TODO | ⚠️ TODO | 🔄 Future Enhancement |
 
 ## Development Notes
@@ -143,30 +228,98 @@ GET /api/pointsofinterest?lat=51.0504&lon=13.7373&radius=1000
 
 ## Testing
 
-The project is designed with testability in mind:
+The project includes comprehensive unit tests using NUnit, Moq, and AngleSharp:
+
+```bash
+cd DotNetMapsFrontend.Tests
+dotnet test
+```
+
+### Test Coverage
+
+✅ **86 Unit Tests** - All passing
+- **62 Controller Tests**: CRUD operations, validation, error handling
+- **24 Filter & Zoom Tests**: UI presence, functionality, localStorage sync
+
+### Test Files
+
+- `PointOfInterestControllerTests.cs`: Controller logic and API integration tests
+- `PointOfInterestFilterTests.cs`: Filter input field and zoom persistence tests
+  - Filter field presence on both Map and List pages
+  - Case-insensitive filtering (cards, table, map markers)
+  - Filter synchronization via localStorage
+  - Zoom level persistence across page navigation
+  - Session-based state management
+
+### Testing Technologies
+
+- **NUnit 4.6.0**: Testing framework
+- **Moq**: Service mocking for dependency injection
+- **AngleSharp**: HTML parsing and DOM manipulation
+- **WebApplicationFactory**: Integration testing with in-memory server
+
+The project follows testability best practices:
 - Service layer separated for easy unit testing
 - Dependency injection for mocking services
 - Controller logic isolated from business logic
 - Mock data available for integration testing
+- HTML content validation with AngleSharp
 
 ## Current Status
 
-✅ **Fully Functional** - All core features implemented and working
+✅ **Fully Functional** - All features implemented and working
 - Interactive map with POI markers from MongoDB backend
-- List view with real POI data  
+- **Full CRUD Operations**: Create, Read, Update, Delete POIs
+- **Edit & Delete**: Real-time validation, change detection, confirmation dialogs
+- **Dual List Views**: Card view and Table view with toggle
+- **POI Text Filter**: Real-time filtering on both pages (cards, table, map markers)
+- **Filter Synchronization**: Filter value persists between Map and List pages
+- **Zoom Persistence**: Map zoom level persists across page navigation
+- **Fixed Layout**: Scrollable content with pinned headers for better UX
+- **Synchronized Settings**: Lat/Lon/Radius synchronized between pages via localStorage
+- **URL Parameters**: Support for `?lat=X&lon=Y&radius=Z` query parameters
+- **Category Normalization**: All categories displayed in lowercase
+- **Partial Views**: Reusable UI components (`_PoiControls.cshtml`) for DRY code
 - Navigation between views
 - Responsive design for mobile/desktop
 - Live MongoDB backend integration
 - Error handling and fallback data
+- **86 Unit Tests**: Comprehensive test coverage with NUnit
 - Clean, maintainable code structure
 - The application follows ASP.NET Core MVC best practices with separation of concerns
 
-**Data Source**: Currently connected to MongoDB backend with live POI data (thousands of entries).
+**Data Source**: Currently connected to MongoDB backend with live POI data (152,578+ entries).
+
+### Latest Updates (October 2025)
+
+1. ✅ **POI Filter Feature**: Case-insensitive text filtering across all views
+2. ✅ **Zoom Persistence**: Map zoom level saved and restored between pages
+3. ✅ **Code Refactoring**: Extracted duplicate controls into `_PoiControls.cshtml` partial view
+4. ✅ **Test Coverage**: Added 24 new unit tests for filter and zoom functionality
+
+## localStorage Keys
+
+The application uses localStorage for state persistence across pages:
+
+| Key | Purpose | Scope |
+|-----|---------|-------|
+| `poi_latitude` | Latitude coordinate | Session |
+| `poi_longitude` | Longitude coordinate | Session |
+| `poi_radius` | Search radius in meters | Session |
+| `poi_filter` | Text filter value | Session |
+| `poi_map_zoom` | Map zoom level | Session |
+| `poi_view` | View preference (cards/list) | Persistent |
+| `poi_session_start` | Session timestamp | Session |
+| `poi_needs_reload` | Reload trigger flag | Session |
+
+**Session Timeout**: 30 minutes of inactivity automatically clears session data and resets to defaults.
 
 ## Future Enhancements
 
-- [ ] Category filtering (matching Angular TODO)
-- [ ] Real-time updates
+- [ ] Category-based dropdown filtering
+- [ ] Real-time updates with SignalR
 - [ ] Caching for better performance
-- [ ] User preferences/settings
+- [ ] User authentication & preferences
 - [ ] Enhanced error handling UI
+- [ ] POI favorites/bookmarks
+- [ ] Export POIs to CSV/JSON

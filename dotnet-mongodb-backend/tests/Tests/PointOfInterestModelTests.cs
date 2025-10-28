@@ -18,7 +18,6 @@ public class PointOfInterestModelTests
             Name = "Test POI",
             Category = "restaurant",
             Location = new Location(8.4, 49.0),
-            Address = "Test Street 1",
             Tags = new List<string> { "food", "outdoor" }
         };
 
@@ -27,7 +26,6 @@ public class PointOfInterestModelTests
         Assert.Equal("Test POI", poi.Name);
         Assert.Equal("restaurant", poi.Category);
         Assert.NotNull(poi.Location);
-        Assert.Equal("Test Street 1", poi.Address);
         Assert.Equal(2, poi.Tags.Count);
     }
 

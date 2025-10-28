@@ -18,8 +18,8 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-0">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container-fluid">
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
                     aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -27,28 +27,27 @@
             <div class="navbar-collapse collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav mr-auto">
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Home" asp-action="Index" title="Home">
+                        <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" ? "active" : "")" 
+                           asp-controller="Home" asp-action="Index" title="Home">
                             <i class="bi bi-house"></i> Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="Map" asp-action="Index" title="Point of Interest Map">Point of Interest Map</a>
+                        <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Map" ? "active" : "")" 
+                           asp-controller="Map" asp-action="Index" title="Point of Interest Map">Point of Interest Map</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" asp-controller="PointOfInterest" asp-action="Index" title="Point of Interest List">Point of Interest List</a>
+                        @* <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "PointOfInterest" ? "active" : "")" 
+                           href="/poi" title="Point of Interest List">Point of Interest List</a> *@
+                        <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "PointOfInterest" ? "active" : "")"
+                            asp-controller="poi" asp-action="Index" title="Point of Interest List">Point of Interest List</a>
                     </li>
                 </ul>
             </div>
-        </nav>
-    </div>
+        </div>
+    </nav>
 
     @RenderBody()
 
-    <footer class="border-top footer text-muted mt-5">
-        <div class="container">
-            &copy; 2025 - Point of Interest Maps
-        </div>
-    </footer>
-    
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

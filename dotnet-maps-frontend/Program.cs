@@ -2,6 +2,21 @@ using DotNetMapsFrontend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Read HTTPS configuration from appsettings
+var useHttps = builder.Configuration.GetValue<bool>("Server:UseHttps");
+var httpPort = builder.Configuration.GetValue<int>("Server:HttpPort", 4200);
+var httpsPort = builder.Configuration.GetValue<int>("Server:HttpsPort", 7225);
+
+// Configure URLs based on HTTPS setting
+if (useHttps)
+{
+    builder.WebHost.UseUrls($"https://localhost:{httpsPort}", $"http://localhost:{httpPort}");
+}
+else
+{
+    builder.WebHost.UseUrls($"http://localhost:{httpPort}");
+}
+
 // Configure logging with custom timestamp format
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole(options =>
@@ -23,11 +38,20 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    
+    // Only use HSTS if HTTPS is enabled
+    if (useHttps)
+    {
+        app.UseHsts();
+    }
 }
 
-app.UseHttpsRedirection();
+// Only use HTTPS redirection if HTTPS is enabled
+if (useHttps)
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseStaticFiles();
 app.UseRouting();
 
@@ -40,3 +64,8 @@ app.MapControllerRoute(
 
 app.Run();
 
+// Make Program class accessible for testing
+public partial class Program 
+{
+    protected Program() { }
+}

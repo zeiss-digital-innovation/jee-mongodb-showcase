@@ -1,0 +1,84 @@
+@* Shared POI Controls - used on Map and PointOfInterest List pages *@
+<div class="row g-3">
+    <div class="col-md-3">
+        <label for="latitudeInput" class="form-label">Latitude (Range: -90 to 90)</label>
+        <input type="number" class="form-control" id="latitudeInput" value="51.0504" step="0.0001" min="-90" max="90">
+    </div>
+    <div class="col-md-3">
+        <label for="longitudeInput" class="form-label">Longitude (Range: -180 to 180)</label>
+        <input type="number" class="form-control" id="longitudeInput" value="13.7373" step="0.0001" min="-180" max="180">
+    </div>
+    <div class="col-md-4">
+        <label for="radiusInput" class="form-label">Radius <span id="radiusValue">2000</span></label>
+        <input type="range" class="form-range" id="radiusInput" min="100" max="5000" value="2000" step="100">
+    </div>
+    <div class="col-md-2">
+        <label class="form-label d-block">&nbsp;</label>
+        <button type="button" class="btn btn-primary w-100" id="loadPoisBtn">
+            <i class="bi bi-arrow-clockwise me-1"></i>Load POIs
+        </button>
+    </div>
+</div>
+
+<!-- Filter and Category Selection Row - Shared across Map and List pages -->
+<div class="row mt-3 g-3" id="sharedFilterCategoryControls">
+    <div class="col-md-6">
+        <label for="poiFilterInput" class="form-label">
+            Filter POIs by Details
+        </label>
+        <input type="text" class="form-control" id="poiFilterInput" placeholder="Enter text to filter POIs...">
+    </div>
+    <div class="col-md-6">
+        <label for="categoryDropdown" class="form-label">
+            Filter by Categories
+        </label>
+        <div class="dropdown w-100">
+            <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="categoryDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-funnel me-2"></i><span id="categoryDropdownLabel">All Categories</span>
+            </button>
+            <ul class="dropdown-menu w-100" aria-labelledby="categoryDropdown" id="categoryDropdownMenu" style="max-height: 400px; overflow-y: auto;">
+                <li class="px-3 py-2">
+                    <div class="form-check">
+                        <input class="form-check-input category-checkbox-all" type="checkbox" value="all" id="category-all" checked>
+                        <label class="form-check-label fw-bold" for="category-all">
+                            All Categories
+                        </label>
+                    </div>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <!-- Categories will be loaded dynamically here -->
+                <li class="px-3 py-2 text-center text-muted" id="categoryLoadingIndicator">
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                    Loading categories...
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Prevent dropdown from closing when clicking checkboxes */
+    #categoryDropdownMenu {
+        padding: 0.5rem 0;
+    }
+    
+    #categoryDropdownMenu .form-check {
+        margin-bottom: 0;
+    }
+    
+    #categoryDropdownMenu .form-check-label {
+        cursor: pointer;
+        user-select: none;
+        width: 100%;
+        padding: 0.25rem 0;
+    }
+    
+    #categoryDropdownMenu .form-check-label:hover {
+        background-color: #f8f9fa;
+    }
+    
+    #categoryDropdownMenu li.px-3 {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+</style>

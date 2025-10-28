@@ -99,7 +99,7 @@ public class PointOfInterestService : IPointOfInterestService
     }
 
     /// <summary>
-    /// Search POIs (Name, Address, Tags)
+    /// Search POIs (Name, Tags)
     /// </summary>
     public async Task<List<PointOfInterest>> SearchPoisAsync(string searchTerm, int? limit = null)
     {
@@ -115,17 +115,12 @@ public class PointOfInterestService : IPointOfInterestService
                 new BsonRegularExpression(searchTerm, "i")
             );
 
-            var addressFilter = Builders<PointOfInterest>.Filter.Regex(
-                p => p.Address,
-                new BsonRegularExpression(searchTerm, "i")
-            );
-
             var tagsFilter = Builders<PointOfInterest>.Filter.AnyEq(
                 p => p.Tags,
                 searchTerm
             );
 
-            var combinedFilter = Builders<PointOfInterest>.Filter.Or(nameFilter, addressFilter, tagsFilter);
+            var combinedFilter = Builders<PointOfInterest>.Filter.Or(nameFilter, tagsFilter);
 
             var query = _poisCollection.Find(combinedFilter);
 
@@ -170,6 +165,50 @@ public class PointOfInterestService : IPointOfInterestService
     }
 
     /// <summary>
+    /// Find POIs near a geographic location filtered by multiple categories
+    /// NEW: MongoDB-based category filtering with $in operator
+    /// </summary>
+    public async Task<List<PointOfInterest>> GetNearbyPoisByCategoriesAsync(double longitude, double latitude, double radiusInKm, List<string> categories)
+    {
+        try
+        {
+            // Use GeoWithin for geographic search
+            var radiusInRadians = radiusInKm / 6378.1; // Earth radius in km
+
+            var geoWithinFilter = Builders<PointOfInterest>.Filter.GeoWithinCenterSphere(
+                p => p.Location,
+                longitude,
+                latitude,
+                radiusInRadians
+            );
+
+            // Category filter: case-insensitive match with $in operator
+            // Convert all categories to lowercase for consistent matching
+            var normalizedCategories = categories.Select(c => c.ToLower()).ToList();
+            
+            var categoryFilter = Builders<PointOfInterest>.Filter.In(
+                p => p.Category,
+                normalizedCategories
+            );
+
+            // Combine both filters with AND
+            var combinedFilter = Builders<PointOfInterest>.Filter.And(geoWithinFilter, categoryFilter);
+
+            _logger.LogInformation(
+                "MongoDB Query: GeoWithin({Longitude}, {Latitude}, {RadiusKm}km) AND Category IN [{Categories}]",
+                longitude, latitude, radiusInKm, string.Join(", ", normalizedCategories));
+
+            return await _poisCollection.Find(combinedFilter).ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving POIs near ({Longitude}, {Latitude}) with categories: {Categories}",
+                longitude, latitude, string.Join(", ", categories));
+            throw;
+        }
+    }
+
+    /// <summary>
     /// Create POI
     /// </summary>
     public async Task<PointOfInterest> CreatePoiAsync(PointOfInterest poi)
@@ -178,7 +217,10 @@ public class PointOfInterestService : IPointOfInterestService
         {
             ValidatePoi(poi);
 
+            // Clear client-provided fields that should be managed by backend
             poi.Id = null; // New ObjectId will be automatically generated
+            poi.Href = null; // Href is not stored in DB, will be generated on retrieval
+            
             await _poisCollection.InsertOneAsync(poi);
 
             _logger.LogInformation("POI created: {Name} (ID: {Id})", poi.Name, poi.Id);
@@ -330,11 +372,8 @@ public class PointOfInterestService : IPointOfInterestService
             var locationIndex = Builders<PointOfInterest>.IndexKeys.Geo2DSphere(p => p.Location);
             _poisCollection.Indexes.CreateOne(new CreateIndexModel<PointOfInterest>(locationIndex));
 
-            // Text index for full-text search
-            var textIndex = Builders<PointOfInterest>.IndexKeys.Combine(
-                Builders<PointOfInterest>.IndexKeys.Text(p => p.Name),
-                Builders<PointOfInterest>.IndexKeys.Text(p => p.Address)
-            );
+            // Text index for full-text search on name field
+            var textIndex = Builders<PointOfInterest>.IndexKeys.Text(p => p.Name);
             _poisCollection.Indexes.CreateOne(new CreateIndexModel<PointOfInterest>(textIndex));
 
             // Index for category searches

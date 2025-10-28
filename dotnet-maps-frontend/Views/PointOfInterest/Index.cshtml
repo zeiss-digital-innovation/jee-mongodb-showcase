@@ -1,69 +1,1066 @@
+@using DotNetMapsFrontend.Constants
 @model List<DotNetMapsFrontend.Models.PointOfInterest>
 @{
     ViewData["Title"] = "Point of Interest List";
 }
 
-<div class="container mt-4">
-    <h2>Points of Interest</h2>
+<style>
+    /* Fixed top controls */
+    .top-controls {
+        position: fixed;
+        top: 56px; /* Height of navbar */
+        left: 0;
+        right: 0;
+        background-color: white;
+        padding: 15px 0;
+        border-bottom: 1px solid #dee2e6;
+        z-index: 1000;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
     
-    @if (Model != null && Model.Any())
-    {
-        <div class="row">
-            @foreach (var poi in Model)
-            {
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card">
-                        <div class="card-header d-flex align-items-center">
-                            <i class="bi @GetCategoryIcon(poi.Category) me-2"></i>
-                            <strong>@poi.Category.ToUpperInvariant()</strong>
-                        </div>
-                        <div class="card-body">
-                            @if (!string.IsNullOrEmpty(poi.Details))
-                            {
-                                @foreach (var line in poi.Details.Split('\n'))
-                                {
-                                    if (!string.IsNullOrWhiteSpace(line))
-                                    {
-                                        <p class="card-text small">@line</p>
-                                    }
-                                }
-                            }
-                            <small class="text-muted">
-                                Location: @poi.Location.Latitude.ToString("F5"), @poi.Location.Longitude.ToString("F5")
-                            </small>
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
+    /* Fixed header section */
+    .poi-header-section {
+        position: fixed;
+        top: 270px; /* navbar (56px) + top-controls (~122px) + extra spacing */
+        left: 0;
+        right: 0;
+        background-color: white;
+        padding: 0 0 0 0;
+        border-bottom: none;
+        z-index: 999;
     }
-    else
-    {
-        <div class="alert alert-info">
-            <i class="bi bi-info-circle me-2"></i>
-            No points of interest found.
-        </div>
+    
+    /* Scrollable content area */
+    .poi-scrollable-content {
+        position: fixed;
+        top: 340px; /* navbar + controls + header + toggle + extra spacing from above */
+        bottom: 0;
+        left: 0;
+        right: 0;
+        overflow-y: auto;
+        padding: 20px 0;
     }
+
+    /* 
+    Add consistent 15px gap - to see upper border of cards, also when mouse is moving over a card 
+    the value was found trough try-and-error
+    */
+    #poiCardsContainer {
+        padding-top: 15px; 
+    }
+    
+
+     /* Table specific styles */
+    .table-wrapper {
+        position: relative;
+    }
+    
+    .table thead th {
+        position: sticky;
+        top: 8px;
+        background-color: #212529;
+        background-clip: padding-box;
+        z-index: 1100; /* Higher than content, lower than fixed headers */
+        border-bottom: 2px solid rgba(0, 0, 0, 0.12);
+        box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+    }
+
+    .table body td {
+        background-color: #fff;
+        margin-top: 8px;
+    }
+        
+    .table td, .table th {
+        vertical-align: middle;
+    }
+    
+    .category-cell {
+        text-transform: capitalize;
+    }
+    
+    .details-cell {
+        max-width: 500px;
+        word-wrap: break-word;
+    }
+    
+    .action-buttons {
+        white-space: nowrap;
+    }
+    
+    /* Card styles */
+    .poi-card {
+        transition: transform 0.2s;
+        height: 100%;
+    }
+    
+    .poi-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .poi-card .card-body {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .poi-card .card-title {
+        display: flex;
+        align-items: center;
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+    }
+    
+    .poi-card .card-title i {
+        font-size: 1.5rem;
+        margin-right: 10px;
+    }
+    
+    .poi-card .card-text {
+        flex-grow: 1;
+    }
+    
+    .view-toggle {
+        margin-bottom: 8px;
+    }
+    
+    .view-toggle .btn-group {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* Hide list view by default, will be shown by JS if needed */
+    #poiTableContainer {
+        display: none;
+    }
+    
+    /* Visual separator between coordinate controls and filter section */
+    #sharedFilterCategoryControls {
+        border-top: 3px solid #6b6b6c;
+    }
+</style>
+
+<!-- Apply view preference immediately to prevent flash -->
+<script>
+    (function() {
+        const savedView = localStorage.getItem('poi_view');
+        if (savedView === 'list') {
+            // Inject CSS to show list view immediately
+            const style = document.createElement('style');
+            style.id = 'initial-view-style';
+            style.textContent = '#poiCardsContainer { display: none !important; } #poiTableContainer { display: block !important; }';
+            document.head.appendChild(style);
+        }
+    })();
+</script>
+
+<div class="top-controls fixed-top">
+    <div class="container">
+        <partial name="_PoiControls" />
+    </div>
 </div>
 
-@functions {
-    string GetCategoryIcon(string category)
-    {
-        return category?.ToLower() switch
+<!-- Fixed Header Section -->
+<div class="poi-header-section">
+    <div class="container">
+        <h2 class="mb-3">Points of Interest</h2>
+        <!-- View Toggle -->
+        <div class="view-toggle">
+            <div class="btn-group" role="group" aria-label="View toggle">
+                <button type="button" class="btn btn-outline-primary active" id="cardsViewBtn">
+                    <i class="bi bi-grid-3x3-gap me-1"></i>Cards
+                </button>
+                <button type="button" class="btn btn-outline-primary" id="listViewBtn">
+                    <i class="bi bi-list-ul me-1"></i>List
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scrollable Content Area -->
+<div class="poi-scrollable-content">
+    <div class="container">
+        <!-- Cards View (Default) -->
+        <div id="poiCardsContainer">
+        @if (Model != null && Model.Any())
         {
-            "restaurant" => "bi-cup-hot",
-            "cash" => "bi-credit-card",
-            "supermarket" => "bi-shop",
-            "post" => "bi-mailbox",
-            "lodging" => "bi-house",
-            "police" => "bi-shield-check",
-            "toilet" => "bi-person-standing",
-            "coffee" => "bi-cup-hot",
-            "parking" => "bi-car-front",
-            "gas station" => "bi-fuel-pump",
-            "company" => "bi-building",
-            "pharmacy" => "bi-plus-square",
-            _ => "bi-geo-alt"
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                @foreach (var poi in Model)
+                {
+                    <div class="col">
+                        <div class="card poi-card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    <i class="bi @CategoryConstants.GetCategoryIcon(poi.Category) text-primary"></i>
+                                    @poi.Category.ToLower()
+                                </h5>
+                                <p class="card-text">@Html.Raw(FormatDetails(poi.Details))</p>
+                                <div class="action-buttons mt-auto">
+                                    <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="editPoi('@poi.Href')">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deletePoi('@poi.Href')">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                No points of interest found. Please adjust the search parameters and click "Load POIs".
+            </div>
+        }
+    </div>
+    
+    <!-- Table View (List) -->
+    <div id="poiTableContainer" style="display: none;">
+        @if (Model != null && Model.Any())
+        {
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">Category</th>
+                        <th scope="col">Details</th>
+                        <th scope="col" style="width: 180px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="poiTableBody">
+                    @for (int i = 0; i < Model.Count; i++)
+                    {
+                        var poi = Model[i];
+                        <tr>
+                            <td class="category-cell" style="width: 250px;">
+                                @(i + 1). @poi.Category.ToLower() <i class="bi @CategoryConstants.GetCategoryIcon(poi.Category)"></i>
+                            </td>
+                            <td class="details-cell">@Html.Raw(FormatDetails(poi.Details))</td>
+                            <td class="action-buttons">
+                                <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="editPoi('@poi.Href')">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deletePoi('@poi.Href')">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                No points of interest found. Please adjust the search parameters and click "Load POIs".
+            </div>
+        }
+    </div>
+    </div> <!-- End of container -->
+</div> <!-- End of poi-scrollable-content -->
+
+<!-- Edit POI Modal -->
+<div class="modal fade modal-sm" id="editPoiModal" tabindex="-1" aria-labelledby="editPoiModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="editPoiModalLabel">
+                    <i class="bi bi-pencil-square me-2"></i>Edit Point of Interest
+                </h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editPoiForm">
+                    <input type="hidden" id="editPoiId">
+                    
+                    <div class="mb-3">
+                        <label for="editPoiCategory" class="form-label">Category *</label>
+                        <select class="form-select" id="editPoiCategory" required>
+                            <option value="">-- Select Category --</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            Please select a category.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editPoiDetails" class="form-label">Details *</label>
+                        <textarea class="form-control" id="editPoiDetails" rows="4" 
+                                  placeholder="Enter details about this point of interest..." 
+                                  required maxlength="1000"></textarea>
+                        <div class="invalid-feedback">
+                            Please enter details (max 1000 characters).
+                        </div>
+                        <div class="form-text">
+                            You can use quotes, special characters, and line breaks.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted">
+                             <i class="bi bi-geo-fill"></i> Location: <span id="editPoiCoordinates"></span>
+                        </small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-warning btn-sm" data-bs-dismiss="modal" id="cancelEditBtn">
+                    <i class="bi bi-x-lg me-1"></i>Cancel (Esc)
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" id="saveEditBtn" disabled>
+                    <i class="bi bi-check2 me-1"></i>Save (Enter)
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Category Manager - Shared module -->
+    <script src="~/js/category-manager.js"></script>
+    
+    <script>
+        // Shared localStorage keys for synchronization with Map page
+        const STORAGE_KEYS = {
+            latitude: 'poi_latitude',
+            longitude: 'poi_longitude',
+            radius: 'poi_radius',
+            view: 'poi_view',
+            needsReload: 'poi_needs_reload',
+            sessionStart: 'poi_session_start'
         };
+        
+        // Default coordinates (Dresden) - must match Map page
+        const latitudeDefault = 51.0504;
+        const longitudeDefault = 13.7373;
+        const radiusDefault = 2000;
+        
+        // Session timeout: 30 minutes of inactivity = new session
+        const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+        
+        $(document).ready(async function() {
+            // Initialize Category Manager FIRST
+            await CategoryManager.init();
+            
+            // Listen for category selection changes
+            document.addEventListener('categorySelectionChanged', function(e) {
+                console.log('Category selection changed, reloading POIs...');
+                reloadCurrentPois();
+            });
+            
+            // Check if selected categories exist in localStorage
+            // If yes, reload POIs to apply category filter (server-side rendering doesn't know about localStorage)
+            const selectedCategories = CategoryManager.getSelectedCategories();
+            if (selectedCategories && selectedCategories.length > 0) {
+                console.log('[List] Found saved category selection, reloading POIs:', selectedCategories);
+                // Small delay to ensure DOM is ready
+                setTimeout(() => reloadCurrentPois(), 100);
+            }
+            
+            // Check if this is a new browser session
+            const lastActivity = localStorage.getItem(STORAGE_KEYS.sessionStart);
+            const now = Date.now();
+            const isNewSession = !lastActivity || (now - parseInt(lastActivity)) > SESSION_TIMEOUT_MS;
+            
+            if (isNewSession) {
+                // This is a NEW session - clear settings but keep view preference
+                localStorage.removeItem(STORAGE_KEYS.latitude);
+                localStorage.removeItem(STORAGE_KEYS.longitude);
+                localStorage.removeItem(STORAGE_KEYS.radius);
+                localStorage.removeItem(STORAGE_KEYS.needsReload);
+                localStorage.setItem(STORAGE_KEYS.view, 'cards');
+            }
+            
+            // Update session timestamp
+            localStorage.setItem(STORAGE_KEYS.sessionStart, now.toString());
+            
+            // View toggle functionality - load from localStorage or default to 'cards'
+            let currentView = localStorage.getItem(STORAGE_KEYS.view) || 'cards';
+            
+            // Store original POI data for change detection
+            let originalPoiData = {
+                category: '',
+                details: ''
+            };
+            
+            // Apply saved view IMMEDIATELY to prevent flash
+            applySavedView();
+            
+            // Load settings from localStorage on page load
+            loadSettingsFromStorage();
+            
+            // Check if we need to reload POIs based on updates from Map page
+            checkForUpdates();
+            
+            // Setup control event handlers for saving to localStorage
+            setupControlHandlers();
+            
+            // Listen for page visibility changes to sync with Map page
+            // This ensures input fields are updated when navigating back from Map page
+            window.addEventListener('pageshow', function(event) {
+                console.log('[List] pageshow event - reloading settings from localStorage');
+                loadSettingsFromStorage();
+            });
+            
+            // Also listen for focus events (when user returns to this tab)
+            window.addEventListener('focus', function() {
+                console.log('[List] window focus event - reloading settings from localStorage');
+                loadSettingsFromStorage();
+            });
+            
+            // Load categories for Edit Modal dropdown
+            loadEditModalCategories();
+            
+            // Setup Edit Modal event handlers
+            setupEditModalHandlers();
+            
+            function loadSettingsFromStorage() {
+                // Load values from localStorage or use defaults
+                const lat = localStorage.getItem(STORAGE_KEYS.latitude);
+                const lon = localStorage.getItem(STORAGE_KEYS.longitude);
+                const radius = localStorage.getItem(STORAGE_KEYS.radius);
+                
+                const actualLat = lat ? parseFloat(lat) : latitudeDefault;
+                const actualLon = lon ? parseFloat(lon) : longitudeDefault;
+                const actualRadius = radius ? parseInt(radius) : radiusDefault;
+                
+                // Set input fields to actual values
+                $('#latitudeInput').val(actualLat);
+                $('#longitudeInput').val(actualLon);
+                $('#radiusInput').val(actualRadius);
+                $('#radiusValue').text(actualRadius + ' m');
+                
+                // Save to localStorage if they were defaults (ensures consistency)
+                if (!lat) localStorage.setItem(STORAGE_KEYS.latitude, actualLat);
+                if (!lon) localStorage.setItem(STORAGE_KEYS.longitude, actualLon);
+                if (!radius) localStorage.setItem(STORAGE_KEYS.radius, actualRadius);
+            }
+            
+            function saveSettingsToStorage() {
+                localStorage.setItem(STORAGE_KEYS.latitude, $('#latitudeInput').val());
+                localStorage.setItem(STORAGE_KEYS.longitude, $('#longitudeInput').val());
+                localStorage.setItem(STORAGE_KEYS.radius, $('#radiusInput').val());
+                
+                // Set flag that Map page needs to reload
+                localStorage.setItem(STORAGE_KEYS.needsReload, 'true');
+            }
+            
+            function checkForUpdates() {
+                // Check if Map page triggered an update
+                const needsReload = localStorage.getItem(STORAGE_KEYS.needsReload);
+                const currentParams = new URLSearchParams(window.location.search);
+                const urlLat = currentParams.get('lat');
+                const urlLon = currentParams.get('lon');
+                const urlRadius = currentParams.get('radius');
+                
+                // If needsReload flag is set and we don't have URL params, reload with stored values
+                if (needsReload === 'true' && !urlLat && !urlLon) {
+                    const lat = localStorage.getItem(STORAGE_KEYS.latitude);
+                    const lon = localStorage.getItem(STORAGE_KEYS.longitude);
+                    const radius = localStorage.getItem(STORAGE_KEYS.radius);
+                    
+                    if (lat && lon && radius) {
+                        // Clear the reload flag and reload
+                        localStorage.removeItem(STORAGE_KEYS.needsReload);
+                        window.location.href = `/poi?lat=${lat}&lon=${lon}&radius=${radius}`;
+                    }
+                } else if (urlLat && urlLon) {
+                    // We were loaded with URL params, clear the reload flag
+                    localStorage.removeItem(STORAGE_KEYS.needsReload);
+                }
+            }
+            
+            function applySavedView() {
+                // Remove the initial style tag if it exists (it was used to prevent flash)
+                const initialStyle = document.getElementById('initial-view-style');
+                if (initialStyle) {
+                    initialStyle.remove();
+                }
+                
+                // Apply the saved view preference
+                if (currentView === 'list') {
+                    $('#listViewBtn').addClass('active');
+                    $('#cardsViewBtn').removeClass('active');
+                    $('#poiCardsContainer').hide();
+                    $('#poiTableContainer').show();
+                } else {
+                    $('#cardsViewBtn').addClass('active');
+                    $('#listViewBtn').removeClass('active');
+                    $('#poiCardsContainer').show();
+                    $('#poiTableContainer').hide();
+                }
+            }
+            
+            function setupControlHandlers() {
+                // Save to localStorage when inputs change
+                $('#latitudeInput, #longitudeInput').on('change', function() {
+                    saveSettingsToStorage();
+                });
+                
+                // Update radius display and save to localStorage
+                $('#radiusInput').on('input', function() {
+                    $('#radiusValue').text($(this).val() + 'm');
+                    saveSettingsToStorage();
+                });
+                
+                // Load POIs button
+                $('#loadPoisBtn').on('click', function() {
+                    saveSettingsToStorage();
+                    loadPois();
+                });
+            }
+            
+            function loadPois() {
+                const lat = $('#latitudeInput').val();
+                const lon = $('#longitudeInput').val();
+                const radius = $('#radiusInput').val();
+                
+                // Clear reload flag (we're doing the reload now)
+                localStorage.removeItem(STORAGE_KEYS.needsReload);
+                
+                // Reload page with new parameters
+                window.location.href = `/poi?lat=${lat}&lon=${lon}&radius=${radius}`;
+            }
+            
+            function loadEditModalCategories() {
+                // Use categories from CategoryManager (already loaded)
+                const categories = CategoryManager.getAllCategories();
+                
+                if (categories && categories.length > 0) {
+                    populateEditModalCategoryDropdown(categories);
+                } else {
+                    // Fallback: load directly from API if CategoryManager failed
+                    $.ajax({
+                        url: '/api/categories',
+                        type: 'GET',
+                        success: function (categories) {
+                            populateEditModalCategoryDropdown(categories);
+                        },
+                        error: function (xhr, status, error) {
+                            console.warn('Could not load categories for edit modal:', error);
+                        }
+                    });
+                }
+            }
+            
+            function populateEditModalCategoryDropdown(categories) {
+                const $categorySelect = $('#editPoiCategory');
+                $categorySelect.empty();
+                $categorySelect.append('<option value="">-- Select Category --</option>');
+                
+                categories.forEach(function (category) {
+                    // Value and display text both lowercase
+                    const lowerCategory = category.toLowerCase();
+                    $categorySelect.append(`<option value="${lowerCategory}">${lowerCategory}</option>`);
+                });
+            }
+            
+            function setupEditModalHandlers() {
+                // Enable/disable save button based on form validation and changes
+                $('#editPoiCategory, #editPoiDetails').on('input change', function () {
+                    validateEditForm();
+                });
+                
+                // Handle Save button click
+                $('#saveEditBtn').click(function () {
+                    if (validateEditForm() && hasChanges()) {
+                        saveEditedPoi();
+                    }
+                });
+                
+                // Handle keyboard shortcuts
+                $('#editPoiModal').on('keydown', function (e) {
+                    if (e.key === 'Enter' && !e.shiftKey && e.target.tagName !== 'TEXTAREA') {
+                        e.preventDefault();
+                        if ($('#saveEditBtn').prop('disabled') === false) {
+                            saveEditedPoi();
+                        }
+                    } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        bootstrap.Modal.getInstance(document.getElementById('editPoiModal')).hide();
+                    }
+                });
+                
+                // Allow Shift+Enter in textarea for new lines
+                $('#editPoiDetails').on('keydown', function(e) {
+                    if (e.key === 'Enter' && e.shiftKey) {
+                        // Allow default behavior (new line)
+                        return true;
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if ($('#saveEditBtn').prop('disabled') === false) {
+                            saveEditedPoi();
+                        }
+                    }
+                });
+            }
+            
+            function validateEditForm() {
+                const category = $('#editPoiCategory').val().trim();
+                const details = $('#editPoiDetails').val().trim();
+                const isValid = category !== '' && details !== '';
+                const changed = hasChanges();
+                
+                $('#saveEditBtn').prop('disabled', !isValid || !changed);
+                
+                return isValid;
+            }
+            
+            function hasChanges() {
+                const currentCategory = $('#editPoiCategory').val().trim();
+                const currentDetails = $('#editPoiDetails').val().trim();
+                
+                return currentCategory !== originalPoiData.category || 
+                       currentDetails !== originalPoiData.details;
+            }
+            
+            $('#cardsViewBtn').click(function() {
+                currentView = 'cards';
+                localStorage.setItem(STORAGE_KEYS.view, 'cards');
+                $(this).addClass('active');
+                $('#listViewBtn').removeClass('active');
+                $('#poiCardsContainer').show();
+                $('#poiTableContainer').hide();
+            });
+            
+            $('#listViewBtn').click(function() {
+                currentView = 'list';
+                localStorage.setItem(STORAGE_KEYS.view, 'list');
+                $(this).addClass('active');
+                $('#cardsViewBtn').removeClass('active');
+                $('#poiCardsContainer').hide();
+                $('#poiTableContainer').show();
+            });
+            
+            // Update radius display when slider changes
+            $('#radiusInput').on('input', function() {
+                $('#radiusValue').text($(this).val());
+            });
+            
+            // Validate coordinates
+            function validateCoordinates() {
+                const lat = parseFloat($('#latitudeInput').val());
+                const lon = parseFloat($('#longitudeInput').val());
+                const radius = parseInt($('#radiusInput').val());
+                
+                const latValid = !isNaN(lat) && lat >= -90 && lat <= 90;
+                const lonValid = !isNaN(lon) && lon >= -180 && lon <= 180;
+                const radiusValid = !isNaN(radius) && radius >= 100 && radius <= 5000;
+                
+                return latValid && lonValid && radiusValid;
+            }
+            
+            // Update button state based on validation
+            function updateButtonState() {
+                $('#loadPoisBtn').prop('disabled', !validateCoordinates());
+            }
+            
+            $('#latitudeInput, #longitudeInput, #radiusInput').on('input', updateButtonState);
+            updateButtonState();
+            
+            // Load POIs button click handler
+            $('#loadPoisBtn').click(function() {
+                const lat = parseFloat($('#latitudeInput').val());
+                const lon = parseFloat($('#longitudeInput').val());
+                const radius = parseInt($('#radiusInput').val());
+                
+                if (!validateCoordinates()) {
+                    alert('Please enter valid coordinates and radius.');
+                    return;
+                }
+                
+                // Show loading state
+                const $btn = $(this);
+                const originalHtml = $btn.html();
+                $btn.html('<span class="spinner-border spinner-border-sm me-1"></span>Loading...').prop('disabled', true);
+                
+                // Get selected categories
+                const selectedCategories = CategoryManager.getSelectedCategories();
+                
+                // Build data object with categories
+                const requestData = { 
+                    lat: lat, 
+                    lon: lon, 
+                    radius: radius 
+                };
+                
+                // Add category parameters (repeated parameter pattern)
+                selectedCategories.forEach((category, index) => {
+                    requestData[`category[${index}]`] = category;
+                });
+                
+                console.log('Loading POIs with categories:', selectedCategories);
+                
+                // Make AJAX request
+                $.ajax({
+                    url: '/api/pointsofinterest',
+                    method: 'GET',
+                    traditional: true, // Important for array parameters
+                    data: requestData,
+                    success: function(data) {
+                        console.log(`Loaded ${data.length} POIs`);
+                        // Update both views with new data
+                        updatePoiCards(data);
+                        updatePoiTable(data);
+                    },
+                    error: function() {
+                        alert('Failed to load points of interest. Please try again.');
+                    },
+                    complete: function() {
+                        $btn.html(originalHtml).prop('disabled', false);
+                        updateButtonState();
+                    }
+                });
+            });
+            
+            // Make these functions available globally for reloadCurrentPois
+            window.updatePoiCards = updatePoiCards;
+            window.updatePoiTable = updatePoiTable;
+            
+            function updatePoiCards(pois) {
+                const $container = $('#poiCardsContainer');
+                
+                if (!pois || pois.length === 0) {
+                    $container.html(`
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            No points of interest found. Please adjust the search parameters and try again.
+                        </div>
+                    `);
+                    return;
+                }
+                
+                let cardsHtml = '<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">';
+                
+                pois.forEach((poi) => {
+                    const icon = getCategoryIcon(poi.category);
+                    const details = formatDetails(poi.details);
+                    const category = poi.category; // Keep lowercase
+                    
+                    cardsHtml += `
+                        <div class="col">
+                            <div class="card poi-card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">
+                                        <i class="bi ${icon} text-primary"></i>
+                                        ${category}
+                                    </h5>
+                                    <p class="card-text">${details}</p>
+                                    <div class="action-buttons mt-auto">
+                                        <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="editPoi('${poi.href}')">
+                                            <i class="bi bi-pencil"></i> Edit
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deletePoi('${poi.href}')">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                cardsHtml += '</div>';
+                $container.html(cardsHtml);
+                
+                // Apply current filter after updating cards
+                const currentFilter = $('#poiFilterInput').val();
+                if (currentFilter) {
+                    applyFilter(currentFilter);
+                }
+            }
+            
+            function updatePoiTable(pois) {
+                const $container = $('#poiTableContainer');
+                
+                if (!pois || pois.length === 0) {
+                    $container.html(`
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            No points of interest found. Please adjust the search parameters and try again.
+                        </div>
+                    `);
+                    return;
+                }
+                
+                let tableHtml = `
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th scope="col">Category</th>
+                                <th scope="col">Details</th>
+                                <th scope="col" style="width: 180px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="poiTableBody">
+                `;
+                
+                pois.forEach((poi, index) => {
+                    const icon = getCategoryIcon(poi.category);
+                    const details = formatDetails(poi.details);
+                    const category = poi.category; // Keep lowercase
+                    
+                    tableHtml += `
+                        <tr>
+                            <td class="category-cell" style="width: 250px;">${index + 1}. ${category} <i class="bi ${icon}"></i></td>
+                            <td class="details-cell">${details}</td>
+                            <td class="action-buttons">
+                                <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="editPoi('${poi.href}')">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deletePoi('${poi.href}')">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                tableHtml += `
+                        </tbody>
+                    </table>
+                `;
+                
+                $container.html(tableHtml);
+                
+                // Apply current filter after updating table
+                const currentFilter = $('#poiFilterInput').val();
+                if (currentFilter) {
+                    applyFilter(currentFilter);
+                }
+            }
+            
+            function getCategoryIcon(category) {
+                return CATEGORY_ICONS[category?.toLowerCase()] || CATEGORY_ICONS['_default'] || 'bi-geo';
+            }
+            
+            function formatDetails(details) {
+                if (!details) return '';
+                return details.replace(/\n/g, '<br>');
+            }
+        });
+        
+        // Store complete POI data for editing (needed for PUT request)
+        let currentPoiData = null;
+        
+        // Global functions for onclick handlers
+        function editPoi(href) {
+            if (!href) {
+                console.error('No href provided for edit');
+                return;
+            }
+            
+            // Show loading state
+            const loadingHtml = `
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            `;
+            
+            // Extract ID from href (last segment after /)
+            const id = href.split('/').pop();
+            
+            // Fetch POI data
+            $.ajax({
+                url: href,
+                type: 'GET',
+                success: function(poi) {
+                    // Store complete POI data (needed for PUT request)
+                    currentPoiData = poi;
+                    
+                    // Store original data for change detection
+                    originalPoiData = {
+                        category: poi.category || '',
+                        details: poi.details || ''
+                    };
+                    
+                    // Populate form
+                    $('#editPoiId').val(id);
+                    $('#editPoiCategory').val(poi.category);
+                    $('#editPoiDetails').val(poi.details);
+                    
+                    // Display coordinates (read-only)
+                    if (poi.location && poi.location.coordinates) {
+                        const lon = poi.location.coordinates[0];
+                        const lat = poi.location.coordinates[1];
+                        $('#editPoiCoordinates').text(`${lat.toFixed(6)}, ${lon.toFixed(6)}`);
+                    }
+                    
+                    // Reset validation states
+                    $('#editPoiCategory').removeClass('is-invalid');
+                    $('#editPoiDetails').removeClass('is-invalid');
+                    $('#saveEditBtn').prop('disabled', true);
+                    
+                    // Show modal
+                    const modal = new bootstrap.Modal(document.getElementById('editPoiModal'));
+                    modal.show();
+                },
+                error: function(xhr) {
+                    console.error('Error loading POI:', xhr);
+                    alert('Failed to load POI data. Please try again.');
+                }
+            });
+        }
+        
+        function saveEditedPoi() {
+            const id = $('#editPoiId').val();
+            const category = $('#editPoiCategory').val().trim();
+            const details = $('#editPoiDetails').val().trim();
+            
+            if (!id || !category || !details) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            if (!currentPoiData) {
+                alert('POI data not loaded. Please try again.');
+                return;
+            }
+            
+            // Disable save button to prevent double submission
+            $('#saveEditBtn').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Saving...');
+            
+            // Prepare update data - send complete POI object with updated fields
+            const updateData = {
+                category: category,
+                details: details,
+                location: currentPoiData.location,  // Keep location unchanged
+                name: currentPoiData.name,           // Keep name if present
+                tags: currentPoiData.tags            // Keep tags if present
+            };
+            
+            // Send PUT request to backend
+            $.ajax({
+                url: `/poi/${id}`,
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify(updateData),
+                success: function(response) {
+                    console.log('POI updated successfully:', response);
+                    
+                    // Hide modal
+                    bootstrap.Modal.getInstance(document.getElementById('editPoiModal')).hide();
+                    
+                    // Reload POIs to show updated data
+                    reloadCurrentPois();
+                    
+                    // Show success message
+                    showSuccessMessage('POI updated successfully!');
+                },
+                error: function(xhr) {
+                    console.error('Error updating POI:', xhr);
+                    let errorMsg = 'Failed to update POI. Please try again.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMsg = xhr.responseJSON.message;
+                    }
+                    alert(errorMsg);
+                    $('#saveEditBtn').prop('disabled', false).text('Save (Enter)');
+                }
+            });
+        }
+        
+        function deletePoi(href) {
+            if (!href) {
+                console.error('No href provided for delete');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to delete this point of interest?')) {
+                // Extract ID from href
+                const id = href.split('/').pop();
+                
+                // Send DELETE request
+                $.ajax({
+                    url: `/poi/${id}`,
+                    type: 'DELETE',
+                    success: function() {
+                        console.log('POI deleted successfully');
+                        
+                        // Reload POIs to update the view
+                        reloadCurrentPois();
+                        
+                        // Show success message
+                        showSuccessMessage('POI deleted successfully!');
+                    },
+                    error: function(xhr) {
+                        console.error('Error deleting POI:', xhr);
+                        alert('Failed to delete POI. Please try again.');
+                    }
+                });
+            }
+        }
+        
+        function reloadCurrentPois() {
+            // Get current coordinates and radius
+            const lat = parseFloat($('#latitudeInput').val());
+            const lon = parseFloat($('#longitudeInput').val());
+            const radius = parseInt($('#radiusInput').val());
+            
+            // Get selected categories
+            const selectedCategories = CategoryManager.getSelectedCategories();
+            
+            // Build data object with categories
+            const requestData = { 
+                lat: lat, 
+                lon: lon, 
+                radius: radius 
+            };
+            
+            // Add category parameters
+            selectedCategories.forEach((category, index) => {
+                requestData[`category[${index}]`] = category;
+            });
+            
+            console.log('Reloading POIs with categories:', selectedCategories);
+            
+            // Reload POIs with current parameters
+            $.ajax({
+                url: '/api/pointsofinterest',
+                method: 'GET',
+                traditional: true,
+                data: requestData,
+                success: function(data) {
+                    console.log(`Reloaded ${data.length} POIs`);
+                    updatePoiCards(data);
+                    updatePoiTable(data);
+                },
+                error: function() {
+                    console.error('Failed to reload POIs');
+                }
+            });
+        }
+        
+        function showSuccessMessage(message) {
+            // Create a temporary success alert
+            const alertHtml = `
+                <div class="alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3" 
+                     role="alert" style="z-index: 9999; min-width: 300px;">
+                    <i class="bi bi-check-circle me-2"></i>${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            
+            $('body').append(alertHtml);
+            
+            // Auto-remove after 3 seconds
+            setTimeout(function() {
+                $('.alert-success').alert('close');
+            }, 3000);
+        }
+    </script>
+}
+
+@functions {
+    string FormatDetails(string details)
+    {
+        if (string.IsNullOrEmpty(details))
+            return string.Empty;
+            
+        return details.Replace("\n", "<br>");
     }
 }
