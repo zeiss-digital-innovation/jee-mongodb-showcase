@@ -4,6 +4,7 @@ import { BehaviorSubject } from "rxjs";
 
 export interface PoiFilterCriteria {
     categoryFilter?: string;
+    nameFilter?: string;
     detailsFilter?: string;
 }
 
@@ -24,11 +25,12 @@ export class PoiFilterService {
         this.filterCriteria$.next(null);
     }
 
-    filter(pointsOfInterest: PointOfInterest[], categoryFilter: string | undefined, detailsFilter: string | undefined): PointOfInterest[] {
+    filter(pointsOfInterest: PointOfInterest[], categoryFilter: string | undefined, nameFilter: string | undefined, detailsFilter: string | undefined): PointOfInterest[] {
         return pointsOfInterest.filter(poi => {
             const matchesCategory = categoryFilter ? poi.category?.toLowerCase() === categoryFilter.toLowerCase() : true;
+            const matchesName = nameFilter ? poi.name?.toLowerCase().includes(nameFilter.toLowerCase()) : true;
             const matchesDetails = detailsFilter ? poi.details?.toLowerCase().includes(detailsFilter.toLowerCase()) : true;
-            return matchesCategory && matchesDetails;
+            return matchesCategory && matchesName && matchesDetails;
         });
     }
 

@@ -10,10 +10,15 @@
                 </option>
             </select>
         </div>
-        <div class="col-md-8">
+        <div class="col-md-4">
+            <label for="latitudeInput" class="form-label"><i class="bi bi-funnel"></i>&nbsp;Name</label>
+            <input class="form-control form-control-sm" type="text" placeholder="Search (Name)..."
+                value="{{nameFilter}}" (keyup)="filterByName($event)">
+        </div>
+        <div class="col-md-4">
             <label for="latitudeInput" class="form-label"><i class="bi bi-funnel"></i>&nbsp;Details</label>
             <input class="form-control form-control-sm" type="text" placeholder="Search (Details)..."
-                value="{{detailsFilter}}" (keyup)="filterBySearch($event)">
+                value="{{detailsFilter}}" (keyup)="filterByDetails($event)">
         </div>
     </div>
 </div>

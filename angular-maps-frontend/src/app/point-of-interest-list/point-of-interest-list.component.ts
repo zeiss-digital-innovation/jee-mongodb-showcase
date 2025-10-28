@@ -31,6 +31,7 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
   categories = POI_CATEGORIES;
 
   categoryFilter: string | undefined;
+  nameFilter: string | undefined;
   detailsFilter: string | undefined;
 
   pointsOfInterest: PointOfInterest[] = [];
@@ -171,7 +172,7 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
     });
 
     compRef.instance.save.subscribe(({ pointOfInterest }) => {
-      console.log(`Saving changes to POI ${pointOfInterest?.href}: category=${pointOfInterest?.category}, details=${pointOfInterest?.details}`);
+      console.log(`Saving changes to POI ${pointOfInterest?.href}: category=${pointOfInterest?.category}, name=${pointOfInterest?.name}, details=${pointOfInterest?.details}`);
 
       // determine the time duration of the request
       const startTime = performance.now();
@@ -222,7 +223,14 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
     }
   }
 
-  filterBySearch(event: Event) {
+  filterByName(event: Event) {
+    const search = (event.target as HTMLInputElement).value;
+
+    this.nameFilter = search;
+    this.updateFiltering();
+  }
+
+  filterByDetails(event: Event) {
     const search = (event.target as HTMLInputElement).value;
 
     this.detailsFilter = search;
@@ -255,8 +263,8 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
   }
 
   private updateFiltering() {
-    this.poiFilterService.setFilterCriteria({ detailsFilter: this.detailsFilter, categoryFilter: this.categoryFilter });
-    this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.detailsFilter);
+    this.poiFilterService.setFilterCriteria({ detailsFilter: this.detailsFilter, categoryFilter: this.categoryFilter, nameFilter: this.nameFilter });
+    this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.nameFilter, this.detailsFilter);
   }
 
 }
