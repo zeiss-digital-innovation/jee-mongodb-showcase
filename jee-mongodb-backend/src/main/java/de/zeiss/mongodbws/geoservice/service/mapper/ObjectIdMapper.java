@@ -16,9 +16,16 @@ public class ObjectIdMapper {
             objectId = id;
         } else if (href != null && !href.isEmpty()) {
             int lastIndexOfSlash = href.lastIndexOf("/");
-            objectId = href.substring(lastIndexOfSlash);
+
+            if (lastIndexOfSlash > -1) {
+                objectId = href.substring(lastIndexOfSlash + 1);
+            }
         } else {
             return null;
+        }
+
+        if (!ObjectId.isValid(objectId)) {
+            throw new IllegalArgumentException("Invalid ObjectId: " + objectId);
         }
 
         return new ObjectId(objectId);
