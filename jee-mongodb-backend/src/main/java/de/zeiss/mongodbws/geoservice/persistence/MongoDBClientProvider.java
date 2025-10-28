@@ -11,7 +11,7 @@ import dev.morphia.Datastore;
 import dev.morphia.Morphia;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
-import jakarta.ejb.*;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
@@ -20,8 +20,7 @@ import java.util.logging.Logger;
 /**
  * @author Andreas Post
  */
-@Singleton
-@ConcurrencyManagement(ConcurrencyManagementType.CONTAINER)
+@ApplicationScoped
 public class MongoDBClientProvider {
 
     private static final Logger LOG = Logger.getLogger(MongoDBClientProvider.class.getName());
@@ -39,8 +38,6 @@ public class MongoDBClientProvider {
     int port;
 
     private MongoClient mongoClient = null;
-
-    private Morphia morphia;
 
     private Datastore datastore;
 
@@ -60,7 +57,6 @@ public class MongoDBClientProvider {
         //datastore.ensureIndexes();
     }
 
-    @Lock(LockType.READ)
     public Datastore getDatastore() {
         return datastore;
     }
