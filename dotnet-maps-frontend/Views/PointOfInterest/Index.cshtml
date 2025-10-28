@@ -75,7 +75,14 @@
     }
     
     .category-cell {
-        text-transform: capitalize;
+        color: gray !important;
+        font-family: "Consolas", "Courier New", monospace;
+        font-size: 0.7rem;
+    }
+
+    .category-cell i {
+        color: black;
+        font-size: 1rem;
     }
     
     .details-cell {
@@ -236,7 +243,7 @@
                     {
                         var poi = Model[i];
                         <tr>
-                            <td style="width: 200px;"><strong>@poi.Name</strong></td>
+                            <td style="width: 200px;">@poi.Name</td>
                             <td class="category-cell" style="width: 200px;">
                                 @poi.Category.ToLower() <i class="bi @CategoryConstants.GetCategoryIcon(poi.Category)"></i>
                             </td>
