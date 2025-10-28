@@ -195,7 +195,15 @@
             loadEditModalCategories();
             setupModalEventHandlers();
             setupControlHandlers();
-            
+
+            // Close popups on Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key == 'Escape') {
+                    map.closePopup();
+                    // Remove focus from any active element and give it back to the map
+                    document.activeElement.blur();
+                }
+            });
             // Listen for page visibility changes to sync with List page
             // This ensures input fields are updated when navigating back from List page
             window.addEventListener('pageshow', function(event) {
