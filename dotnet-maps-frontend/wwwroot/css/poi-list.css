@@ -39,7 +39,6 @@ the value was found trough try-and-error
 .table thead th {
     position: sticky;
     top: 8px;
-    /*background-color: #212529;*/
     background-clip: padding-box;
     z-index: 1100; /* Higher than content, lower than fixed headers */
     border-bottom: 2px solid rgba(0, 0, 0, 0.12);
@@ -124,4 +123,26 @@ the value was found trough try-and-error
 /* Hide list view by default, will be shown by JS if needed */
 #poiTableContainer {
     display: none;
+}
+
+/* #0F2DB3 */
+.btn-primary,
+.bg-primary {
+    background-color: #0F2DB3 !important;
+    border-color: #0F2DB3 !important;
+    color: white !important;
+}
+ 
+.btn-outline-primary,
+.text-primary {
+    border-color: #0F2DB3 !important;
+    color: #0F2DB3 !important;
+}
+ 
+input[type="range"]::-webkit-slider-thumb {
+    background-color: #0F2DB3;
+}
+ 
+input[type="range"]::-moz-range-thumb {
+    background-color: #0F2DB3;
 }
