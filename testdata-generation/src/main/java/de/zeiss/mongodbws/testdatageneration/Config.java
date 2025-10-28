@@ -43,7 +43,7 @@ public final class Config {
     public static String getPoiServiceUrl() {
         String host = PROPS.getProperty(POI_SERVICE_HOST, "localhost");
         String port = PROPS.getProperty(POI_SERVICE_PORT); // no default port to support standard ports 80 and 443
-        String path = PROPS.getProperty(POI_SERVICE_PATH, "/geoservice/rest/poi");
+        String path = PROPS.getProperty(POI_SERVICE_PATH, "/zdi-geo-service/api/poi");
 
         return getPoiServiceUrl(host, port, path);
     }
