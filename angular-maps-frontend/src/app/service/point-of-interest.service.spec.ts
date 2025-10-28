@@ -21,10 +21,11 @@ describe('PointOfInterestService sanitization', () => {
         httpMock.verify();
     });
 
-    it('should sanitize category and details before POST', () => {
+    it('should sanitize category, name and details before POST', () => {
         const malicious: PointOfInterest = {
             href: 'http://example.com',
             category: '<script>alert(1)</script>!@#',
+            name: '<script>alert(1)</script>',
             details: 'Nice place\n<script>alert(1)</script>',
             location: { coordinates: [13.73, 51.05], type: 'Point' }
         };
@@ -37,6 +38,7 @@ describe('PointOfInterestService sanitization', () => {
         const body: PointOfInterest = req.request.body;
         expect(body.category).not.toContain('<script>');
         expect(body.category).toMatch(/^[\w\s\-_]+$/);
+        expect(body.name).not.toContain('<script>');
         expect(body.details).not.toContain('<script>');
         req.flush({ ...body, href: 'http://backend/poi/1' });
     });

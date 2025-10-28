@@ -19,6 +19,7 @@ describe('MapDataService', () => {
             const poi: PointOfInterest = {
                 href: '',
                 category: 'coffee',
+                name: 'name',
                 details: 'Nice place\n<script>alert(1)</script>',
                 location: { coordinates: [13.7, 51.0], type: 'Point' }
             };
@@ -33,6 +34,7 @@ describe('MapDataService', () => {
             const poi: PointOfInterest = {
                 href: '',
                 category: 'post',
+                name: 'name',
                 details: 'http://example.com',
                 location: { coordinates: [13.7, 51.0], type: 'Point' }
             };
