@@ -24,6 +24,8 @@ public class PointOfInterestEntity {
 
     private String category;
 
+    private String name;
+
     private String details;
 
     private GeoPoint location;
@@ -58,6 +60,14 @@ public class PointOfInterestEntity {
      */
     public void setCategory(String category) {
         this.category = category;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**
