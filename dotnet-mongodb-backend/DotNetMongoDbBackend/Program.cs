@@ -63,8 +63,9 @@ builder.Services.AddSingleton(sp =>
     return db.GetCollection<PointOfInterest>(cfg.Collections.Pois);
 });
 
-// Register PointOfInterestService
-builder.Services.AddScoped<IPointOfInterestService, PointOfInterestService>();
+// Register PointOfInterestService as Singleton (not Scoped) 
+// This ensures indexes are created only ONCE at startup, not on every request
+builder.Services.AddSingleton<IPointOfInterestService, PointOfInterestService>();
 
 // Use System.Text.Json for controller JSON (preferred for performance and default in .NET)
 builder.Services.AddControllers()

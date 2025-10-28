@@ -109,6 +109,7 @@ public class PointOfInterestControllerCrudTests
         var updatePoi = new PointOfInterest
         {
             Category = "museum",
+            Name = "Updated Museum",
             Details = "Updated Museum Details",
             Location = new Location
             {
@@ -121,6 +122,7 @@ public class PointOfInterestControllerCrudTests
         {
             Href = testId,
             Category = updatePoi.Category,
+            Name = updatePoi.Name,
             Details = updatePoi.Details,
             Location = updatePoi.Location
         };
@@ -197,6 +199,7 @@ public class PointOfInterestControllerCrudTests
         var updatePoi = new PointOfInterest
         {
             Category = "restaurant",
+            Name = "Test Restaurant",
             Details = "", // Empty details
             Location = new Location
             {
@@ -222,6 +225,7 @@ public class PointOfInterestControllerCrudTests
         var updatePoi = new PointOfInterest
         {
             Category = "restaurant",
+            Name = "Test Restaurant",
             Details = null,
             Location = new Location
             {
@@ -245,6 +249,7 @@ public class PointOfInterestControllerCrudTests
         var updatePoi = new PointOfInterest
         {
             Category = "restaurant",
+            Name = "Test Restaurant",
             Details = "Updated Details",
             Location = null
         };
@@ -266,6 +271,7 @@ public class PointOfInterestControllerCrudTests
         var updatePoi = new PointOfInterest
         {
             Category = "restaurant",
+            Name = "Test Restaurant",
             Details = "Updated Details",
             Location = new Location
             {
@@ -291,6 +297,7 @@ public class PointOfInterestControllerCrudTests
         var updatePoi = new PointOfInterest
         {
             Category = "restaurant",
+            Name = "Test Restaurant",
             Details = "Updated Details",
             Location = new Location
             {
@@ -316,6 +323,7 @@ public class PointOfInterestControllerCrudTests
         var updatePoi = new PointOfInterest
         {
             Category = "museum",
+            Name = "Test Museum",
             Details = "Updated Details",
             Location = new Location
             {
@@ -344,6 +352,7 @@ public class PointOfInterestControllerCrudTests
         var updatePoi = new PointOfInterest
         {
             Category = "museum",
+            Name = "Test Museum",
             Details = "Updated Details",
             Location = new Location
             {

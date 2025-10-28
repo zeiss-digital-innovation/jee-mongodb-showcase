@@ -73,6 +73,16 @@
                     </div>
                     
                     <div class="mb-3">
+                        <label for="poiName" class="form-label">Name *</label>
+                        <input type="text" class="form-control" id="poiName" 
+                               placeholder="Enter a name for this point of interest..." 
+                               required maxlength="200">
+                        <div class="invalid-feedback">
+                            Please enter a name (max 200 characters).
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
                         <label for="poiDetails" class="form-label">Details *</label>
                         <textarea class="form-control" id="poiDetails" rows="4" 
                                   placeholder="Enter details about this point of interest..." 
@@ -521,8 +531,9 @@
         
         function validatePoiForm() {
             const category = $('#poiCategory').val().trim();
+            const name = $('#poiName').val().trim();
             const details = $('#poiDetails').val().trim();
-            const isValid = category !== '' && details !== '';
+            const isValid = category !== '' && name !== '' && details !== '';
             
             $('#savePoiBtn').prop('disabled', !isValid);
             
@@ -532,6 +543,7 @@
         function resetPoiForm() {
             $('#createPoiForm')[0].reset();
             $('#poiCategory').removeClass('is-invalid');
+            $('#poiName').removeClass('is-invalid');
             $('#poiDetails').removeClass('is-invalid');
             $('#savePoiBtn').prop('disabled', true);
         }
@@ -540,14 +552,17 @@
             if (!validatePoiForm()) return;
             
             const category = $('#poiCategory').val().trim();
+            const name = $('#poiName').val().trim();
             const details = $('#poiDetails').val().trim();
             
             // Basic XSS prevention - encode HTML entities
+            const sanitizedName = $('<div>').text(name).html();
             const sanitizedDetails = $('<div>').text(details).html();
             
             // Only send required fields - do NOT send href or address
             const newPoi = {
                 category: category,
+                name: sanitizedName,
                 details: sanitizedDetails,
                 location: {
                     type: 'Point',
@@ -581,6 +596,7 @@
                     // Create POI object for display
                     const displayPoi = {
                         category: $('#poiCategory').val().trim(),
+                        name: $('#poiName').val().trim(),
                         details: $('#poiDetails').val().trim(),
                         location: {
                             type: 'Point',
@@ -693,7 +709,13 @@
             const iconClass = getCategoryIcon(poi.category);
             
             let popupContent = '<div>';
+            
             popupContent += '<h6><i class="bi ' + iconClass + ' text-primary me-2"></i>' + poi.category + '</h6>';
+            // Show Name in bold first, after category (if present)
+            if (poi.name) {
+                popupContent += '<p><strong>' + poi.name + '</strong></p>';
+            }
+            
             
             if (poi.details) {
                 const lines = poi.details.split('\n');

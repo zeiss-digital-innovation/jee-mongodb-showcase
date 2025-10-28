@@ -52,6 +52,7 @@ public class EdgeCaseTests
         var poi = new PointOfInterest
         {
             Category = "research_station",
+            Name = "North Pole Station",
             Details = "North Pole Station",
             Location = new Location
             {
@@ -81,6 +82,7 @@ public class EdgeCaseTests
         var poi = new PointOfInterest
         {
             Category = "research_station",
+            Name = "South Pole Station",
             Details = "South Pole Station",
             Location = new Location
             {
@@ -110,6 +112,7 @@ public class EdgeCaseTests
         var poi = new PointOfInterest
         {
             Category = "landmark",
+            Name = "International Date Line",
             Details = "International Date Line",
             Location = new Location
             {
@@ -139,6 +142,7 @@ public class EdgeCaseTests
         var poi = new PointOfInterest
         {
             Category = "landmark",
+            Name = "Prime Meridian",
             Details = "Prime Meridian",
             Location = new Location
             {
@@ -168,6 +172,7 @@ public class EdgeCaseTests
         var poi = new PointOfInterest
         {
             Category = "test",
+            Name = "Test POI",
             Details = "Invalid location",
             Location = new Location
             {

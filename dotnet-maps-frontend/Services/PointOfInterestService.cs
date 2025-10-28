@@ -435,7 +435,7 @@ namespace DotNetMapsFrontend.Services
                 },
                 new PointOfInterest
                 {
-                    Category = "cathedral",
+                    Category = "castle",
                     Details = "Kölner Dom\nKöln, Deutschland\nDomkloster 4",
                     Href = "http://localhost/poi/4",
                     Location = new Location
@@ -446,7 +446,7 @@ namespace DotNetMapsFrontend.Services
                 },
                 new PointOfInterest
                 {
-                    Category = "park",
+                    Category = "parking",
                     Details = "Englischer Garten\nMünchen, Deutschland\nSchönfeldstraße",
                     Href = "http://localhost/poi/5",
                     Location = new Location

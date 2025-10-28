@@ -264,6 +264,7 @@ public class PointOfInterestControllerTests
         var newPoi = new PointOfInterest
         {
             Category = "museum",
+            Name = "New Museum",
             Details = "New Museum",
             Location = new Location
             {
@@ -275,6 +276,7 @@ public class PointOfInterestControllerTests
         var createdPoi = new PointOfInterest
         {
             Category = newPoi.Category,
+            Name = newPoi.Name,
             Details = newPoi.Details,
             Location = newPoi.Location,
             Href = "http://localhost:8080/zdi-geo-service/api/poi/123"
@@ -321,6 +323,7 @@ public class PointOfInterestControllerTests
         var xssPoi = new PointOfInterest
         {
             Category = "museum",
+            Name = "<script>alert('xss')</script>",
             Details = "<script>alert('xss')</script>",
             Location = new Location
             {
@@ -332,6 +335,7 @@ public class PointOfInterestControllerTests
         var encodedPoi = new PointOfInterest
         {
             Category = xssPoi.Category,
+            Name = "&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;", // HTML encoded
             Details = "&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt;", // HTML encoded
             Location = xssPoi.Location,
             Href = "http://localhost:8080/api/poi/123"
@@ -355,6 +359,7 @@ public class PointOfInterestControllerTests
         var invalidPoi = new PointOfInterest
         {
             Category = "museum",
+            Name = "Test Museum",
             Details = "Test Museum",
             Location = new Location
             {
@@ -393,6 +398,7 @@ public class PointOfInterestControllerTests
         var newPoi = new PointOfInterest
         {
             Category = "museum",
+            Name = "Test Museum",
             Details = "Test Museum",
             Location = new Location
             {
@@ -635,12 +641,12 @@ public class PointOfInterestServiceDetailedTests
 
         // Assert
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count, Is.EqualTo(15)); // Fallback categories count
+        Assert.That(result.Count, Is.EqualTo(17)); // Fallback categories count
         Assert.That(result, Does.Contain("landmark"));
         Assert.That(result, Does.Contain("museum"));
         Assert.That(result, Does.Contain("castle"));
-        Assert.That(result, Does.Contain("cathedral"));
-        Assert.That(result, Does.Contain("park"));
+        Assert.That(result, Does.Contain("restaurant"));
+        Assert.That(result, Does.Contain("hotel"));
     }
 
     [Test]
@@ -655,10 +661,10 @@ public class PointOfInterestServiceDetailedTests
 
         // Assert
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.Count, Is.EqualTo(15));
+        Assert.That(result.Count, Is.EqualTo(17));
         Assert.That(result, Does.Contain("restaurant"));
         Assert.That(result, Does.Contain("hotel"));
-        Assert.That(result, Does.Contain("hospital"));
+        Assert.That(result, Does.Contain("museum"));
     }
 
     [Test]
@@ -885,7 +891,7 @@ public class ErrorHandlingTests
     public async Task Create_WhenServiceThrows_ShouldReturnError()
     {
         // Arrange
-        var testPoi = new PointOfInterest { Category = "test", Details = "Test POI" };
+        var testPoi = new PointOfInterest { Category = "test", Name = "Test POI", Details = "Test POI" };
         _mockService.Setup(x => x.CreatePointOfInterestAsync(It.IsAny<PointOfInterest>()))
                    .ThrowsAsync(new InvalidOperationException("Service Error"));
 
@@ -913,7 +919,7 @@ public class ErrorHandlingTests
         var jsonResult = result as JsonResult;
         Assert.That(jsonResult?.Value, Is.InstanceOf<List<string>>());
         var categories = jsonResult?.Value as List<string>;
-        Assert.That(categories?.Count, Is.EqualTo(15));
+        Assert.That(categories?.Count, Is.EqualTo(17));
         Assert.That(categories, Does.Contain("landmark"));
     }
 }
