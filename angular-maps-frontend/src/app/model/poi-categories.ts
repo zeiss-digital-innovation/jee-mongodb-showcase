@@ -37,3 +37,55 @@ export function sanitizeCategory(value: string | undefined | null): PoiCategory 
     const v = value.trim().toLowerCase();
     return isValidCategory(v) ? (v as PoiCategory) : DEFAULT_POI_CATEGORY;
 }
+
+export function getBootstrapIconClass(category: string | undefined) {
+    const cat = (category || '').toLowerCase();
+
+    const iconClassDefault = 'bi-geo-alt';
+
+    let iconClass = '';
+
+    switch (cat) {
+        case 'cash':
+            iconClass = 'bi-credit-card';
+            break;
+        case 'coffee':
+            iconClass = 'bi-cup-hot';
+            break;
+        case 'company':
+            iconClass = `bi-building`;
+            break;
+        case 'gasstation':
+            iconClass = `bi-fuel-pump`;
+            break;
+        case 'lodging':
+            iconClass = `bi-house`;
+            break;
+        case 'parking':
+            iconClass = `bi-car-front`;
+            break;
+        case 'pharmacy':
+            iconClass = `bi-plus-square`;
+            break;
+        case 'police':
+            iconClass = `bi-shield-check`;
+            break;
+        case 'post':
+            iconClass = `bi-mailbox`;
+            break;
+        case 'restaurant':
+            iconClass = `bi-cup-hot`;
+            break;
+        case 'supermarket':
+            iconClass = `bi-shop`;
+            break;
+        case 'toilet':
+            iconClass = `bi-person-standing`;
+            break;
+        default:
+            iconClass = iconClassDefault;
+    }
+
+    return iconClass;
+}
+

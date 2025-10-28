@@ -17,9 +17,9 @@ import { PointOfInterest } from '../model/point_of_interest';
   template: `
     <div class="poidialog-backdrop">
       <div class="poidialog">
-        <h5><i [ngClass]="cssClass"></i>&nbsp;{{action}} Point of Interest</h5>
+        <h5><i [ngClass]="cssClass" class="text-success"></i>&nbsp;{{action}} Point of Interest</h5>
         <div class="form-group">
-          <label>Category</label>
+          <label><i class="bi bi-tag"></i>&nbsp;Category</label>
           <select class="form-control" [(ngModel)]="pointOfInterest!.category">
             <option *ngFor="let c of categories" [value]="c">{{c | titlecase}}</option>
           </select>
@@ -29,7 +29,7 @@ import { PointOfInterest } from '../model/point_of_interest';
           <textarea class="form-control" rows="1" [(ngModel)]="pointOfInterest!.name"></textarea>
         </div>
         <div class="form-group mt-2">
-          <label>Details</label>
+          <label><i class="bi bi-card-text"></i>&nbsp;Details</label>
           <textarea class="form-control" rows="4" [(ngModel)]="pointOfInterest!.details"></textarea>
         </div>
         <div class="form-group mt-2">

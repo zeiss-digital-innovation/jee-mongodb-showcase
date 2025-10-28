@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { environment } from '../environments/environment';
 
 import { PointOfInterest } from '../model/point_of_interest';
-import { POI_CATEGORIES } from '../model/poi-categories';
+import { POI_CATEGORIES, getBootstrapIconClass } from '../model/poi-categories';
 import { ToastNotification } from '../model/toast_notification';
 
 import { PointOfInterestService } from '../service/point-of-interest.service';
@@ -247,6 +247,10 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
     }
 
     this.updateFiltering();
+  }
+
+  getBootstrapIconClass(category: string | undefined): string {
+    return getBootstrapIconClass(category);
   }
 
   showToastMessage(title: string, message: string, smallMessage: string, cssClass: string, attempt = 0) {
