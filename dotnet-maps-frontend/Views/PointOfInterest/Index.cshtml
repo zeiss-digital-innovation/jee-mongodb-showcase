@@ -58,7 +58,7 @@
     .table thead th {
         position: sticky;
         top: 8px;
-        background-color: #212529;
+        /*background-color: #212529;*/
         background-clip: padding-box;
         z-index: 1100; /* Higher than content, lower than fixed headers */
         border-bottom: 2px solid rgba(0, 0, 0, 0.12);
@@ -230,7 +230,7 @@
         @if (Model != null && Model.Any())
         {
             <table class="table table-striped table-hover">
-                <thead class="table-dark">
+                <thead class="table-primary">
                     <tr>
                         <th scope="col">Name</th>
                         <th scope="col">Category</th>
@@ -1090,9 +1090,18 @@
 @functions {
     string FormatDetails(string details)
     {
-        if (string.IsNullOrEmpty(details))
+       if (string.IsNullOrEmpty(details))
             return string.Empty;
-            
-        return details.Replace("\n", "<br>");
+
+        // Regex for recognition of phone numbers in format +<number> with spaces, dashes and parentheses and optionally comma at end
+        var phoneRegex = new System.Text.RegularExpressions.Regex(@"\+\d[\d\s\-\(\)/]*,?");
+        var formattedDetails = phoneRegex.Replace(details, match =>
+        {
+            // Replace just pfone nummer with the icon + phone number
+            return $"\n<i class='bi bi-telephone'></i> {match.Value}\n";
+        });
+
+        return formattedDetails.Replace("\n", "<br>");    
     }
+
 }
