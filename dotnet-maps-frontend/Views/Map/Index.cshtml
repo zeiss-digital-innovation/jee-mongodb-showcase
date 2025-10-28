@@ -3,41 +3,9 @@
     ViewData["Title"] = "Point of Interest Map";
 }
 
-<style>
-    /* Fixed top controls */
-    .top-controls {
-        position: fixed;
-        top: 56px; /* Height of navbar */
-        left: 0;
-        right: 0;
-        background-color: white;
-        padding: 15px 0;
-        border-bottom: 1px solid #dee2e6;
-        z-index: 1000;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    /* Map container with margin for controls */
-    .map-container {
-        margin-top: 210px; /* Space for fixed controls including filter */
-        height: calc(100vh - 270px); /* Full height minus navbar and controls */
-    }
-    
-    .map_large {
-        height: 100%;
-        width: 100%;
-    }
-    
-    /* Move Leaflet zoom controls below fixed controls */
-    .leaflet-top.leaflet-left {
-        top: 80px; /* Position below top-controls (navbar is 56px) */
-    }
-
-     /* Visual separator between coordinate controls and filter section */
-    #sharedFilterCategoryControls {
-        border-top: 3px solid #6b6b6c;
-    }
-</style>
+@section Styles {
+    <link rel="stylesheet" href="~/css/map.css" />
+}
 
 <!-- Fixed Top Controls -->
 <div class="top-controls">

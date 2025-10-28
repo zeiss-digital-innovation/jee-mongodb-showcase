@@ -1,0 +1,17 @@
+/* Map View Styles */
+
+/* Map container with margin for controls */
+.map-container {
+    margin-top: 210px; /* Space for fixed controls including filter */
+    height: calc(100vh - 270px); /* Full height minus navbar and controls */
+}
+
+.map_large {
+    height: 100%;
+    width: 100%;
+}
+
+/* Move Leaflet zoom controls below fixed controls */
+.leaflet-top.leaflet-left {
+    top: 80px; /* Position below top-controls (navbar is 56px) */
+}

@@ -29,3 +29,23 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+/* Shared components used across multiple views */
+
+/* Fixed top controls - used in POI List and Map views */
+.top-controls {
+    position: fixed;
+    top: 56px; /* Height of navbar */
+    left: 0;
+    right: 0;
+    background-color: white;
+    padding: 15px 0;
+    border-bottom: 1px solid #dee2e6;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Visual separator between coordinate controls and filter section */
+#sharedFilterCategoryControls {
+    border-top: 3px solid #6b6b6c;
+}
