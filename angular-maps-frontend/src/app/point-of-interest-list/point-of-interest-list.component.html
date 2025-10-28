@@ -47,9 +47,9 @@
         <thead>
             <tr>
                 <th scope="col">#</th>
-                <th scope="col">Category</th>
+                <th scope="col"><i class="bi bi-tag"></i>&nbsp;Category</th>
                 <th scope="col">Name</th>
-                <th scope="col">Details</th>
+                <th scope="col"><i class="bi bi-card-text"></i>&nbsp;Details</th>
                 <th scope="col"><i class="bi bi-geo-alt"></i>&nbsp;Location</th>
                 <th scope="col">Action</th>
             </tr>
@@ -58,7 +58,7 @@
             <tr *ngFor="let poi of pointsOfInterestFiltered; let i = index">
                 <th scope="row">{{ i + 1 }}</th>
                 <!-- lets display the category with first letter upper case -->
-                <td>{{ poi.category | titlecase }}</td>
+                <td><i [ngClass]="getBootstrapIconClass(poi.category)"></i>&nbsp;{{ poi.category | titlecase }}</td>
                 <td>{{ poi.name }}</td>
                 <td [innerHTML]="poi.details | formatDetails"></td>
                 <td>Lat: {{ poi.location.coordinates[1] }}, Lng: {{ poi.location.coordinates[0] }}</td>
