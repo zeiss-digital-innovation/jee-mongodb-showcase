@@ -43,7 +43,7 @@ public class Main {
     }
 
     public void processAllResourceFolders() {
-        Path resourceDir = Paths.get("src/main/resources");
+        Path resourceDir = Paths.get("testdata-generation/src/main/resources");
 
         try (Stream<Path> paths = Files.walk(resourceDir)) {
             paths.filter(Files::isDirectory)
