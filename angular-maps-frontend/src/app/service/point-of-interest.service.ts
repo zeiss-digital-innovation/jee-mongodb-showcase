@@ -63,7 +63,8 @@ function getMockPointsOfInterest(): Observable<PointOfInterest[]> {
     const mockData: PointOfInterest[] = [
         {
             "category": "police",
-            "details": "Polizei\nD-Dresden\nSchießgasse 7",
+            "name": "Polizei",
+            "details": "D-Dresden\nSchießgasse 7",
             "href": "http://localhost:8080/geoservice/rest/poi/576840091921af14e485a872",
             "location": {
                 "coordinates": [
@@ -75,7 +76,8 @@ function getMockPointsOfInterest(): Observable<PointOfInterest[]> {
         },
         {
             "category": "cash",
-            "details": "Sparkasse ATM\nD-Dresden\nWebergasse 1 Altmarkt-Galerie",
+            "name": "Sparkasse ATM",
+            "details": "D-Dresden\nWebergasse 1 Altmarkt-Galerie",
             "href": "http://localhost:8080/geoservice/rest/poi/57683c861921af14e4840e77",
             "location": {
                 "coordinates": [
@@ -87,7 +89,8 @@ function getMockPointsOfInterest(): Observable<PointOfInterest[]> {
         },
         {
             "category": "restaurant",
-            "details": "McDonald's\nD-Dresden\nWilsdruffer Str. 19",
+            "name": "McDonald's",
+            "details": "D-Dresden\nWilsdruffer Str. 19",
             "href": "http://localhost:8080/geoservice/rest/poi/5768403a1921af14e485bdc8",
             "location": {
                 "coordinates": [
@@ -98,8 +101,9 @@ function getMockPointsOfInterest(): Observable<PointOfInterest[]> {
             }
         },
         {
-            "category": "toilet",
-            "details": "Starbucks\nD-Dresden\nAltmarkt\n+49 351 43833967",
+            "category": "coffee",
+            "name": "Starbucks",
+            "details": "D-Dresden\nAltmarkt\n+49 351 43833967",
             "href": "http://localhost:8080/geoservice/rest/poi/576840431921af14e485c1ee",
             "location": {
                 "coordinates": [
@@ -111,7 +115,8 @@ function getMockPointsOfInterest(): Observable<PointOfInterest[]> {
         },
         {
             "category": "coffee",
-            "details": "McDonald's\nD-Dresden\nAltmarkt-Galerie Im Untergeschoß",
+            "name": "McDonald's",
+            "details": "D-Dresden\nAltmarkt-Galerie Im Untergeschoß",
             "href": "http://localhost:8080/geoservice/rest/poi/576840391921af14e485bd98",
             "location": {
                 "coordinates": [
@@ -122,8 +127,9 @@ function getMockPointsOfInterest(): Observable<PointOfInterest[]> {
             }
         },
         {
-            "category": "parking",
-            "details": "Cash Group (Postbank)\nD-Dresden\nWebergasse 1",
+            "category": "cash",
+            "name": "Cash Group (Postbank)",
+            "details": "D-Dresden\nWebergasse 1",
             "href": "http://localhost:8080/geoservice/rest/poi/57683bef1921af14e483ca40",
             "location": {
                 "coordinates": [
@@ -135,7 +141,8 @@ function getMockPointsOfInterest(): Observable<PointOfInterest[]> {
         },
         {
             "category": "supermarket",
-            "details": "Aldi\nD-Dresden-Innere Altstadt\nWebergasse 1",
+            "name": "Aldi",
+            "details": "D-Dresden-Innere Altstadt\nWebergasse 1",
             "href": "http://localhost:8080/geoservice/rest/poi/5768405a1921af14e485cc2e",
             "location": {
                 "coordinates": [
@@ -147,7 +154,8 @@ function getMockPointsOfInterest(): Observable<PointOfInterest[]> {
         },
         {
             "category": "post",
-            "details": "Deutsche Post\nD-Dresden\nWebergasse 1",
+            "name": "Deutsche Post",
+            "details": "D-Dresden\nWebergasse 1",
             "href": "http://localhost:8080/geoservice/rest/poi/576840201921af14e485b252",
             "location": {
                 "coordinates": [
@@ -159,7 +167,8 @@ function getMockPointsOfInterest(): Observable<PointOfInterest[]> {
         },
         {
             "category": "lodging",
-            "details": "Kempinski Hotel Taschenbergpalais\nD-Deutschland\n+49351-491200",
+            "name": "Kempinski Hotel Taschenbergpalais",
+            "details": "D-Deutschland\n+49351-491200",
             "href": "http://localhost:8080/geoservice/rest/poi/57683e631921af14e484e81e",
             "location": {
                 "coordinates": [
@@ -169,8 +178,9 @@ function getMockPointsOfInterest(): Observable<PointOfInterest[]> {
                 "type": "Point"
             }
         }, {
-            "category": "gas_station",
-            "details": "The Westin Bellevue Dresden\nD-Deutschland\n+49351-8050",
+            "category": "lodging",
+            "name": "The Westin Bellevue Dresden",
+            "details": "D-Deutschland\n+49351-8050",
             "href": "http://localhost:8080/geoservice/rest/poi/57683e921921af14e484fdbe",
             "location": {
                 "coordinates": [
@@ -182,7 +192,8 @@ function getMockPointsOfInterest(): Observable<PointOfInterest[]> {
         },
         {
             "category": "company",
-            "details": "Carl Zeiss Digital Innovation GmbH\nFritz-Foerster-Platz 2\n01069 Dresden\nTel.: +49 (0)351 497 01-500\nFax: +49 (0)351 497 01-589",
+            "name": "Carl Zeiss Digital Innovation GmbH",
+            "details": "Fritz-Foerster-Platz 2\n01069 Dresden\nTel.: +49 (0)351 497 01-500\nFax: +49 (0)351 497 01-589",
             "href": "http://localhost:8080/geoservice/rest/poi/57683cd41921af14e4843289",
             "location": {
                 "coordinates": [

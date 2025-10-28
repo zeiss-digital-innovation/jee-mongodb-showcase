@@ -25,6 +25,10 @@ import { PointOfInterest } from '../model/point_of_interest';
           </select>
         </div>
         <div class="form-group mt-2">
+          <label>Name</label>
+          <textarea class="form-control" rows="1" [(ngModel)]="pointOfInterest!.name"></textarea>
+        </div>
+        <div class="form-group mt-2">
           <label>Details</label>
           <textarea class="form-control" rows="4" [(ngModel)]="pointOfInterest!.details"></textarea>
         </div>

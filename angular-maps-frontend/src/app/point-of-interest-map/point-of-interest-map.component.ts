@@ -44,6 +44,7 @@ export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
   categories = POI_CATEGORIES;
 
   categoryFilter: string | undefined;
+  nameFilter: string | undefined;
   detailsFilter: string | undefined;
 
   pointsOfInterest: PointOfInterest[] = [];
@@ -279,7 +280,14 @@ export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
     });
   }
 
-  filterBySearch(event: Event) {
+  filterByName(event: Event) {
+    const search = (event.target as HTMLInputElement).value;
+
+    this.nameFilter = search;
+    this.updateFiltering();
+  }
+
+  filterByDetails(event: Event) {
     const search = (event.target as HTMLInputElement).value;
 
     this.detailsFilter = search;
@@ -312,8 +320,8 @@ export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
   }
 
   private updateFiltering() {
-    this.poiFilterService.setFilterCriteria({ detailsFilter: this.detailsFilter, categoryFilter: this.categoryFilter });
-    this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.detailsFilter);
+    this.poiFilterService.setFilterCriteria({ detailsFilter: this.detailsFilter, categoryFilter: this.categoryFilter, nameFilter: this.nameFilter });
+    this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.nameFilter, this.detailsFilter);
     this.showPointsOnMap();
   }
 }

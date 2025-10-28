@@ -19,7 +19,9 @@ export class MapDataService {
      * @returns Popup content.
      */
     getMarkerPopupFor(poi: PointOfInterest): string {
-        if (!poi) return '';
+        var markerPopup = '';
+
+        if (!poi) return markerPopup;
 
         var iconImg: string;
         const category = (poi.category || '').toLowerCase();
@@ -78,12 +80,16 @@ export class MapDataService {
                     `<i class="bi-geo-alt"></i>`;
         }
 
+        markerPopup += iconImg;
+
+        markerPopup += `<br><strong>${this.poiFormat.formatDetails(poi.name || 'Unnamed')}</strong>`;
+
         // sanitize and format details: only allow safe links, escape other text, format phones
         let details = this.poiFormat.formatDetails(poi.details || '');
 
-        iconImg += `<br>${details}`;
+        markerPopup += `<br>${details}`;
 
-        return iconImg;
+        return markerPopup;
     }
 
     /**

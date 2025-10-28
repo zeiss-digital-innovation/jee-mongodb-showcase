@@ -10,6 +10,7 @@ export class Sanitizer {
     readonly maxHref = 200;
     readonly maxPhone = 50;
     readonly maxText = 2000;
+    readonly maxName = 100;
 
     // Basic client-side sanitization to reduce risk of sending harmful text to the backend or
     // having it rendered unsafely elsewhere. This is not a substitute for server-side validation.
@@ -18,6 +19,7 @@ export class Sanitizer {
         const sanitized: PointOfInterest = {
             href: this.sanitizeText(point.href || '', this.maxHref),
             category: sanitizeCategory(point.category) as any || DEFAULT_POI_CATEGORY,
+            name: this.sanitizeText(point.name || '', this.maxName),
             details: this.sanitizeText(point.details || '', this.maxText),
             location: {
                 type: (point.location && point.location.type) ? point.location.type : 'Point',
