@@ -78,12 +78,14 @@ namespace DotNetMapsFrontend.Controllers
 
                 // Input validation for XSS and injection attacks
                 if (string.IsNullOrWhiteSpace(pointOfInterest.Category) || 
+                    string.IsNullOrWhiteSpace(pointOfInterest.Name) ||
                     string.IsNullOrWhiteSpace(pointOfInterest.Details))
                 {
-                    return BadRequest("Category and Details are required.");
+                    return BadRequest("Category, Name and Details are required.");
                 }
 
-                // Sanitize details to prevent XSS
+                // Sanitize name and details to prevent XSS
+                pointOfInterest.Name = System.Web.HttpUtility.HtmlEncode(pointOfInterest.Name);
                 pointOfInterest.Details = System.Web.HttpUtility.HtmlEncode(pointOfInterest.Details);
 
                 // Validate coordinates
@@ -145,6 +147,11 @@ namespace DotNetMapsFrontend.Controllers
                 if (string.IsNullOrWhiteSpace(pointOfInterest.Category))
                 {
                     return BadRequest("Category is required.");
+                }
+
+                if (string.IsNullOrWhiteSpace(pointOfInterest.Name))
+                {
+                    return BadRequest("Name is required.");
                 }
 
                 if (string.IsNullOrWhiteSpace(pointOfInterest.Details))
