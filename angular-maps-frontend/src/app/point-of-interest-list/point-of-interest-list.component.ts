@@ -55,8 +55,9 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
     const filterCriteria = this.poiFilterService.getFilterCriteria();
 
     if (filterCriteria) {
-      this.categoryFilter = filterCriteria.categoryFilter;
       console.log('Category filter on init:', this.categoryFilter);
+      this.categoryFilter = filterCriteria.categoryFilter;
+      this.nameFilter = filterCriteria.nameFilter;
       this.detailsFilter = filterCriteria.detailsFilter;
     }
 

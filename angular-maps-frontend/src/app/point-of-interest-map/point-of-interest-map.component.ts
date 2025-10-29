@@ -78,6 +78,7 @@ export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
 
     if (filterCriteria) {
       this.categoryFilter = filterCriteria.categoryFilter;
+      this.nameFilter = filterCriteria.nameFilter;
       this.detailsFilter = filterCriteria.detailsFilter;
     }
 
