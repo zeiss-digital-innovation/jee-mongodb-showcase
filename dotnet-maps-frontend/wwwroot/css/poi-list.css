@@ -54,6 +54,15 @@ the value was found trough try-and-error
     vertical-align: middle;
 }
 
+
+.table-primary th,
+thead.table-primary th,
+thead.table-primary td {
+    background-color: var(--color-azure) !important;
+    color: var(--color-white) !important;
+}
+
+
 .category-cell {
     color: gray !important;
     font-family: "Consolas", "Courier New", monospace;
@@ -132,7 +141,7 @@ the value was found trough try-and-error
     border-color: #0F2DB3 !important;
     color: white !important;
 }
- 
+
 .btn-outline-primary,
 .text-primary {
     border-color: #0F2DB3 !important;

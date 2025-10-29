@@ -1,3 +1,12 @@
+:root {
+    /* normal */
+    --color-white: #fff;
+    --color-indigo: #0F2DB3;
+    --color-azure: #0072EF;
+    --color-bright-orange-neon: #E71E1E;
+}
+
+
 html {
   font-size: 14px;
   position: relative;
@@ -46,4 +55,36 @@ body {
 /* Visual separator between coordinate controls and filter section */
 #sharedFilterCategoryControls {
     border-top: 3px solid #6b6b6c;
+}
+
+/* #0F2DB3 */
+.btn-primary,
+.bg-primary {
+    background-color: var(--color-indigo) !important;
+    border-color: var(--color-indigo) !important;
+    color: var(--color-white) !important;
+}
+
+.btn-outline-primary,
+.text-primary {
+    border-color: var(--color-indigo) !important;
+    color: var(--color-indigo) !important;
+}
+
+.btn-danger {
+    background-color: var(--color-bright-orange-neon) !important;
+}
+
+.btn-outline-danger,
+.text-danger {
+    border-color: var(--color-bright-orange-neon) !important;
+    color: var(--color-bright-orange-neon) !important;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    background-color: var(--color-indigo);
+}
+
+input[type="range"]::-moz-range-thumb {
+    background-color: var(--color-indigo);
 }
