@@ -30,9 +30,9 @@ export class MapDataService {
 
         iconImg = `<i class="${getBootstrapIconClass(cat)} text-primary"></i>`;
 
-        markerPopup += iconImg + '&nbsp;<strong>' + cat.charAt(0).toUpperCase() + cat.slice(1) + '</strong>';
+        markerPopup += iconImg + '&nbsp;<strong>' + cat.charAt(0).toUpperCase() + cat.slice(1) + '</strong><br />';
 
-        markerPopup += `<br><strong>${this.poiFormat.formatDetails(poi.name || 'Unnamed')}</strong>`;
+        markerPopup += `<br><span class="lead">${this.poiFormat.formatDetails(poi.name || 'Unnamed')}</span><br />`;
 
         // sanitize and format details: only allow safe links, escape other text, format phones
         let details = this.poiFormat.formatDetails(poi.details || '');
