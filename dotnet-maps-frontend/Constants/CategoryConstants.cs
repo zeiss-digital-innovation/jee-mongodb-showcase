@@ -58,7 +58,7 @@ namespace DotNetMapsFrontend.Constants
                 "post" => "bi-mailbox",
                 "restaurant" => "bi-fork-knife",
                 "supermarket" => "bi-shop",
-                "toilet" => "bi-person-standing",
+                "toilet" => "bi-badge-wc",
                 _ => "bi-geo"
             };
         }
