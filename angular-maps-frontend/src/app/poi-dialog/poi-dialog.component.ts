@@ -37,8 +37,8 @@ import { PointOfInterest } from '../model/point_of_interest';
           <textarea class="form-control" rows="2" disabled>Lat: {{ pointOfInterest!.location.coordinates[1] }}\nLng: {{ pointOfInterest!.location.coordinates[0] }}</textarea>
         </div>
         <div class="d-flex justify-content-end gap-2 mt-3">
-          <button class="btn btn-danger btn-sm" type="button" (click)="onCancel()"><i class="bi bi-x-circle"></i>&nbsp;Cancel</button>
-          <button class="btn btn-primary btn-sm" type="button" (click)="onSave()"><i class="bi bi-floppy2-fill"></i>&nbsp;Save</button>
+          <button class="btn btn-outline-danger btn-sm" type="button" (click)="onCancel()"><i class="bi bi-x-circle"></i>&nbsp;Cancel</button>
+          <button class="btn btn-outline-primary btn-sm" type="button" (click)="onSave()"><i class="bi bi-floppy2-fill"></i>&nbsp;Save</button>
         </div>
         <div class="shortcut-hint" aria-hidden="true">Esc to cancel · Enter to save</div>
       </div>
