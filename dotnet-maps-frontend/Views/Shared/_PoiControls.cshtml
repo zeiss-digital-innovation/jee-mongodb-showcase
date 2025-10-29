@@ -22,15 +22,21 @@
 
 <!-- Filter and Category Selection Row - Shared across Map and List pages -->
 <div class="row mt-3 g-3" id="sharedFilterCategoryControls">
-    <div class="col-md-6">
-        <label for="poiFilterInput" class="form-label">
-            Filter POIs by Details
+    <div class="col-md-3">
+        <label for="poiNameFilterInput" class="form-label">
+            <i class="bi bi-tag me-1"></i>Filter by Name
         </label>
-        <input type="text" class="form-control" id="poiFilterInput" placeholder="Enter text to filter POIs...">
+        <input type="text" class="form-control" id="poiNameFilterInput" placeholder="Search by name...">
+    </div>
+    <div class="col-md-3">
+        <label for="poiDetailsFilterInput" class="form-label">
+            <i class="bi bi-info-circle me-1"></i>Filter by Details
+        </label>
+        <input type="text" class="form-control" id="poiDetailsFilterInput" placeholder="Search by details...">
     </div>
     <div class="col-md-6">
         <label for="categoryDropdown" class="form-label">
-            Filter by Categories
+            <i class="bi bi-funnel me-1"></i>Filter by Categories
         </label>
         <div class="dropdown w-100">
             <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="categoryDropdown" data-bs-toggle="dropdown" aria-expanded="false">

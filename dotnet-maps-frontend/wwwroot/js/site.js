@@ -4,20 +4,25 @@
  * Note: This is SEPARATE from category filtering (which is backend-based)
  */
 
-// LocalStorage key for text filter
-const TEXT_FILTER_STORAGE_KEY = 'poi_text_filter';
+// LocalStorage keys for text filters
+const NAME_FILTER_STORAGE_KEY = 'poi_name_filter';
+const DETAILS_FILTER_STORAGE_KEY = 'poi_details_filter';
 
-// Global function to apply text filter to POI cards, table rows, and map markers
-function applyFilter(filterText) {
-    const filter = filterText.toLowerCase().trim();
+// Global function to apply both name and details filters
+function applyFilters(nameFilter, detailsFilter) {
+    const nameFilterLower = (nameFilter || '').toLowerCase().trim();
+    const detailsFilterLower = (detailsFilter || '').toLowerCase().trim();
     
     // Filter Cards View (List page)
     $('#poiCardsContainer .col').each(function() {
         const $card = $(this);
-        const category = $card.find('.card-title').text().toLowerCase();
+        const name = $card.find('.card-title').text().toLowerCase();
         const details = $card.find('.card-text').text().toLowerCase();
         
-        if (filter === '' || category.includes(filter) || details.includes(filter)) {
+        const nameMatch = nameFilterLower === '' || name.includes(nameFilterLower);
+        const detailsMatch = detailsFilterLower === '' || details.includes(detailsFilterLower);
+        
+        if (nameMatch && detailsMatch) {
             $card.show();
         } else {
             $card.hide();
@@ -27,10 +32,13 @@ function applyFilter(filterText) {
     // Filter Table View (List page)
     $('#poiTableBody tr').each(function() {
         const $row = $(this);
-        const category = $row.find('.category-cell').text().toLowerCase();
+        const name = $row.find('td:first').text().toLowerCase(); // First column is Name
         const details = $row.find('.details-cell').text().toLowerCase();
         
-        if (filter === '' || category.includes(filter) || details.includes(filter)) {
+        const nameMatch = nameFilterLower === '' || name.includes(nameFilterLower);
+        const detailsMatch = detailsFilterLower === '' || details.includes(detailsFilterLower);
+        
+        if (nameMatch && detailsMatch) {
             $row.show();
         } else {
             $row.hide();
@@ -38,17 +46,16 @@ function applyFilter(filterText) {
     });
     
     // Filter Map Markers (Map page)
-    // Check if we're on the map page by checking for global variables
     if (typeof markersLayer !== 'undefined' && typeof pointsOfInterest !== 'undefined') {
-        applyMapFilter(filter);
+        applyMapFilters(nameFilterLower, detailsFilterLower);
     }
     
     // Update visible count
     updateVisibleCount();
 }
 
-// Apply filter to map markers (Map page only)
-function applyMapFilter(filter) {
+// Apply filters to map markers (Map page only)
+function applyMapFilters(nameFilter, detailsFilter) {
     if (!markersLayer || !pointsOfInterest) {
         return;
     }
@@ -58,11 +65,14 @@ function applyMapFilter(filter) {
     
     // Re-add only matching markers
     pointsOfInterest.forEach(function(poi) {
-        const category = (poi.category || '').toLowerCase();
+        const name = (poi.name || '').toLowerCase();
         const details = (poi.details || '').toLowerCase();
         
-        // Show marker if filter is empty OR if category/details match
-        if (filter === '' || category.includes(filter) || details.includes(filter)) {
+        const nameMatch = nameFilter === '' || name.includes(nameFilter);
+        const detailsMatch = detailsFilter === '' || details.includes(detailsFilter);
+        
+        // Show marker only if both filters match
+        if (nameMatch && detailsMatch) {
             const coords = poi.location.coordinates;
             const lat = coords[1];
             const lng = coords[0];
@@ -85,45 +95,49 @@ function updateVisibleCount() {
     console.log(`Visible POIs after text filter: ${count}`);
 }
 
-// Setup filter input event listener with localStorage persistence
-function setupPoiFilter() {
-    const filterInput = $('#poiFilterInput');
+// Setup filter input event listeners with localStorage persistence
+function setupPoiFilters() {
+    const nameFilterInput = $('#poiNameFilterInput');
+    const detailsFilterInput = $('#poiDetailsFilterInput');
     
-    if (filterInput.length === 0) {
-        return; // No filter input on this page
+    if (nameFilterInput.length === 0 && detailsFilterInput.length === 0) {
+        return; // No filter inputs on this page
     }
     
-    // Load saved filter value from localStorage
-    const savedFilter = localStorage.getItem(TEXT_FILTER_STORAGE_KEY) || '';
-    filterInput.val(savedFilter);
+    // Load saved filter values from localStorage
+    const savedNameFilter = localStorage.getItem(NAME_FILTER_STORAGE_KEY) || '';
+    const savedDetailsFilter = localStorage.getItem(DETAILS_FILTER_STORAGE_KEY) || '';
     
-    // Apply initial filter if exists
-    if (savedFilter) {
-        console.log(`Restoring text filter: "${savedFilter}"`);
-        applyFilter(savedFilter);
+    nameFilterInput.val(savedNameFilter);
+    detailsFilterInput.val(savedDetailsFilter);
+    
+    // Apply initial filters if they exist
+    if (savedNameFilter || savedDetailsFilter) {
+        console.log(`Restoring filters - Name: "${savedNameFilter}", Details: "${savedDetailsFilter}"`);
+        applyFilters(savedNameFilter, savedDetailsFilter);
     }
     
-    // Apply filter on input and save to localStorage
-    filterInput.on('input', function() {
-        const filterValue = $(this).val();
-        localStorage.setItem(TEXT_FILTER_STORAGE_KEY, filterValue);
-        applyFilter(filterValue);
-    });
+    // Apply filters on input and save to localStorage
+    function handleFilterChange() {
+        const nameFilter = nameFilterInput.val();
+        const detailsFilter = detailsFilterInput.val();
+        
+        localStorage.setItem(NAME_FILTER_STORAGE_KEY, nameFilter);
+        localStorage.setItem(DETAILS_FILTER_STORAGE_KEY, detailsFilter);
+        
+        applyFilters(nameFilter, detailsFilter);
+    }
     
-    // Clear filter button (if exists)
-    $('#clearFilterBtn').on('click', function() {
-        filterInput.val('');
-        localStorage.removeItem(TEXT_FILTER_STORAGE_KEY);
-        applyFilter('');
-    });
+    nameFilterInput.on('input', handleFilterChange);
+    detailsFilterInput.on('input', handleFilterChange);
     
-    console.log('POI text filter initialized with localStorage persistence');
+    console.log('POI text filters initialized with localStorage persistence');
 }
 
 // Auto-initialize when DOM is ready
 $(document).ready(function() {
-    // Only setup if the filter input exists on the page
-    if ($('#poiFilterInput').length > 0) {
-        setupPoiFilter();
+    // Only setup if the filter inputs exist on the page
+    if ($('#poiNameFilterInput').length > 0 || $('#poiDetailsFilterInput').length > 0) {
+        setupPoiFilters();
     }
 });

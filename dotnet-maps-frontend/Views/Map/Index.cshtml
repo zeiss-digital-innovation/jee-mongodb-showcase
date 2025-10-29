@@ -673,11 +673,12 @@
                 markersLayer.addLayer(marker);
             });
             
-            // Apply current text filter if exists
-            const currentFilter = $('#poiFilterInput').val();
-            if (currentFilter && typeof applyFilter === 'function') {
-                console.log('[Map] Applying text filter after loading POIs:', currentFilter);
-                applyFilter(currentFilter);
+            // Apply current filters if they exist
+            const nameFilter = $('#poiNameFilterInput').val() || '';
+            const detailsFilter = $('#poiDetailsFilterInput').val() || '';
+            if (typeof applyFilters === 'function') {
+                console.log('[Map] Applying filters after loading POIs - Name:', nameFilter, ', Details:', detailsFilter);
+                applyFilters(nameFilter, detailsFilter);
             }
         }
         
