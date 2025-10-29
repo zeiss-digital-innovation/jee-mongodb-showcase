@@ -53,10 +53,10 @@ namespace DotNetMapsFrontend.Constants
                 "lodging" => "bi-house",
                 "museum" => "bi-building-check",
                 "parking" => "bi-car-front",
-                "pharmacy" => "bi-plus-square",
+                "pharmacy" => "bi-capsule",
                 "police" => "bi-shield-check",
                 "post" => "bi-mailbox",
-                "restaurant" => "bi-cup-hot",
+                "restaurant" => "bi-fork-knife",
                 "supermarket" => "bi-shop",
                 "toilet" => "bi-person-standing",
                 _ => "bi-geo"
