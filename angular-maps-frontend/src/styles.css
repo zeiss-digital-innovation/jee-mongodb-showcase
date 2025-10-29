@@ -3,6 +3,61 @@
 /* Import Leaflet CSS */
 @import 'leaflet/dist/leaflet.css';
 
+:root {
+    /* normal */
+    --color-white: #fff;
+    --color-indigo: #0F2DB3;
+    --color-azure: #0072EF;
+    --color-bright-orange-neon: #E71E1E;
+}
+
+
+/* Hover and keyboard focus */
+.navbar .nav-link:hover,
+.navbar .nav-link:focus,
+.navbar .nav-link:focus-visible {
+    color: var(--color-white);
+}
+
+/* #0F2DB3 */
+.btn-primary,
+.bg-primary {
+    background-color: var(--color-indigo) !important;
+    border-color: var(--color-indigo) !important;
+    color: var(--color-white) !important;
+}
+
+.btn-outline-primary,
+.text-primary {
+    border-color: var(--color-indigo) !important;
+    color: var(--color-indigo) !important;
+}
+
+.btn-danger {
+    background-color: var(--color-bright-orange-neon) !important;
+}
+
+.btn-outline-danger,
+.text-danger {
+    border-color: var(--color-bright-orange-neon) !important;
+    color: var(--color-bright-orange-neon) !important;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    background-color: var(--color-indigo);
+}
+
+input[type="range"]::-moz-range-thumb {
+    background-color: var(--color-indigo);
+}
+
+.table-primary th,
+thead.table-primary th,
+thead.table-primary td {
+    background-color: var(--color-azure) !important;
+    color: var(--color-white) !important;
+}
+
 /* Map styling */
 .map_large {
     height: 500px;
@@ -34,4 +89,14 @@ body {
     z-index: 10750 !important;
     /* higher than Leaflet overlays */
     pointer-events: auto !important;
+}
+
+/* Make sure nav items get visible styling when the parent <li> receives the `selected` class
+   (routerLinkActive applied to the <li> will add the class there). */
+.navbar .nav-item.selected>.nav-link,
+.navbar .nav-link.selected {
+    color: var(--color-white) !important;
+    border-radius: .25rem;
+    font-weight: 600;
+    transition: background-color 160ms ease, color 160ms ease;
 }

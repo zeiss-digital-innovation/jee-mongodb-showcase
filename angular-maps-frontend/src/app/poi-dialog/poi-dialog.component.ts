@@ -17,7 +17,7 @@ import { PointOfInterest } from '../model/point_of_interest';
   template: `
     <div class="poidialog-backdrop">
       <div class="poidialog">
-        <h5><i [ngClass]="cssClass" class="text-success"></i>&nbsp;{{action}} Point of Interest</h5>
+        <h5><i [ngClass]="cssClass" class="text-primary"></i>&nbsp;{{action}} Point of Interest</h5>
         <div class="form-group">
           <label><i class="bi bi-tag"></i>&nbsp;Category</label>
           <select class="form-control" [(ngModel)]="pointOfInterest!.category">
@@ -38,7 +38,7 @@ import { PointOfInterest } from '../model/point_of_interest';
         </div>
         <div class="d-flex justify-content-end gap-2 mt-3">
           <button class="btn btn-danger btn-sm" type="button" (click)="onCancel()"><i class="bi bi-x-circle"></i>&nbsp;Cancel</button>
-          <button class="btn btn-success btn-sm" type="button" (click)="onSave()"><i class="bi bi-floppy2-fill"></i>&nbsp;Save</button>
+          <button class="btn btn-primary btn-sm" type="button" (click)="onSave()"><i class="bi bi-floppy2-fill"></i>&nbsp;Save</button>
         </div>
         <div class="shortcut-hint" aria-hidden="true">Esc to cancel · Enter to save</div>
       </div>

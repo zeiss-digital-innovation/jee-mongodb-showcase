@@ -44,7 +44,7 @@
 
 <div class="container poi-list-content">
     <table class="table table-striped table-hover">
-        <thead>
+        <thead class="table-primary">
             <tr>
                 <th scope="col">#</th>
                 <th scope="col"><i class="bi bi-tag"></i>&nbsp;Category</th>
@@ -58,7 +58,8 @@
             <tr *ngFor="let poi of pointsOfInterestFiltered; let i = index">
                 <th scope="row">{{ i + 1 }}</th>
                 <!-- lets display the category with first letter upper case -->
-                <td><i [ngClass]="getBootstrapIconClass(poi.category)"></i>&nbsp;{{ poi.category | titlecase }}</td>
+                <td><i [ngClass]="getBootstrapIconClass(poi.category)"></i>&nbsp;<span class="text-muted">{{
+                        poi.category | titlecase }}</span></td>
                 <td>{{ poi.name }}</td>
                 <td [innerHTML]="poi.details | formatDetails"></td>
                 <td>Lat: {{ poi.location.coordinates[1] }}, Lng: {{ poi.location.coordinates[0] }}</td>
