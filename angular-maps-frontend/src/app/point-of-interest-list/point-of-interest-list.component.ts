@@ -67,13 +67,6 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
       this.longitude = searchData.longitude;
       this.radius = searchData.radius;
     }
-
-    this.poiService.getPointsOfInterest(this.latitude, this.longitude, this.radius)
-      .subscribe(points => {
-        this.pointsOfInterest = points;
-        this.pointsOfInterestFiltered = this.pointsOfInterest;
-        this.updateFiltering();
-      });
   }
 
   ngAfterViewInit(): void {
@@ -93,6 +86,8 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
           console.warn('Bootstrap Toast not available');
         }
       });
+
+    this.loadPointsOfInterest();
   }
 
   setRadius(event: Event): void {
@@ -111,12 +106,13 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
           this.pointsOfInterest = points;
 
           const durationOfRequest = performance.now() - startTime;
-          this.showToastMessage(ToastNotification.titleDefault, //
-            'Successfully loaded ' + this.pointsOfInterest.length + ' point(s) of interest. ' + this.pointsOfInterestFiltered.length + ' point(s) match the current filters.',//
-            durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
 
           this.pointsOfInterestFiltered = this.pointsOfInterest;
           this.updateFiltering();
+
+          this.showToastMessage(ToastNotification.titleDefault, //
+            'Successfully loaded ' + this.pointsOfInterest.length + ' point(s) of interest. ' + this.pointsOfInterestFiltered.length + ' point(s) match the current filters.',//
+            durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
         },
         error: err => {
           console.error('Failed to load POIs', err);
