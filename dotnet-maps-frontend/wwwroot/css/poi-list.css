@@ -134,14 +134,6 @@ thead.table-primary td {
     display: none;
 }
 
-/* #0F2DB3 */
-.btn-primary,
-.bg-primary {
-    background-color: #0F2DB3 !important;
-    border-color: #0F2DB3 !important;
-    color: white !important;
-}
-
 .btn-outline-primary,
 .text-primary {
     border-color: #0F2DB3 !important;
