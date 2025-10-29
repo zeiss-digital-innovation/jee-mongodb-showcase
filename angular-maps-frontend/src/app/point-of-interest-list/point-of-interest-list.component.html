@@ -13,7 +13,7 @@
             <input type="range" class="form-range" min="100" max="5000" [(ngModel)]="radius" id="customRange2">
         </div>
         <div class="col">
-            <button type="button" class="btn btn-outline-primary mt-4 btn-sm" (click)="loadPointsOfInterest()"
+            <button type="button" class="btn btn-primary mt-4 btn-sm" (click)="loadPointsOfInterest()"
                 [disabled]="!coordsValid">
                 <i class="bi bi-arrow-clockwise me-1"></i>Load POIs</button>
         </div>
@@ -64,10 +64,10 @@
                 <td [innerHTML]="poi.details | formatDetails"></td>
                 <td>Lat: {{ poi.location.coordinates[1] }}, Lng: {{ poi.location.coordinates[0] }}</td>
                 <td class="poi-list-content-column-right">
-                    <button type="button" class="btn btn-outline-primary btn-sm" (click)="editPoi(poi)"><i
+                    <button type="button" class="btn btn-primary btn-sm" (click)="editPoi(poi)"><i
                             class="bi bi-pencil"></i> Edit</button>
                     &nbsp;
-                    <button type="button" class="btn btn-outline-danger btn-sm" (click)="deletePoi(poi)"><i
+                    <button type="button" class="btn btn-danger btn-sm" (click)="deletePoi(poi)"><i
                             class="bi bi-trash"></i> Delete</button>
                 </td>
             </tr>
