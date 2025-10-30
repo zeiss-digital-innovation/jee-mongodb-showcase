@@ -6,6 +6,7 @@
 This repository is a demo application used for an internal campus showing the usage of MongoDBs geospatial index capabilities. The database stores points of interest (POI) that are shown on a map on frontend websites. The websites call backend services that connect to the MongoDB database. To show different ways of working with MongoDB, both multiple backend technologies (.NET Core, JEE/Jakarta) and frontend technologies (Angular, ASP.NET Core MVC) are included in the repo.
 
 ## Table of Contents
+- [AI-Assisted Code Generation](#ai-assisted-code-generation)
 - [Quickstart](#quickstart)
 - [Prerequisites](#prerequisites)
 - [Run the demo (fast path)](#run-the-demo-fast-path)
@@ -14,6 +15,24 @@ This repository is a demo application used for an internal campus showing the us
 - [Development notes](#development-notes)
 - [License](#license)
 - [Contact](#contact)
+
+## AI-Assisted Code Generation
+
+This project includes code that has been partially generated or written using artificial intelligence (AI) tools. These AI tools have been utilized to enhance productivity, ensure code quality, and expedite development processes. While AI has contributed to the creation of certain segments of the code, all outputs have been thoroughly reviewed and tested by human developers to ensure accuracy and reliability.
+
+### AI Tools Used
+
+- [GitHub Copilot Business](https://github.com/features/copilot): Utilized to assist in code completion and generation, enhancing developer productivity and code quality. GitHub Copilot Business offers advanced features tailored for enterprise use, including compliance and administrative controls.
+
+### Human Review and Testing
+
+Despite the involvement of AI in code generation, every piece of code has undergone rigorous review and testing by our development team. This ensures that the code meets our quality standards and functions as intended within the project.
+
+### Acknowledgments
+
+We acknowledge the advancements in AI technology that have made these tools available and appreciate the support they provide in modern software development.
+
+For any questions or concerns regarding the AI-generated code, please feel free to contact us.
 
 ## Quickstart
 

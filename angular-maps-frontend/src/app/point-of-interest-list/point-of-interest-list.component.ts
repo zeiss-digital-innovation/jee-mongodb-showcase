@@ -1,11 +1,11 @@
-import { AfterViewInit, ApplicationRef, Component, createComponent, ElementRef, EnvironmentInjector, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ApplicationRef, ChangeDetectorRef, Component, createComponent, ElementRef, EnvironmentInjector, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { environment } from '../environments/environment';
 
 import { PointOfInterest } from '../model/point_of_interest';
-import { POI_CATEGORIES } from '../model/poi-categories';
+import { POI_CATEGORIES, getBootstrapIconClass } from '../model/poi-categories';
 import { ToastNotification } from '../model/toast_notification';
 
 import { PointOfInterestService } from '../service/point-of-interest.service';
@@ -31,19 +31,24 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
   categories = POI_CATEGORIES;
 
   categoryFilter: string | undefined;
+  nameFilter: string | undefined;
   detailsFilter: string | undefined;
 
   pointsOfInterest: PointOfInterest[] = [];
   pointsOfInterestFiltered: PointOfInterest[] = [];
 
+  selectedPoi?: PointOfInterest;
+
   toastNotification: ToastNotification = new ToastNotification(ToastNotification.titleDefault, '', '', '');
 
   @ViewChild('messageToast', { static: false }) messageToastRef!: ElementRef<HTMLElement>;
   private messageToastInstance?: any;
+  private currentBsModal?: any;
 
   constructor(private poiService: PointOfInterestService, public poiFilterService: PoiFilterService,
     private searchCriteriaService: SearchCriteriaService,
-    private appRef: ApplicationRef, private injector: EnvironmentInjector) {
+    private appRef: ApplicationRef, private injector: EnvironmentInjector,
+    private cd: ChangeDetectorRef) {
 
     this.latitude = environment.latitudeDefault;
     this.longitude = environment.longitudeDefault;
@@ -54,8 +59,9 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
     const filterCriteria = this.poiFilterService.getFilterCriteria();
 
     if (filterCriteria) {
-      this.categoryFilter = filterCriteria.categoryFilter;
       console.log('Category filter on init:', this.categoryFilter);
+      this.categoryFilter = filterCriteria.categoryFilter;
+      this.nameFilter = filterCriteria.nameFilter;
       this.detailsFilter = filterCriteria.detailsFilter;
     }
 
@@ -66,13 +72,6 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
       this.longitude = searchData.longitude;
       this.radius = searchData.radius;
     }
-
-    this.poiService.getPointsOfInterest(this.latitude, this.longitude, this.radius)
-      .subscribe(points => {
-        this.pointsOfInterest = points;
-        this.pointsOfInterestFiltered = this.pointsOfInterest;
-        this.updateFiltering();
-      });
   }
 
   ngAfterViewInit(): void {
@@ -92,6 +91,8 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
           console.warn('Bootstrap Toast not available');
         }
       });
+
+    this.loadPointsOfInterest();
   }
 
   setRadius(event: Event): void {
@@ -110,12 +111,13 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
           this.pointsOfInterest = points;
 
           const durationOfRequest = performance.now() - startTime;
-          this.showToastMessage(ToastNotification.titleDefault, //
-            'Successfully loaded ' + this.pointsOfInterest.length + ' point(s) of interest. ' + this.pointsOfInterestFiltered.length + ' point(s) match the current filters.',//
-            durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
 
           this.pointsOfInterestFiltered = this.pointsOfInterest;
           this.updateFiltering();
+
+          this.showToastMessage(ToastNotification.titleDefault, //
+            'Successfully loaded ' + this.pointsOfInterest.length + ' point(s) of interest. ' + this.pointsOfInterestFiltered.length + ' point(s) match the current filters.',//
+            durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
         },
         error: err => {
           console.error('Failed to load POIs', err);
@@ -171,7 +173,7 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
     });
 
     compRef.instance.save.subscribe(({ pointOfInterest }) => {
-      console.log(`Saving changes to POI ${pointOfInterest?.href}: category=${pointOfInterest?.category}, details=${pointOfInterest?.details}`);
+      console.log(`Saving changes to POI ${pointOfInterest?.href}: category=${pointOfInterest?.category}, name=${pointOfInterest?.name}, details=${pointOfInterest?.details}`);
 
       // determine the time duration of the request
       const startTime = performance.now();
@@ -197,32 +199,14 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
     });
   }
 
-  deletePoi(point: PointOfInterest): void {
-    if (confirm('Are you sure you want to delete this point of interest?\n' + point.details)) {
-      // determine the time duration of the request
-      const startTime = performance.now();
+  filterByName(event: Event) {
+    const search = (event.target as HTMLInputElement).value;
 
-      this.poiService.deletePointOfInterest(point).subscribe({
-        next: () => {
-          const durationOfRequest = performance.now() - startTime;
-
-          // Remove the deleted point from the local array
-          this.pointsOfInterest = this.pointsOfInterest.filter(p => p !== point);
-          this.pointsOfInterestFiltered = this.pointsOfInterest;
-
-          this.showToastMessage(ToastNotification.titleDefault, //
-            'Successfully deleted point of interest',//
-            durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
-        },
-        error: (err) => {
-          console.error('Error deleting point of interest:', err);
-          this.showToastMessage(ToastNotification.titleDefault, 'Failed to delete the point of interest. Please try again later.', '', ToastNotification.cssClassError);
-        }
-      });
-    }
+    this.nameFilter = search;
+    this.updateFiltering();
   }
 
-  filterBySearch(event: Event) {
+  filterByDetails(event: Event) {
     const search = (event.target as HTMLInputElement).value;
 
     this.detailsFilter = search;
@@ -241,6 +225,10 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
     this.updateFiltering();
   }
 
+  getBootstrapIconClass(category: string | undefined): string {
+    return getBootstrapIconClass(category);
+  }
+
   showToastMessage(title: string, message: string, smallMessage: string, cssClass: string, attempt = 0) {
     if (this.messageToastInstance) {
       this.toastNotification = new ToastNotification(title, message, smallMessage, cssClass);
@@ -255,8 +243,84 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
   }
 
   private updateFiltering() {
-    this.poiFilterService.setFilterCriteria({ detailsFilter: this.detailsFilter, categoryFilter: this.categoryFilter });
-    this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.detailsFilter);
+    this.poiFilterService.setFilterCriteria({ detailsFilter: this.detailsFilter, categoryFilter: this.categoryFilter, nameFilter: this.nameFilter });
+    this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.nameFilter, this.detailsFilter);
+  }
+
+  /**
+   * Called after confirmation to really delete the selected POI.
+   */
+  confirmDeleteSelectedPoi(): void {
+    if (this.selectedPoi) {
+      this.deletePoi(this.selectedPoi);
+      this.selectedPoi = undefined;
+    }
+    try {
+      this.currentBsModal?.hide();
+      this.currentBsModal = undefined;
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  /**
+   * Opens the delete confirmation modal for the given POI.
+   * @param poi 
+   */
+  async openDeleteConfirmationModal(poi: PointOfInterest) {
+    this.selectedPoi = poi;
+    // ensure Angular updates the modal bindings
+    try { this.cd.detectChanges(); } catch (e) { /* ignore */ }
+
+    // fallback to native confirm dialog if Bootstrap Modal is not available
+    const fallback = () => {
+      if (confirm(`Delete ${poi.name}?`)) this.deletePoi(poi);
+    };
+
+    const modalEl = document.getElementById('deleteConfirmationModal');
+    const mod = await import('bootstrap/js/dist/modal').catch(() => undefined);
+    const ModalClass = mod?.default ?? (window as any).bootstrap?.Modal;
+
+    // Proceed only if we have both the modal element and the Bootstrap Modal class
+    if (modalEl && ModalClass) {
+      try {
+        this.currentBsModal = new ModalClass(modalEl);
+        this.currentBsModal.show();
+      } catch (e) {
+        // fallback if creation/showing fails
+        fallback();
+      }
+    } else {
+      // fallback to native confirm when modal or class isn't available
+      fallback();
+    }
+  }
+
+  /**
+   * Calls the POI deletion request on the backend.
+   * @param point
+   */
+  private deletePoi(point: PointOfInterest): void {
+    // determine the time duration of the request
+    const startTime = performance.now();
+
+    this.poiService.deletePointOfInterest(point).subscribe({
+      next: () => {
+        const durationOfRequest = performance.now() - startTime;
+
+        // Remove the deleted point from the local array
+        this.pointsOfInterest = this.pointsOfInterest.filter(p => p !== point);
+        this.pointsOfInterestFiltered = this.pointsOfInterest;
+
+        this.showToastMessage(ToastNotification.titleDefault, //
+          'Successfully deleted point of interest.',//
+          durationOfRequest.toFixed(2) + ' ms', ToastNotification.cssClassSuccess);
+      },
+      error: (err) => {
+        console.error('Error deleting point of interest:', err);
+        this.showToastMessage(ToastNotification.titleDefault, 'Failed to delete the point of interest. Please try again later.', '', ToastNotification.cssClassError);
+      }
+    });
   }
 
 }

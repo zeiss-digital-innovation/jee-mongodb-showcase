@@ -11,7 +11,7 @@ import com.mongodb.client.result.DeleteResult;
 import de.zeiss.mongodbws.geoservice.persistence.entity.PointOfInterestEntity;
 import dev.morphia.query.FindOptions;
 import dev.morphia.query.Query;
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.bson.types.ObjectId;
 
@@ -25,7 +25,7 @@ import static dev.morphia.query.filters.Filters.eq;
  *
  * @author Andreas Post
  */
-@Stateless
+@ApplicationScoped
 public class PersistenceService {
 
     private static final Logger LOG = Logger.getLogger(PersistenceService.class.getName());

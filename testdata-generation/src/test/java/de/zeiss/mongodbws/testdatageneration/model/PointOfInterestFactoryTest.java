@@ -17,25 +17,31 @@ public class PointOfInterestFactoryTest {
     @Test
     void createPointOfInterest_nullLatitude_throwsNPE() {
         assertThrows(NullPointerException.class, () ->
-                PointOfInterestFactory.createPointOfInterest(null, BigDecimal.ONE, "cat", "det"));
+                PointOfInterestFactory.createPointOfInterest(null, BigDecimal.ONE, "cat", "name", "det"));
     }
 
     @Test
     void createPointOfInterest_nullLongitude_throwsNPE() {
         assertThrows(NullPointerException.class, () ->
-                PointOfInterestFactory.createPointOfInterest(BigDecimal.ONE, null, "cat", "det"));
+                PointOfInterestFactory.createPointOfInterest(BigDecimal.ONE, null, "cat", "name", "det"));
     }
 
     @Test
     void createPointOfInterest_nullCategory_throwsNPE() {
         assertThrows(NullPointerException.class, () ->
-                PointOfInterestFactory.createPointOfInterest(BigDecimal.ONE, BigDecimal.ONE, null, "det"));
+                PointOfInterestFactory.createPointOfInterest(BigDecimal.ONE, BigDecimal.ONE, null, "name", "det"));
+    }
+
+    @Test
+    void createPointOfInterest_nullName_throwsNPE() {
+        assertThrows(NullPointerException.class, () ->
+                PointOfInterestFactory.createPointOfInterest(BigDecimal.ONE, BigDecimal.ONE, "cat", null, "det"));
     }
 
     @Test
     void createPointOfInterest_nullDetails_throwsNPE() {
         assertThrows(NullPointerException.class, () ->
-                PointOfInterestFactory.createPointOfInterest(BigDecimal.ONE, BigDecimal.ONE, "cat", null));
+                PointOfInterestFactory.createPointOfInterest(BigDecimal.ONE, BigDecimal.ONE, "cat", "name", null));
     }
 
     @Test
@@ -49,12 +55,15 @@ public class PointOfInterestFactoryTest {
         BigDecimal lat = new BigDecimal("12.3456");
         BigDecimal lon = new BigDecimal("65.4321");
         String category = "park";
-        String details = "A nice park";
+        String name = "MyPark";
+        String details = "A nice park, Parkstreet 123, Parkcity";
+
+        String wptName = name + ", " + details;
 
         WptType w = new WptType();
         w.setLat(lat);
         w.setLon(lon);
-        w.setName(details);
+        w.setName(wptName);
 
         PointOfInterest poi = PointOfInterestFactory.createFromWptType(w, category);
 
@@ -65,6 +74,7 @@ public class PointOfInterestFactoryTest {
         assertEquals(poi.getLocation().getCoordinates()[0], lon, "Longitude should match");
         assertEquals(poi.getLocation().getCoordinates()[1], lat, "Latitude should match");
         assertEquals(category, poi.getCategory(), "Category should match");
+        assertEquals(name, poi.getName(), "Name should match");
         assertEquals(details, poi.getDetails(), "Details should match");
     }
 

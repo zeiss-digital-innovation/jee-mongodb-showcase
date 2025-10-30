@@ -1,0 +1,140 @@
+/* Point of Interest List View Styles */
+
+/* Fixed header section */
+.poi-header-section {
+    position: fixed;
+    top: 270px; /* navbar (56px) + top-controls (~122px) + extra spacing */
+    left: 0;
+    right: 0;
+    background-color: var(--color-white);
+    padding: 0 0 0 0;
+    border-bottom: none;
+    z-index: 999;
+}
+
+/* Scrollable content area */
+.poi-scrollable-content {
+    position: fixed;
+    top: 340px; /* navbar + controls + header + toggle + extra spacing from above */
+    bottom: 0;
+    left: 0;
+    right: 0;
+    overflow-y: auto;
+    padding: 20px 0;
+}
+
+/* 
+Add consistent 15px gap - to see upper border of cards, also when mouse is moving over a card 
+the value was found trough try-and-error
+*/
+#poiCardsContainer {
+    padding-top: 15px; 
+}
+
+/* Table specific styles */
+
+.table thead th {
+    position: sticky;
+    top: 8px;
+    background-clip: padding-box;
+    z-index: 1100; /* Higher than content, lower than fixed headers */
+    border-bottom: 2px solid rgba(0, 0, 0, 0.12);
+    box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
+}
+
+.table tbody td {
+    background-color:var(--color-white);
+    margin-top: 8px;
+}
+    
+.table td, .table th {
+    vertical-align: middle;
+}
+
+
+.table-primary th,
+thead.table-primary th,
+thead.table-primary td {
+    background-color: var(--color-azure) !important;
+    color: var(--color-white) !important;
+}
+
+
+.category-cell {
+    color: gray !important;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 0.7rem;
+}
+
+.category-cell i {
+    color: black;
+    font-size: 1rem;
+}
+
+.details-cell {
+    max-width: 500px;
+    word-wrap: break-word;
+}
+
+.location-cell {
+    color: gray !important;
+    font-family: "Consolas", "Courier New", Courier, monospace;
+    white-space: nowrap;
+}
+
+.action-buttons {
+    white-space: nowrap;
+}
+
+/* Card styles */
+.poi-card {
+    transition: transform 0.2s;
+    height: 100%;
+}
+
+.poi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.poi-card .card-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.poi-card .card-title {
+    display: flex;
+    align-items: center;
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.poi-card .card-title i {
+    font-size: 1.5rem;
+    margin-right: 10px;
+}
+
+.poi-card .card-text {
+    flex-grow: 1;
+}
+
+.view-toggle {
+    margin-bottom: 8px;
+}
+
+.view-toggle .btn-group {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Hide list view by default, will be shown by JS if needed */
+#poiTableContainer {
+    display: none;
+}
+
+/* Selector Cards-Table */
+.btn-outline-primary.active {
+    color: var(--color-white) !important;
+    background-color: var(--color-azure) !important;
+    border-color: var(--color-azure) !important;
+}
+

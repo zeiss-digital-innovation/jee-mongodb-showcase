@@ -2,6 +2,7 @@ import { Injectable } from "@angular/core";
 import { PointOfInterest } from "../model/point_of_interest";
 import { Sanitizer } from '../util/sanitization.util';
 import { PoiFormatService } from './poi-format.service';
+import { getBootstrapIconClass } from "../model/poi-categories";
 
 /**
  * Service for map related data (i.e. popup content) and calculations.
@@ -19,71 +20,26 @@ export class MapDataService {
      * @returns Popup content.
      */
     getMarkerPopupFor(poi: PointOfInterest): string {
-        if (!poi) return '';
+        var markerPopup = '';
+
+        if (!poi) return markerPopup;
 
         var iconImg: string;
-        const category = (poi.category || '').toLowerCase();
 
-        switch (category) {
-            case 'cash':
-                iconImg =
-                    `<i class="bi-credit-card"></i>`;
-                break;
-            case 'coffee':
-                iconImg =
-                    `<i class="bi-cup-hot"></i>`;
-                break;
-            case 'company':
-                iconImg =
-                    `<i class="bi-building"></i>`;
-                break;
-            case 'gasstation':
-                iconImg =
-                    `<i class="bi-fuel-pump"></i>`;
-                break;
-            case 'lodging':
-                iconImg =
-                    `<i class="bi-house"></i>`;
-                break;
-            case 'parking':
-                iconImg =
-                    `<i class="bi-car-front"></i>`;
-                break;
-            case 'pharmacy':
-                iconImg =
-                    `<i class="bi-plus-square"></i>`;
-                break;
-            case 'police':
-                iconImg =
-                    `<i class="bi-shield-check"></i>`;
-                break;
-            case 'post':
-                iconImg =
-                    `<i class="bi-mailbox"></i>`;
-                break;
-            case 'restaurant':
-                iconImg =
-                    `<i class="bi-cup-hot"></i>`;
-                break;
-            case 'supermarket':
-                iconImg =
-                    `<i class="bi-shop"></i>`;
-                break;
-            case 'toilet':
-                iconImg =
-                    `<i class="bi-person-standing"></i>`;
-                break;
-            default:
-                iconImg =
-                    `<i class="bi-geo-alt"></i>`;
-        }
+        const cat = (poi.category || '').toLowerCase();
+
+        iconImg = `<i class="${getBootstrapIconClass(cat)} text-primary"></i>`;
+
+        markerPopup += iconImg + '&nbsp;<strong>' + cat.charAt(0).toUpperCase() + cat.slice(1) + '</strong><br />';
+
+        markerPopup += `<br><span class="lead">${this.poiFormat.formatDetails(poi.name || 'Unnamed')}</span><br />`;
 
         // sanitize and format details: only allow safe links, escape other text, format phones
         let details = this.poiFormat.formatDetails(poi.details || '');
 
-        iconImg += `<br>${details}`;
+        markerPopup += `<br>${details}`;
 
-        return iconImg;
+        return markerPopup;
     }
 
     /**

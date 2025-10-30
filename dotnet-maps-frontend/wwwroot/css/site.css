@@ -1,5 +1,17 @@
+:root {
+    /* normal */
+    --color-white: #fff;
+    --color-indigo: #0F2DB3;
+    --color-azure: #0072EF;
+    --color-bright-orange-neon: #E71E1E;
+    --color-green: #1E8565;
+}
+
+
 html {
   font-size: 14px;
+  position: relative;
+  min-height: 100%;
 }
 
 @media (min-width: 768px) {
@@ -12,20 +24,112 @@ html {
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
-html {
-  position: relative;
-  min-height: 100%;
-}
-
 body {
+  padding-top: 60px; /* Navbar height */
   margin-bottom: 60px;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+/* Shared components used across multiple views */
+
+/* Fixed top controls - used in POI List and Map views */
+.top-controls {
+    position: fixed;
+    top: 56px; /* Height of navbar */
+    left: 0;
+    right: 0;
+    background-color: white;
+    padding: 15px 0;
+    border-bottom: 1px solid #dee2e6;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+/* Visual separator between coordinate controls and filter section */
+#sharedFilterCategoryControls {
+    border-top: 3px solid #6b6b6c;
+}
+
+/* #0F2DB3 */
+.btn-primary,
+.bg-primary,
+.modal-footer .btn-primary
+{
+    background-color: var(--color-azure) !important;
+    border-color: var(--color-azure) !important;
+    color: var(--color-white) !important;
+}
+
+.btn-outline-primary,
+.text-primary {
+    border-color: var(--color-azure) !important;
+    color: var(--color-azure) !important;
+}
+
+.btn-outline-primary:hover,
+.modal-footer .btn-primary:hover {
+    border-color: var(--color-white) !important;
+    color: var(--color-white) !important;
+    background-color: var(--color-azure) !important;
+}
+
+.btn-danger,
+.modal-footer .btn-warning {
+    background-color: var(--color-bright-orange-neon) !important;
+}
+
+.btn-outline-danger,
+.text-danger {
+    border-color: var(--color-bright-orange-neon) !important;
+    color: var(--color-bright-orange-neon) !important;
+}
+
+.btn-outline-danger:hover,
+.modal-footer .btn-warning:hover {
+    border-color: var(--color-white) !important;
+    color: var(--color-white) !important;
+    background-color: var(--color-bright-orange-neon) !important;
+}
+
+.btn-success{
+  background-color: var(--color-green);
+}
+
+
+input[type="range"]::-webkit-slider-thumb {
+    background-color: var(--color-azure);
+}
+
+input[type="range"]::-moz-range-thumb {
+    background-color: var(--color-azure);
+}
+
+/* ============================================================
+   NAVIGATION & LAYOUT STYLES
+   ============================================================ */
+
+a {
+  color: var(--color-azure);
+}
+
+.navbar-azure {
+  background-color: var(--color-indigo) !important;
+}
+
+
+/* Active nav link styling */
+.navbar .nav-link.active {
+    color: var(--color-white) !important;
+    font-weight: 600;
+}
+
+/* Load POIs button - Azure color */
+#loadPoisBtn {
+    background-color: var(--color-azure) !important;
+    border-color: var(--color-azure) !important;
+    color: var(--color-white) !important;
+}
+
+#loadPoisBtn:hover {
+    background-color: var(--color-indigo) !important;
+    border-color: var(--color-indigo) !important;
 }

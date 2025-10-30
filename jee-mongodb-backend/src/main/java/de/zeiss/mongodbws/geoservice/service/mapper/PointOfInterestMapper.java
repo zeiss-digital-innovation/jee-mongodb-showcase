@@ -25,6 +25,7 @@ public class PointOfInterestMapper {
         PointOfInterest poi = new PointOfInterest();
         poi.setId(ObjectIdMapper.mapToString(entity.getId()));
         poi.setCategory(entity.getCategory());
+        poi.setName(entity.getName());
         poi.setDetails(entity.getDetails());
         poi.setLocation(PointMapper.mapToModel(entity.getLocation()));
 
@@ -43,10 +44,25 @@ public class PointOfInterestMapper {
         entity.setId(ObjectIdMapper.mapToObjectId(poi.getId(), poi.getHref()));
 
         entity.setCategory(poi.getCategory());
+        entity.setName(poi.getName());
         entity.setDetails(poi.getDetails());
 
         entity.setLocation(PointMapper.mapToEntity(poi.getLocation()));
 
         return entity;
+    }
+
+    /**
+     * Update an existing entity from a model object. Won't set the id.
+     *
+     * @param poi
+     * @param entity
+     */
+    public static void updateEntityFromModel(PointOfInterest poi, PointOfInterestEntity entity) {
+        entity.setCategory(poi.getCategory());
+        entity.setName(poi.getName());
+        entity.setDetails(poi.getDetails());
+
+        entity.setLocation(PointMapper.mapToEntity(poi.getLocation()));
     }
 }

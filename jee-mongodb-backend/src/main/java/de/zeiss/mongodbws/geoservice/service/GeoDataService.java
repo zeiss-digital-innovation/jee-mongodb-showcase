@@ -9,8 +9,7 @@ import de.zeiss.mongodbws.geoservice.persistence.PersistenceService;
 import de.zeiss.mongodbws.geoservice.persistence.entity.PointOfInterestEntity;
 import de.zeiss.mongodbws.geoservice.rest.resource.PointOfInterest;
 import de.zeiss.mongodbws.geoservice.service.mapper.PointOfInterestMapper;
-import jakarta.ejb.LocalBean;
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.bson.types.ObjectId;
 
@@ -22,8 +21,7 @@ import java.util.List;
  *
  * @author Andreas Post
  */
-@Stateless
-@LocalBean
+@ApplicationScoped
 public class GeoDataService {
 
     @Inject
@@ -70,9 +68,7 @@ public class GeoDataService {
         if (entity == null) {
             return null;
         }
-
-        entity.setCategory(poi.getCategory());
-        entity.setDetails(poi.getDetails());
+        PointOfInterestMapper.updateEntityFromModel(poi, entity);
 
         entity = persistenceService.updatePointOfInterest(entity);
 

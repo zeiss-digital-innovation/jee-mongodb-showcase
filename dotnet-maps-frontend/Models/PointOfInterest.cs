@@ -10,6 +10,9 @@ namespace DotNetMapsFrontend.Models
         [JsonPropertyName("category")]
         public string Category { get; set; } = string.Empty;
 
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+
         [JsonPropertyName("details")]
         public string Details { get; set; } = string.Empty;
 

@@ -3,41 +3,9 @@
     ViewData["Title"] = "Point of Interest Map";
 }
 
-<style>
-    /* Fixed top controls */
-    .top-controls {
-        position: fixed;
-        top: 56px; /* Height of navbar */
-        left: 0;
-        right: 0;
-        background-color: white;
-        padding: 15px 0;
-        border-bottom: 1px solid #dee2e6;
-        z-index: 1000;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    /* Map container with margin for controls */
-    .map-container {
-        margin-top: 210px; /* Space for fixed controls including filter */
-        height: calc(100vh - 270px); /* Full height minus navbar and controls */
-    }
-    
-    .map_large {
-        height: 100%;
-        width: 100%;
-    }
-    
-    /* Move Leaflet zoom controls below fixed controls */
-    .leaflet-top.leaflet-left {
-        top: 80px; /* Position below top-controls (navbar is 56px) */
-    }
-
-     /* Visual separator between coordinate controls and filter section */
-    #sharedFilterCategoryControls {
-        border-top: 3px solid #6b6b6c;
-    }
-</style>
+@section Styles {
+    <link rel="stylesheet" href="~/css/map.css" />
+}
 
 <!-- Fixed Top Controls -->
 <div class="top-controls">
@@ -69,6 +37,16 @@
                         </select>
                         <div class="invalid-feedback">
                             Please select a category.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="poiName" class="form-label">Name *</label>
+                        <input type="text" class="form-control" id="poiName" 
+                               placeholder="Enter a name for this point of interest..." 
+                               required maxlength="200">
+                        <div class="invalid-feedback">
+                            Please enter a name (max 200 characters).
                         </div>
                     </div>
                     
@@ -185,7 +163,15 @@
             loadEditModalCategories();
             setupModalEventHandlers();
             setupControlHandlers();
-            
+
+            // Close popups on Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key == 'Escape') {
+                    map.closePopup();
+                    // Remove focus from any active element and give it back to the map
+                    document.activeElement.blur();
+                }
+            });
             // Listen for page visibility changes to sync with List page
             // This ensures input fields are updated when navigating back from List page
             window.addEventListener('pageshow', function(event) {
@@ -521,8 +507,9 @@
         
         function validatePoiForm() {
             const category = $('#poiCategory').val().trim();
+            const name = $('#poiName').val().trim();
             const details = $('#poiDetails').val().trim();
-            const isValid = category !== '' && details !== '';
+            const isValid = category !== '' && name !== '' && details !== '';
             
             $('#savePoiBtn').prop('disabled', !isValid);
             
@@ -532,6 +519,7 @@
         function resetPoiForm() {
             $('#createPoiForm')[0].reset();
             $('#poiCategory').removeClass('is-invalid');
+            $('#poiName').removeClass('is-invalid');
             $('#poiDetails').removeClass('is-invalid');
             $('#savePoiBtn').prop('disabled', true);
         }
@@ -540,14 +528,17 @@
             if (!validatePoiForm()) return;
             
             const category = $('#poiCategory').val().trim();
+            const name = $('#poiName').val().trim();
             const details = $('#poiDetails').val().trim();
             
             // Basic XSS prevention - encode HTML entities
+            const sanitizedName = $('<div>').text(name).html();
             const sanitizedDetails = $('<div>').text(details).html();
             
             // Only send required fields - do NOT send href or address
             const newPoi = {
                 category: category,
+                name: sanitizedName,
                 details: sanitizedDetails,
                 location: {
                     type: 'Point',
@@ -581,6 +572,7 @@
                     // Create POI object for display
                     const displayPoi = {
                         category: $('#poiCategory').val().trim(),
+                        name: $('#poiName').val().trim(),
                         details: $('#poiDetails').val().trim(),
                         location: {
                             type: 'Point',
@@ -681,11 +673,12 @@
                 markersLayer.addLayer(marker);
             });
             
-            // Apply current text filter if exists
-            const currentFilter = $('#poiFilterInput').val();
-            if (currentFilter && typeof applyFilter === 'function') {
-                console.log('[Map] Applying text filter after loading POIs:', currentFilter);
-                applyFilter(currentFilter);
+            // Apply current filters if they exist
+            const nameFilter = $('#poiNameFilterInput').val() || '';
+            const detailsFilter = $('#poiDetailsFilterInput').val() || '';
+            if (typeof applyFilters === 'function') {
+                console.log('[Map] Applying filters after loading POIs - Name:', nameFilter, ', Details:', detailsFilter);
+                applyFilters(nameFilter, detailsFilter);
             }
         }
         
@@ -693,7 +686,13 @@
             const iconClass = getCategoryIcon(poi.category);
             
             let popupContent = '<div>';
+            
             popupContent += '<h6><i class="bi ' + iconClass + ' text-primary me-2"></i>' + poi.category + '</h6>';
+            // Show Name in bold first, after category (if present)
+            if (poi.name) {
+                popupContent += '<p><strong>' + poi.name + '</strong></p>';
+            }
+            
             
             if (poi.details) {
                 const lines = poi.details.split('\n');

@@ -42,6 +42,6 @@
 /* Mobile: header will wrap and be taller, so we need a larger top control height */
 @media (max-width: 767.98px) {
     :host {
-        --top-controls-height: 100px;
+        --top-controls-height: 170px;
     }
 }

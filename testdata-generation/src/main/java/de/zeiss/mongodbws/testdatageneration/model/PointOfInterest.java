@@ -6,11 +6,14 @@ public class PointOfInterest {
 
     private String category;
 
+    private String name;
+
     private String details;
 
-    public PointOfInterest(Point location, String category, String details) {
+    public PointOfInterest(Point location, String category, String name, String details) {
         this.location = location;
         this.category = category;
+        this.name = name;
         this.details = details;
     }
 
@@ -18,23 +21,15 @@ public class PointOfInterest {
         return location;
     }
 
-    public void setLocation(Point location) {
-        this.location = location;
-    }
-
     public String getCategory() {
         return category;
     }
 
-    public void setCategory(String category) {
-        this.category = category;
+    public String getName() {
+        return name;
     }
 
     public String getDetails() {
         return details;
-    }
-
-    public void setDetails(String details) {
-        this.details = details;
     }
 }

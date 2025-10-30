@@ -4,139 +4,9 @@
     ViewData["Title"] = "Point of Interest List";
 }
 
-<style>
-    /* Fixed top controls */
-    .top-controls {
-        position: fixed;
-        top: 56px; /* Height of navbar */
-        left: 0;
-        right: 0;
-        background-color: white;
-        padding: 15px 0;
-        border-bottom: 1px solid #dee2e6;
-        z-index: 1000;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    /* Fixed header section */
-    .poi-header-section {
-        position: fixed;
-        top: 270px; /* navbar (56px) + top-controls (~122px) + extra spacing */
-        left: 0;
-        right: 0;
-        background-color: white;
-        padding: 0 0 0 0;
-        border-bottom: none;
-        z-index: 999;
-    }
-    
-    /* Scrollable content area */
-    .poi-scrollable-content {
-        position: fixed;
-        top: 340px; /* navbar + controls + header + toggle + extra spacing from above */
-        bottom: 0;
-        left: 0;
-        right: 0;
-        overflow-y: auto;
-        padding: 20px 0;
-    }
-
-    /* 
-    Add consistent 15px gap - to see upper border of cards, also when mouse is moving over a card 
-    the value was found trough try-and-error
-    */
-    #poiCardsContainer {
-        padding-top: 15px; 
-    }
-    
-
-     /* Table specific styles */
-    .table-wrapper {
-        position: relative;
-    }
-    
-    .table thead th {
-        position: sticky;
-        top: 8px;
-        background-color: #212529;
-        background-clip: padding-box;
-        z-index: 1100; /* Higher than content, lower than fixed headers */
-        border-bottom: 2px solid rgba(0, 0, 0, 0.12);
-        box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
-    }
-
-    .table body td {
-        background-color: #fff;
-        margin-top: 8px;
-    }
-        
-    .table td, .table th {
-        vertical-align: middle;
-    }
-    
-    .category-cell {
-        text-transform: capitalize;
-    }
-    
-    .details-cell {
-        max-width: 500px;
-        word-wrap: break-word;
-    }
-    
-    .action-buttons {
-        white-space: nowrap;
-    }
-    
-    /* Card styles */
-    .poi-card {
-        transition: transform 0.2s;
-        height: 100%;
-    }
-    
-    .poi-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
-    
-    .poi-card .card-body {
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .poi-card .card-title {
-        display: flex;
-        align-items: center;
-        font-size: 1.25rem;
-        margin-bottom: 1rem;
-    }
-    
-    .poi-card .card-title i {
-        font-size: 1.5rem;
-        margin-right: 10px;
-    }
-    
-    .poi-card .card-text {
-        flex-grow: 1;
-    }
-    
-    .view-toggle {
-        margin-bottom: 8px;
-    }
-    
-    .view-toggle .btn-group {
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    /* Hide list view by default, will be shown by JS if needed */
-    #poiTableContainer {
-        display: none;
-    }
-    
-    /* Visual separator between coordinate controls and filter section */
-    #sharedFilterCategoryControls {
-        border-top: 3px solid #6b6b6c;
-    }
-</style>
+@section Styles {
+    <link rel="stylesheet" href="~/css/poi-list.css" />
+}
 
 <!-- Apply view preference immediately to prevent flash -->
 <script>
@@ -181,84 +51,13 @@
     <div class="container">
         <!-- Cards View (Default) -->
         <div id="poiCardsContainer">
-        @if (Model != null && Model.Any())
-        {
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                @foreach (var poi in Model)
-                {
-                    <div class="col">
-                        <div class="card poi-card h-100">
-                            <div class="card-body">
-                                <h5 class="card-title">
-                                    <i class="bi @CategoryConstants.GetCategoryIcon(poi.Category) text-primary"></i>
-                                    @poi.Category.ToLower()
-                                </h5>
-                                <p class="card-text">@Html.Raw(FormatDetails(poi.Details))</p>
-                                <div class="action-buttons mt-auto">
-                                    <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="editPoi('@poi.Href')">
-                                        <i class="bi bi-pencil"></i> Edit
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deletePoi('@poi.Href')">
-                                        <i class="bi bi-trash"></i> Delete
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-        }
-        else
-        {
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle me-2"></i>
-                No points of interest found. Please adjust the search parameters and click "Load POIs".
-            </div>
-        }
-    </div>
+            <!-- Will be populated by JavaScript -->
+        </div>
     
-    <!-- Table View (List) -->
-    <div id="poiTableContainer" style="display: none;">
-        @if (Model != null && Model.Any())
-        {
-            <table class="table table-striped table-hover">
-                <thead class="table-dark">
-                    <tr>
-                        <th scope="col">Category</th>
-                        <th scope="col">Details</th>
-                        <th scope="col" style="width: 180px;">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="poiTableBody">
-                    @for (int i = 0; i < Model.Count; i++)
-                    {
-                        var poi = Model[i];
-                        <tr>
-                            <td class="category-cell" style="width: 250px;">
-                                @(i + 1). @poi.Category.ToLower() <i class="bi @CategoryConstants.GetCategoryIcon(poi.Category)"></i>
-                            </td>
-                            <td class="details-cell">@Html.Raw(FormatDetails(poi.Details))</td>
-                            <td class="action-buttons">
-                                <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="editPoi('@poi.Href')">
-                                    <i class="bi bi-pencil"></i> Edit
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deletePoi('@poi.Href')">
-                                    <i class="bi bi-trash"></i> Delete
-                                </button>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
-        else
-        {
-            <div class="alert alert-info">
-                <i class="bi bi-info-circle me-2"></i>
-                No points of interest found. Please adjust the search parameters and click "Load POIs".
-            </div>
-        }
-    </div>
+        <!-- Table View (List) -->
+        <div id="poiTableContainer" style="display: none;">
+            <!-- Will be populated by JavaScript -->
+        </div>
     </div> <!-- End of container -->
 </div> <!-- End of poi-scrollable-content -->
 
@@ -283,6 +82,16 @@
                         </select>
                         <div class="invalid-feedback">
                             Please select a category.
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editPoiName" class="form-label">Name *</label>
+                        <input type="text" class="form-control" id="editPoiName" 
+                               placeholder="Enter a name for this point of interest..." 
+                               required maxlength="200">
+                        <div class="invalid-feedback">
+                            Please enter a name (max 200 characters).
                         </div>
                     </div>
                     
@@ -323,6 +132,10 @@
     <script src="~/js/category-manager.js"></script>
     
     <script>
+
+        // Define CATEGORY_ICONS before using it
+        const CATEGORY_ICONS = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(CategoryConstants.GetIconMappingDictionary()));
+        
         // Shared localStorage keys for synchronization with Map page
         const STORAGE_KEYS = {
             latitude: 'poi_latitude',
@@ -351,14 +164,8 @@
                 reloadCurrentPois();
             });
             
-            // Check if selected categories exist in localStorage
-            // If yes, reload POIs to apply category filter (server-side rendering doesn't know about localStorage)
-            const selectedCategories = CategoryManager.getSelectedCategories();
-            if (selectedCategories && selectedCategories.length > 0) {
-                console.log('[List] Found saved category selection, reloading POIs:', selectedCategories);
-                // Small delay to ensure DOM is ready
-                setTimeout(() => reloadCurrentPois(), 100);
-            }
+            // Load initial POIs from server via AJAX
+            loadInitialPois();
             
             // Check if this is a new browser session
             const lastActivity = localStorage.getItem(STORAGE_KEYS.sessionStart);
@@ -518,11 +325,69 @@
                 const lon = $('#longitudeInput').val();
                 const radius = $('#radiusInput').val();
                 
+                // Update input fields to trigger storage save
+                $('#latitudeInput').val(lat);
+                $('#longitudeInput').val(lon);
+                $('#radiusInput').val(radius);
+                
+                // Save to localStorage
+                saveSettingsToStorage();
+                
                 // Clear reload flag (we're doing the reload now)
                 localStorage.removeItem(STORAGE_KEYS.needsReload);
                 
-                // Reload page with new parameters
-                window.location.href = `/poi?lat=${lat}&lon=${lon}&radius=${radius}`;
+                // Reload POIs via AJAX instead of page reload
+                reloadCurrentPois();
+            }
+            
+            function loadInitialPois() {
+                // Get coordinates from URL params or localStorage
+                const urlParams = new URLSearchParams(window.location.search);
+                const lat = urlParams.get('lat') || localStorage.getItem(STORAGE_KEYS.latitude) || latitudeDefault;
+                const lon = urlParams.get('lon') || localStorage.getItem(STORAGE_KEYS.longitude) || longitudeDefault;
+                const radius = urlParams.get('radius') || localStorage.getItem(STORAGE_KEYS.radius) || radiusDefault;
+                
+                // Get selected categories
+                const selectedCategories = CategoryManager.getSelectedCategories();
+                
+                // Build request data
+                const requestData = {
+                    lat: parseFloat(lat),
+                    lon: parseFloat(lon),
+                    radius: parseInt(radius)
+                };
+                
+                // Add category parameters
+                selectedCategories.forEach((category, index) => {
+                    requestData[`category[${index}]`] = category;
+                });
+                
+                console.log('[List] Loading initial POIs with params:', requestData);
+                
+                // Load POIs via AJAX
+                $.ajax({
+                    url: '/api/pointsofinterest',
+                    method: 'GET',
+                    traditional: true,
+                    data: requestData,
+                    success: function(data) {
+                        console.log(`[List] Loaded ${data.length} initial POIs`);
+                        updatePoiCards(data);
+                        updatePoiTable(data);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('[List] Failed to load initial POIs:', error);
+                        // Show error message in both containers
+                        const errorHtml = `
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                Failed to load points of interest. Please try clicking "Load POIs".
+                            </div>
+                        `;
+                        $('#poiCardsContainer').html(errorHtml);
+                        $('#poiTableContainer').html(errorHtml);
+                    }
+                });
             }
             
             function loadEditModalCategories() {
@@ -560,7 +425,7 @@
             
             function setupEditModalHandlers() {
                 // Enable/disable save button based on form validation and changes
-                $('#editPoiCategory, #editPoiDetails').on('input change', function () {
+                $('#editPoiCategory, #editPoiName, #editPoiDetails').on('input change', function () {
                     validateEditForm();
                 });
                 
@@ -600,8 +465,9 @@
             
             function validateEditForm() {
                 const category = $('#editPoiCategory').val().trim();
+                const name = $('#editPoiName').val().trim();
                 const details = $('#editPoiDetails').val().trim();
-                const isValid = category !== '' && details !== '';
+                const isValid = category !== '' && name !== '' && details !== '';
                 const changed = hasChanges();
                 
                 $('#saveEditBtn').prop('disabled', !isValid || !changed);
@@ -611,9 +477,11 @@
             
             function hasChanges() {
                 const currentCategory = $('#editPoiCategory').val().trim();
+                const currentName = $('#editPoiName').val().trim();
                 const currentDetails = $('#editPoiDetails').val().trim();
                 
                 return currentCategory !== originalPoiData.category || 
+                       currentName !== originalPoiData.name ||
                        currentDetails !== originalPoiData.details;
             }
             
@@ -739,15 +607,17 @@
                     const icon = getCategoryIcon(poi.category);
                     const details = formatDetails(poi.details);
                     const category = poi.category; // Keep lowercase
+                    const name = poi.name || 'Unnamed POI'; // Default if no name
                     
                     cardsHtml += `
                         <div class="col">
                             <div class="card poi-card h-100">
                                 <div class="card-body">
-                                    <h5 class="card-title">
+                                    <h5 class="card-title">${name}</h5>
+                                    <h6 class="text-muted mb-2">
                                         <i class="bi ${icon} text-primary"></i>
                                         ${category}
-                                    </h5>
+                                    </h6>
                                     <p class="card-text">${details}</p>
                                     <div class="action-buttons mt-auto">
                                         <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="editPoi('${poi.href}')">
@@ -766,10 +636,11 @@
                 cardsHtml += '</div>';
                 $container.html(cardsHtml);
                 
-                // Apply current filter after updating cards
-                const currentFilter = $('#poiFilterInput').val();
-                if (currentFilter) {
-                    applyFilter(currentFilter);
+                // Apply current filters after updating cards
+                const nameFilter = $('#poiNameFilterInput').val() || '';
+                const detailsFilter = $('#poiDetailsFilterInput').val() || '';
+                if (typeof applyFilters === 'function') {
+                    applyFilters(nameFilter, detailsFilter);
                 }
             }
             
@@ -788,11 +659,13 @@
                 
                 let tableHtml = `
                     <table class="table table-striped table-hover">
-                        <thead class="table-dark">
+                        <thead class="table-primary">
                             <tr>
-                                <th scope="col">Category</th>
-                                <th scope="col">Details</th>
-                                <th scope="col" style="width: 180px;">Action</th>
+                                <th scope="col"><i class="bi bi-tag me-2"></i>Name</th>
+                                <th scope="col"><i class="bi bi-folder me-2"></i>Category</th>
+                                <th scope="col"><i class="bi bi-info-circle me-2"></i>Details</th>
+                                <th scope="col"><i class="bi bi-geo-alt me-2"></i>Location</th>
+                                <th scope="col" style="width: 180px;"><i class="bi bi-gear me-2"></i>Action</th>
                             </tr>
                         </thead>
                         <tbody id="poiTableBody">
@@ -802,11 +675,22 @@
                     const icon = getCategoryIcon(poi.category);
                     const details = formatDetails(poi.details);
                     const category = poi.category; // Keep lowercase
+                    const name = poi.name || 'Unnamed POI'; // Default if no name
+
+                     // Format location coordinates
+                    let locationHtml = '<span class="text-muted">No location</span>';
+                    if (poi.location && poi.location.coordinates && poi.location.coordinates.length === 2) {
+                        const lat = poi.location.coordinates[1].toFixed(6);
+                        const lon = poi.location.coordinates[0].toFixed(6);
+                        locationHtml = `Lat: ${lat}<br>Long: ${lon}`;
+                    }
                     
                     tableHtml += `
                         <tr>
-                            <td class="category-cell" style="width: 250px;">${index + 1}. ${category} <i class="bi ${icon}"></i></td>
+                            <td style="width: 200px;"><strong>${name}</strong></td>
+                            <td class="category-cell" style="width: 200px;">${category} <i class="bi ${icon}"></i></td>
                             <td class="details-cell">${details}</td>
+                            <td class="location-cell">${locationHtml}</td>
                             <td class="action-buttons">
                                 <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="editPoi('${poi.href}')">
                                     <i class="bi bi-pencil"></i> Edit
@@ -826,10 +710,11 @@
                 
                 $container.html(tableHtml);
                 
-                // Apply current filter after updating table
-                const currentFilter = $('#poiFilterInput').val();
-                if (currentFilter) {
-                    applyFilter(currentFilter);
+                // Apply current filters after updating table
+                const nameFilter = $('#poiNameFilterInput').val() || '';
+                const detailsFilter = $('#poiDetailsFilterInput').val() || '';
+                if (typeof applyFilters === 'function') {
+                    applyFilters(nameFilter, detailsFilter);
                 }
             }
             
@@ -839,7 +724,15 @@
             
             function formatDetails(details) {
                 if (!details) return '';
-                return details.replace(/\n/g, '<br>');
+                
+                // Format phone numbers with icon (matching Razor FormatDetails logic)
+                const phoneRegex = /\+\d[\d\s\-\(\)/]*,?/g;
+                let formatted = details.replace(phoneRegex, (match) => {
+                    return `\n<i class='bi bi-telephone'></i> ${match}\n`;
+                });
+                
+                // Replace newlines with <br>
+                return formatted.replace(/\n/g, '<br>');
             }
         });
         
@@ -876,12 +769,14 @@
                     // Store original data for change detection
                     originalPoiData = {
                         category: poi.category || '',
+                        name: poi.name || '',
                         details: poi.details || ''
                     };
                     
                     // Populate form
                     $('#editPoiId').val(id);
                     $('#editPoiCategory').val(poi.category);
+                    $('#editPoiName').val(poi.name);
                     $('#editPoiDetails').val(poi.details);
                     
                     // Display coordinates (read-only)
@@ -893,6 +788,7 @@
                     
                     // Reset validation states
                     $('#editPoiCategory').removeClass('is-invalid');
+                    $('#editPoiName').removeClass('is-invalid');
                     $('#editPoiDetails').removeClass('is-invalid');
                     $('#saveEditBtn').prop('disabled', true);
                     
@@ -910,9 +806,10 @@
         function saveEditedPoi() {
             const id = $('#editPoiId').val();
             const category = $('#editPoiCategory').val().trim();
+            const name = $('#editPoiName').val().trim();
             const details = $('#editPoiDetails').val().trim();
             
-            if (!id || !category || !details) {
+            if (!id || !category || !name || !details) {
                 alert('Please fill in all required fields.');
                 return;
             }
@@ -928,9 +825,9 @@
             // Prepare update data - send complete POI object with updated fields
             const updateData = {
                 category: category,
+                name: name,
                 details: details,
                 location: currentPoiData.location,  // Keep location unchanged
-                name: currentPoiData.name,           // Keep name if present
                 tags: currentPoiData.tags            // Keep tags if present
             };
             
@@ -1058,9 +955,18 @@
 @functions {
     string FormatDetails(string details)
     {
-        if (string.IsNullOrEmpty(details))
+       if (string.IsNullOrEmpty(details))
             return string.Empty;
-            
-        return details.Replace("\n", "<br>");
+
+        // Regex for recognition of phone numbers in format +<number> with spaces, dashes and parentheses and optionally comma at end
+        var phoneRegex = new System.Text.RegularExpressions.Regex(@"\+\d[\d\s\-\(\)/]*,?");
+        var formattedDetails = phoneRegex.Replace(details, match =>
+        {
+            // Replace just pfone nummer with the icon + phone number
+            return $"\n<i class='bi bi-telephone'></i> {match.Value}\n";
+        });
+
+        return formattedDetails.Replace("\n", "<br>");    
     }
+
 }
