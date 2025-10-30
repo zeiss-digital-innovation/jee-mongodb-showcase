@@ -6,7 +6,7 @@
     top: 270px; /* navbar (56px) + top-controls (~122px) + extra spacing */
     left: 0;
     right: 0;
-    background-color: white;
+    background-color: var(--color-white);
     padding: 0 0 0 0;
     border-bottom: none;
     z-index: 999;
@@ -32,9 +32,6 @@ the value was found trough try-and-error
 }
 
 /* Table specific styles */
-.table-wrapper {
-    position: relative;
-}
 
 .table thead th {
     position: sticky;
@@ -45,8 +42,8 @@ the value was found trough try-and-error
     box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4);
 }
 
-.table body td {
-    background-color: #fff;
+.table tbody td {
+    background-color:var(--color-white);
     margin-top: 8px;
 }
     
@@ -134,16 +131,10 @@ thead.table-primary td {
     display: none;
 }
 
-.btn-outline-primary,
-.text-primary {
-    border-color: #0F2DB3 !important;
-    color: #0F2DB3 !important;
+/* Selector Cards-Table */
+.btn-outline-primary.active {
+    color: var(--color-white) !important;
+    background-color: var(--color-azure) !important;
+    border-color: var(--color-azure) !important;
 }
- 
-input[type="range"]::-webkit-slider-thumb {
-    background-color: #0F2DB3;
-}
- 
-input[type="range"]::-moz-range-thumb {
-    background-color: #0F2DB3;
-}
+

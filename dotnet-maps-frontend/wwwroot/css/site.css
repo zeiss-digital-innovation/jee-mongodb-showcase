@@ -28,15 +28,6 @@ body {
   margin-bottom: 60px;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
-}
-
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
-}
-
 /* Shared components used across multiple views */
 
 /* Fixed top controls - used in POI List and Map views */
@@ -59,19 +50,29 @@ body {
 
 /* #0F2DB3 */
 .btn-primary,
-.bg-primary {
-    background-color: var(--color-indigo) !important;
-    border-color: var(--color-indigo) !important;
+.bg-primary,
+.modal-footer .btn-primary
+{
+    background-color: var(--color-azure) !important;
+    border-color: var(--color-azure) !important;
     color: var(--color-white) !important;
 }
 
 .btn-outline-primary,
 .text-primary {
-    border-color: var(--color-indigo) !important;
-    color: var(--color-indigo) !important;
+    border-color: var(--color-azure) !important;
+    color: var(--color-azure) !important;
 }
 
-.btn-danger {
+.btn-outline-primary:hover,
+.modal-footer .btn-primary:hover {
+    border-color: var(--color-white) !important;
+    color: var(--color-white) !important;
+    background-color: var(--color-azure) !important;
+}
+
+.btn-danger,
+.modal-footer .btn-warning {
     background-color: var(--color-bright-orange-neon) !important;
 }
 
@@ -81,67 +82,49 @@ body {
     color: var(--color-bright-orange-neon) !important;
 }
 
+.btn-outline-danger:hover,
+.modal-footer .btn-warning:hover {
+    border-color: var(--color-white) !important;
+    color: var(--color-white) !important;
+    background-color: var(--color-bright-orange-neon) !important;
+}
+
+
 input[type="range"]::-webkit-slider-thumb {
-    background-color: var(--color-indigo);
+    background-color: var(--color-azure);
 }
 
 input[type="range"]::-moz-range-thumb {
-    background-color: var(--color-indigo);
+    background-color: var(--color-azure);
 }
 
 /* ============================================================
-   NAVIGATION & LAYOUT STYLES (from _Layout.cshtml.css)
+   NAVIGATION & LAYOUT STYLES
    ============================================================ */
-
-a.navbar-brand {
-  white-space: normal;
-  text-align: center;
-  word-break: break-all;
-}
 
 a {
-  color: #0077cc;
+  color: var(--color-azure);
 }
 
-.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
-  color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
+.navbar-azure {
+  background-color: var(--color-azure) !important;
 }
 
-/* ============================================================
-   UTILITY CLASSES
-   ============================================================ */
 
-.border-top {
-  border-top: 1px solid #e5e5e5;
+/* Active nav link styling */
+.navbar .nav-link.active {
+    color: var(--color-white) !important;
+    font-weight: 600;
 }
 
-.border-bottom {
-  border-bottom: 1px solid #e5e5e5;
+/* Load POIs button - Azure color */
+#loadPoisBtn {
+    background-color: var(--color-azure) !important;
+    border-color: var(--color-azure) !important;
+    color: var(--color-white) !important;
 }
 
-.box-shadow {
-  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
-}
-
-/* ============================================================
-   BUTTON & FORM STYLES
-   ============================================================ */
-
-button.accept-policy {
-  font-size: 1rem;
-  line-height: inherit;
-}
-
-/* ============================================================
-   FOOTER
-   ============================================================ */
-
-.footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  white-space: nowrap;
-  line-height: 60px;
+#loadPoisBtn:hover {
+    background-color: var(--color-indigo) !important;
+    border-color: var(--color-indigo) !important;
 }
