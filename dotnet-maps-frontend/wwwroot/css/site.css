@@ -4,6 +4,7 @@
     --color-indigo: #0F2DB3;
     --color-azure: #0072EF;
     --color-bright-orange-neon: #E71E1E;
+    --color-green: #1E8565;
 }
 
 
@@ -89,6 +90,10 @@ body {
     background-color: var(--color-bright-orange-neon) !important;
 }
 
+.btn-success{
+  background-color: var(--color-green);
+}
+
 
 input[type="range"]::-webkit-slider-thumb {
     background-color: var(--color-azure);
@@ -107,7 +112,7 @@ a {
 }
 
 .navbar-azure {
-  background-color: var(--color-azure) !important;
+  background-color: var(--color-indigo) !important;
 }
 
 
