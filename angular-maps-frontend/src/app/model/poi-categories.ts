@@ -74,7 +74,7 @@ export function getBootstrapIconClass(category: string | undefined) {
             iconClass = `bi-mailbox`;
             break;
         case 'restaurant':
-            iconClass = `bi-cup-hot`;
+            iconClass = `bi-fork-knife`;
             break;
         case 'supermarket':
             iconClass = `bi-shop`;
