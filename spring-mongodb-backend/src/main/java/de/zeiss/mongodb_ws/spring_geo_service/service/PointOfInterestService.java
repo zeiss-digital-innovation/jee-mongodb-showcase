@@ -25,7 +25,7 @@ public class PointOfInterestService {
     public PointOfInterest getPointOfInterestById(String id) {
         Optional<PointOfInterestEntity> pointOfInterestEntity = poiRepository.findById(id);
 
-        return pointOfInterestEntity.map(PointOfInterestMapper::mapToModel).orElse(null);
+        return pointOfInterestEntity.map(PointOfInterestMapper::mapToResource).orElse(null);
     }
 
     public List<PointOfInterest> listPOIs(double lat, double lon, int radius, boolean expandDetails) {
@@ -42,6 +42,19 @@ public class PointOfInterestService {
             entityList.forEach(poi -> poi.setDetails(null));
         }
 
-        return entityList.stream().map(PointOfInterestMapper::mapToModel).toList();
+        return entityList.stream().map(PointOfInterestMapper::mapToResource).toList();
+    }
+
+    public PointOfInterest createPOI(PointOfInterest poi) {
+        PointOfInterestEntity entity = PointOfInterestMapper.mapToEntity(poi);
+
+        entity = poiRepository.save(entity);
+
+        return PointOfInterestMapper.mapToResource(entity);
+    }
+
+    public void deletePOI(String id) {
+        logger.info("Deleting POI with id: " + id);
+        poiRepository.deleteById(id);
     }
 }

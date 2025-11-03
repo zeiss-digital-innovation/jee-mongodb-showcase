@@ -2,6 +2,14 @@ package de.zeiss.mongodb_ws.spring_geo_service.rest.controller;
 
 import de.zeiss.mongodb_ws.spring_geo_service.rest.model.PointOfInterest;
 import de.zeiss.mongodb_ws.spring_geo_service.service.PointOfInterestService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.geojson.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,6 +25,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 
+@Tag(name = "Points of Interest", description = "API for managing Points of Interest (POIs)")
 @RestController
 @RequestMapping(value = "/api/poi")
 public class PointOfInterestController {
@@ -28,6 +37,15 @@ public class PointOfInterestController {
 
     private static final Logger logger = Logger.getLogger(PointOfInterestController.class.getName());
 
+    @Operation(summary = "Find a Point of Interest by its id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Found the POI",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = PointOfInterest.class))}),
+            @ApiResponse(responseCode = "400", description = "Invalid id supplied",
+                    content = @Content),
+            @ApiResponse(responseCode = "404", description = "POI not found",
+                    content = @Content)})
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public PointOfInterest getPointOfInterest(@PathVariable("id") String id) {
         logger.info("Received request for POI with id: " + id);
@@ -41,6 +59,13 @@ public class PointOfInterestController {
         return poi;
     }
 
+    @Operation(summary = "Searches for Points of Interest within a given radius around specified coordinates")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "POIs found",
+                    content = {@Content(mediaType = "application/json",
+                            array = @ArraySchema(schema = @Schema(implementation = PointOfInterest.class)))}),
+            @ApiResponse(responseCode = "400", description = "Invalid search parameters",
+                    content = @Content)})
     @GetMapping
     public Collection<PointOfInterest> findPointsOfInterest(@RequestParam double lat, @RequestParam double lon,
                                                             @RequestParam int radius, @RequestParam(value = "expand", required = false) String expand) {
@@ -58,35 +83,57 @@ public class PointOfInterestController {
         return poiList;
     }
 
+    @Operation(summary = "Creates a new Point of Interest")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "POI created successfully",
+                    content = @Content),
+            @ApiResponse(responseCode = "400", description = "Invalid POI data supplied - see the response body for details",
+                    content = @Content)})
     @PostMapping
-    public ResponseEntity<Void> create(@RequestBody PointOfInterest resource) {
-        ensureMockPOIsInitialized();
-        PointOfInterest mockPOI = createMockPOI("new-poi");
-        mockPOI.setCategory(resource.getCategory());
-        mockPOI.setName(resource.getName());
-        mockPOI.setDetails(resource.getDetails());
-        mockPOI.setLocation(resource.getLocation());
-        mockPOIs.add(mockPOI);
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<Void> create(@Valid @RequestBody PointOfInterest resource) {
+
+        PointOfInterest resultPoi = poiService.createPOI(resource);
+
         // set the Location header
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
-                .buildAndExpand(mockPOI.getId())
+                .buildAndExpand(resultPoi.getId())
                 .toUri();
 
         logger.info("Location header for created POI: " + location);
         return ResponseEntity.created(location).build();
     }
 
+    @Operation(summary = "Updates a Point of Interest by its id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "New Point of interest created if not existing for given ID",
+                    content = @Content),
+            @ApiResponse(responseCode = "204", description = "Point of interest updated",
+                    content = @Content),
+            @ApiResponse(responseCode = "400", description = "Invalid POI data supplied - see the response body for details",
+                    content = @Content)})
     @PutMapping(value = "/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public void update(@PathVariable("id") Long id, @RequestBody PointOfInterest resource) {
+    public void update(@PathVariable("id") String id, @RequestBody PointOfInterest resource) {
         // TODO implement update logic
     }
 
+    @Operation(summary = "Deletes a Point of Interest by its id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "POI deleted successfully",
+                    content = @Content),
+            @ApiResponse(responseCode = "404", description = "POI not found",
+                    content = @Content)})
     @DeleteMapping(value = "/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public void delete(@PathVariable("id") Long id) {
-        // TODO implement delete logic
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public ResponseEntity<Void> delete(@PathVariable("id") String id) {
+        if (poiService.getPointOfInterestById(id) == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Point of Interest with id " + id + " not found.");
+        }
+        poiService.deletePOI(id);
+
+        return ResponseEntity.noContent().build();
     }
 
     private void ensureMockPOIsInitialized() {

@@ -3,20 +3,55 @@ package de.zeiss.mongodb_ws.spring_geo_service.service.mapper;
 import de.zeiss.mongodb_ws.spring_geo_service.persistence.entity.PointOfInterestEntity;
 import de.zeiss.mongodb_ws.spring_geo_service.rest.model.PointOfInterest;
 import org.geojson.Point;
+import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 
 public class PointOfInterestMapper {
 
-    public static PointOfInterest mapToModel(PointOfInterestEntity entity) {
+    public static PointOfInterest mapToResource(PointOfInterestEntity entity) {
         if (entity == null) {
             return null;
         }
-        PointOfInterest model = new PointOfInterest();
-        model.setId(entity.getId());
-        model.setName(entity.getName());
-        model.setCategory(entity.getCategory());
-        model.setDetails(entity.getDetails());
-        model.setLocation(new Point(entity.getLocation().getX(), entity.getLocation().getY()));
+        PointOfInterest resource = new PointOfInterest();
+        resource.setId(entity.getId());
+        resource.setName(entity.getName());
+        resource.setCategory(entity.getCategory());
+        resource.setDetails(entity.getDetails());
+        resource.setLocation(new Point(entity.getLocation().getX(), entity.getLocation().getY()));
 
-        return model;
+        return resource;
+    }
+
+    public static PointOfInterestEntity mapToEntity(PointOfInterest resource) {
+        if (resource == null) {
+            return null;
+        }
+        PointOfInterestEntity entity = new PointOfInterestEntity();
+
+        if (resource.getId() != null) {
+            entity.setId(resource.getId());
+        } else if (resource.getHref() != null && !resource.getHref().isEmpty()) {
+            // Extract id from href if possible
+            String[] parts = resource.getHref().split("/");
+            entity.setId(parts[parts.length - 1]);
+
+            int lastIndexOfSlash = resource.getHref().lastIndexOf("/");
+
+            if (lastIndexOfSlash > -1) {
+                entity.setId(resource.getHref().substring(lastIndexOfSlash + 1));
+            }
+        }
+
+
+        entity.setName(resource.getName());
+        entity.setCategory(resource.getCategory());
+        entity.setDetails(resource.getDetails());
+        if (resource.getLocation() != null) {
+            entity.setLocation(new GeoJsonPoint(
+                    resource.getLocation().getCoordinates().getLatitude(),
+                    resource.getLocation().getCoordinates().getLongitude()
+            ));
+        }
+
+        return entity;
     }
 }
