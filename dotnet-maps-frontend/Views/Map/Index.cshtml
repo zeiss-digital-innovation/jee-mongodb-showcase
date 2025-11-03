@@ -14,9 +14,30 @@
     </div>
 </div>
 
-<div class="container map-container">
+
+<div class="map-container" id="dynamicMapContainer">
     <div id="map" class="jumbotron map_large"></div>
 </div>
+
+<script>
+    function resizeMapContainer() {
+        var navbar = document.querySelector('.navbar'); 
+        var topControls = document.querySelector('.top-controls');
+        var mapContainer = document.getElementById('dynamicMapContainer');
+
+        if(topControls && mapContainer) {
+            var navbarHeight = navbar ? navbar.offsetHeight : 56;
+            var topControlsHeight = topControls.offsetHeight;
+            var totalTopHeight = navbarHeight + topControlsHeight;
+            var newHeight = window.innerHeight - totalTopHeight;
+            
+            mapContainer.style.height = newHeight + 'px';
+            mapContainer.style.top = totalTopHeight + 'px';
+        }
+    }
+    window.addEventListener('resize', resizeMapContainer);
+    window.addEventListener('DOMContentLoaded', resizeMapContainer);
+</script>
 
 <!-- POI Creation Modal -->
 <div class="modal fade modal-sm" id="createPoiModal" tabindex="-1" aria-labelledby="createPoiModalLabel" aria-hidden="true">

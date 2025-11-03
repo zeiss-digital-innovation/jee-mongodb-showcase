@@ -2,13 +2,15 @@
 
 /* Map container with margin for controls */
 .map-container {
-    margin-top: 210px; /* Space for fixed controls including filter */
-    height: calc(100vh - 270px); /* Full height minus navbar and controls */
+    position: absolute;
+    width: 100%;
 }
 
 .map_large {
     height: 100%;
     width: 100%;
+    display: block;
+    position: relative;
 }
 
 /* Move Leaflet zoom controls below fixed controls */
