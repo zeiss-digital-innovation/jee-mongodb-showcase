@@ -1,22 +1,32 @@
 package de.zeiss.mongodb_ws.spring_geo_service.rest.controller;
 
+import de.zeiss.mongodb_ws.spring_geo_service.persistence.IPointOfInterestRepository;
+import de.zeiss.mongodb_ws.spring_geo_service.persistence.entity.PointOfInterestEntity;
 import de.zeiss.mongodb_ws.spring_geo_service.rest.model.PointOfInterest;
+import de.zeiss.mongodb_ws.spring_geo_service.service.PointOfInterestService;
+import org.bson.types.ObjectId;
 import org.geojson.Point;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 @RestController
 @RequestMapping(value = "/api/poi")
 public class PointOfInterestController {
+
+    @Autowired
+    private PointOfInterestService poiService;
 
     private List<PointOfInterest> mockPOIs = new ArrayList<>();
 
@@ -24,8 +34,15 @@ public class PointOfInterestController {
 
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public PointOfInterest getPointOfInterest(@PathVariable("id") String id) {
-        ensureMockPOIsInitialized();
-        return mockPOIs.getFirst();
+        logger.info("Received request for POI with id: " + id);
+        PointOfInterest poi = poiService.getPointOfInterestById(id);
+
+        if (poi == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Point of Interest with id " + id + " not found.");
+        }
+
+        poi.setHref(ServletUriComponentsBuilder.fromCurrentRequestUri().toUriString());
+        return poi;
     }
 
     @GetMapping

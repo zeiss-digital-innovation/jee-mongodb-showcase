@@ -3,6 +3,11 @@ spring:
     name: spring-geo-service
   profiles:
     active: dev
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: demo-campus
 server:
   port: 8080
   servlet:
