@@ -2,6 +2,8 @@ package de.zeiss.mongodb_ws.spring_geo_service.rest.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import de.zeiss.mongodb_ws.spring_geo_service.rest.model.validation.ValidCoordinates;
+import jakarta.validation.constraints.NotEmpty;
 import org.geojson.Point;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -12,10 +14,13 @@ public class PointOfInterest {
     @JsonIgnore
     private String id;
 
+    @NotEmpty
     private String name;
 
+    @ValidCoordinates
     private Point location;
 
+    @NotEmpty
     private String category;
 
     private String details;
@@ -28,8 +33,7 @@ public class PointOfInterest {
     }
 
     /**
-     * @param href
-     *            the href to set
+     * @param href the href to set
      */
     public void setHref(String href) {
         this.href = href;
@@ -43,8 +47,7 @@ public class PointOfInterest {
     }
 
     /**
-     * @param id
-     *            the id to set
+     * @param id the id to set
      */
     public void setId(String id) {
         this.id = id;
@@ -72,8 +75,7 @@ public class PointOfInterest {
     }
 
     /**
-     * @param location
-     *            the location to set
+     * @param location the location to set
      */
     public void setLocation(Point location) {
         this.location = location;
@@ -87,8 +89,7 @@ public class PointOfInterest {
     }
 
     /**
-     * @param category
-     *            the category to set
+     * @param category the category to set
      */
     public void setCategory(String category) {
         this.category = category;
@@ -102,8 +103,7 @@ public class PointOfInterest {
     }
 
     /**
-     * @param details
-     *            the details to set
+     * @param details the details to set
      */
     public void setDetails(String details) {
         this.details = details;
