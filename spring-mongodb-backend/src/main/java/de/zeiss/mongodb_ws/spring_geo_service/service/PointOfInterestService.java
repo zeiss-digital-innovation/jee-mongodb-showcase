@@ -45,8 +45,8 @@ public class PointOfInterestService {
         return entityList.stream().map(PointOfInterestMapper::mapToResource).toList();
     }
 
-    public PointOfInterest createPOI(PointOfInterest poi) {
-        PointOfInterestEntity entity = PointOfInterestMapper.mapToEntity(poi);
+    public PointOfInterest createPOI(PointOfInterest resource) {
+        PointOfInterestEntity entity = PointOfInterestMapper.mapToEntity(resource);
 
         entity = poiRepository.save(entity);
 
@@ -56,5 +56,24 @@ public class PointOfInterestService {
     public void deletePOI(String id) {
         logger.info("Deleting POI with id: " + id);
         poiRepository.deleteById(id);
+    }
+
+    public PointOfInterest updatePOI(PointOfInterest resource) {
+        if (resource.getId() == null) {
+            throw new IllegalArgumentException("POI id must not be null for update.");
+        }
+        Optional<PointOfInterestEntity> entityOpt = poiRepository.findById(resource.getId());
+
+        if (entityOpt.isEmpty()) {
+            return null;
+        }
+
+        PointOfInterestEntity entity = entityOpt.get();
+
+        PointOfInterestMapper.updateEntityFromModel(resource, entity);
+
+        entity = poiRepository.save(entity);
+
+        return PointOfInterestMapper.mapToResource(entity);
     }
 }

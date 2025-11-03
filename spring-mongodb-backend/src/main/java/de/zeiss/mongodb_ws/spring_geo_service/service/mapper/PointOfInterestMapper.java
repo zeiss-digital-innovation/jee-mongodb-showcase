@@ -41,7 +41,6 @@ public class PointOfInterestMapper {
             }
         }
 
-
         entity.setName(resource.getName());
         entity.setCategory(resource.getCategory());
         entity.setDetails(resource.getDetails());
@@ -53,5 +52,22 @@ public class PointOfInterestMapper {
         }
 
         return entity;
+    }
+
+    /**
+     * Update an existing entity from a model object. Won't set the id.
+     *
+     * @param resource
+     * @param entity
+     */
+    public static void updateEntityFromModel(PointOfInterest resource, PointOfInterestEntity entity) {
+        entity.setCategory(resource.getCategory());
+        entity.setName(resource.getName());
+        entity.setDetails(resource.getDetails());
+
+        entity.setLocation(new GeoJsonPoint(
+                resource.getLocation().getCoordinates().getLatitude(),
+                resource.getLocation().getCoordinates().getLongitude()
+        ));
     }
 }
