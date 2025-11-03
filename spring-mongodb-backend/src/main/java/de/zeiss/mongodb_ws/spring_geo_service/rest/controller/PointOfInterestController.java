@@ -1,10 +1,7 @@
 package de.zeiss.mongodb_ws.spring_geo_service.rest.controller;
 
-import de.zeiss.mongodb_ws.spring_geo_service.persistence.IPointOfInterestRepository;
-import de.zeiss.mongodb_ws.spring_geo_service.persistence.entity.PointOfInterestEntity;
 import de.zeiss.mongodb_ws.spring_geo_service.rest.model.PointOfInterest;
 import de.zeiss.mongodb_ws.spring_geo_service.service.PointOfInterestService;
-import org.bson.types.ObjectId;
 import org.geojson.Point;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,7 +15,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.logging.Logger;
 
 @RestController
@@ -47,9 +43,19 @@ public class PointOfInterestController {
 
     @GetMapping
     public Collection<PointOfInterest> findPointsOfInterest(@RequestParam double lat, @RequestParam double lon,
-                                                            @RequestParam int radius, @RequestParam(value =  "expand", required = false) String expand) {
-        ensureMockPOIsInitialized();
-        return mockPOIs;
+                                                            @RequestParam int radius, @RequestParam(value = "expand", required = false) String expand) {
+
+        List<PointOfInterest> poiList = poiService.listPOIs(lat, lon, radius, "details".equalsIgnoreCase(expand));
+
+        for (PointOfInterest poi : poiList) {
+            String href = ServletUriComponentsBuilder.fromCurrentRequest()
+                    .path("/{id}")
+                    .buildAndExpand(poi.getId()).toUriString();
+
+            poi.setHref(href);
+        }
+
+        return poiList;
     }
 
     @PostMapping
@@ -73,8 +79,8 @@ public class PointOfInterestController {
 
     @PutMapping(value = "/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public void update(@PathVariable( "id" ) Long id, @RequestBody PointOfInterest resource) {
-            // TODO implement update logic
+    public void update(@PathVariable("id") Long id, @RequestBody PointOfInterest resource) {
+        // TODO implement update logic
     }
 
     @DeleteMapping(value = "/{id}")
