@@ -85,7 +85,8 @@ This command builds the Docker image and tags it as demo-campus-jee-backend.
 
 ### Docker network
 
-If you run MongoDB with the provided docker configuration (see `../MongoDB/README.md`), the container will use a
+If you run MongoDB with the provided docker configuration (see [MongoDB README](../MongoDB/README.md)), the container
+will use a
 docker network `demo-campus`. Then you need to set the MongoDB host in the
 `/src/main/webapp/META-INF/microprofile-config.properties` file to `mongodb` (the name of the MongoDB
 container) and run the
