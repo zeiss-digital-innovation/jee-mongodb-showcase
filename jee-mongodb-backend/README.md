@@ -9,8 +9,10 @@ interest). The data is stored in a MongoDB database.
 - [Prerequisites](#prerequisites)
 - [Build](#build)
 - [Run](#run)
+- [Docker](#docker)
 - [Troubleshooting](#troubleshooting)
 - [REST API Endpoints](#rest-api-endpoints)
+- [Swagger API Endpoint](#swagger-api-endpoint)
 - [Third‑party Licenses](#third-party-licenses)
 
 ## Quickstart
@@ -20,8 +22,8 @@ endpoints see the following sections).
 
 1. Build the project with `mvn clean package`
 2. Build the Docker image with `docker build -t demo-campus-jee-backend .`
-4. Run the backend with `docker run --name demo-campus-jee-backend -p 8080:8080 demo-campus-jee-backend`
-5. Access the API with this sample
+3. Run the backend with `docker run --name demo-campus-jee-backend -p 8080:8080 demo-campus-jee-backend`
+4. Access the API with this sample
    request http://localhost:8080/zdi-geo-service/api/poi?lat=51.0490455&lon=13.7383389&radius=100&expand=details
 
 ## Prerequisites
@@ -34,7 +36,8 @@ endpoints see the following sections).
 
 ### MongoDB
 
-- REST backend uses [MongoDB](https://www.mongodb.com/) as data provider. Uses [Morphia Object Mapper](http://mongodb.github.io/morphia/) to work
+- REST backend uses [MongoDB](https://www.mongodb.com/) as data provider.
+  Uses [Morphia Object Mapper](http://mongodb.github.io/morphia/) to work
   with the database.
 - The default connection settings are host=localhost, port=27017, database=demo_campus.
   You can set different settings by supplying a custom `/src/main/webapp/META-INF/microprofile-config.properties` file.
@@ -49,7 +52,8 @@ endpoints see the following sections).
 
 ## Run
 
-You can run the application in two ways:
+You can run the application in two ways. For Docker see the next section. To run it in an existing Wildfly instance,
+follow these steps:
 
 ### Deploy to existing Wildfly
 
@@ -61,15 +65,15 @@ You can run the application in two ways:
 - If you want to access the Swagger UI, start your Wildfly with the standalone-microprofile.xml configuration then after
   deployment you can assess it with http://localhost:8080/zdi-geo-service/swagger/
 
-### Docker
+## Docker
 
 After building the Java project you can use the Dockerfile provided in the repository to create an image. The image will
 then contain:
 
 - Wildfly 37.0.1.Final-jdk21
-- Latest build from the folder /target/
+- Latest build from the folder `/target/`
 
-#### Build the Docker image
+### Build the Docker image
 
 In the root folder (contains the Dockerfile) execute the following:
 
@@ -79,11 +83,11 @@ docker build -t demo-campus-jee-backend .
 
 This command builds the Docker image and tags it as demo-campus-jee-backend.
 
-#### Docker network
+### Docker network
 
 If you run MongoDB with the provided docker configuration (see `../MongoDB/README.md`), the container will use a
 docker network `demo-campus`. Then you need to set the MongoDB host in the
-`/src/main/webapp/META-INF/microprofile-config.properties` file to `mongodb-demo-campus` (the name of the MongoDB
+`/src/main/webapp/META-INF/microprofile-config.properties` file to `mongodb` (the name of the MongoDB
 container) and run the
 backend container in the same network.
 
@@ -98,6 +102,8 @@ If it does not exist, create it with:
 ```bash
 docker network create demo-campus
 ```
+
+### Run the Docker container
 
 To run the backend container with the network, use:
 
@@ -122,7 +128,7 @@ docker run -d --name demo-campus-jee-backend -p 8080:8080 demo-campus-jee-backen
 
 This backend exposes the following main REST endpoints:
 
-### Get Points of Interest
+### Find Points of Interest
 
 - **Endpoint:** `GET /zdi-geo-service/api/poi`
 - **Description:** Returns a list of points of interest (POIs) near a given location.
@@ -140,14 +146,29 @@ This backend exposes the following main REST endpoints:
   [
     {
       "href": "http://localhost:8080/zdi-geo-service/api/poi/68daa16c2dae92ecfb8823a6",
-      "details": "Carl Zeiss Digital Innovation GmbH, Fritz-Foerster-Platz 2, 01069 Dresden",
+      "name": "Carl Zeiss Digital Innovation GmbH",
       "location": {
         "type": "Point",
         "coordinates": [13.7383389, 51.0490455]
-      }
+      },
+      "category": "company",
+      "details": "Fritz-Foerster-Platz 2, 01069 Dresden, Tel.: +49 (0)351 497 01-500, https://www.zeiss.de/digital-innovation"
     }
   ]
   ```
+
+### CRUD Operations for Points of Interest
+
+- All CRUD operations (Create, Read, Update, Delete) are available under the endpoint
+  `/zdi-geo-service/api/poi/{id}` using standard HTTP methods (POST, GET, PUT, DELETE).
+
+## Swagger API Endpoint
+
+The backend provides a Swagger UI for exploring and testing the REST API. It is available at:
+
+```
+http://localhost:8080/zdi-geo-service/swagger
+```
 
 ## Third‑party Licenses
 

@@ -3,10 +3,15 @@
 # Activate with: --spring.profiles.active=prod
 
 # Optional: keep the DispatcherServlet path consistent across environments
-
+spring:
+  data:
+    mongodb:
+      host: mongodb
+      port: 27017
+      database: demo-campus
 logging:
   level:
-    root: WARN
+    root: INFO
 
 # management and other prod-specific settings can go here
 # management:
