@@ -10,29 +10,30 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 
 @Tag(name = "Points of Interest", description = "API for managing Points of Interest (POIs)")
 @RestController
+@Validated
 @RequestMapping(value = "/api/poi")
 public class PointOfInterestController {
 
     @Autowired
     private PointOfInterestService poiService;
-
-    private List<PointOfInterest> mockPOIs = new ArrayList<>();
 
     private static final Logger logger = Logger.getLogger(PointOfInterestController.class.getName());
 
@@ -66,8 +67,8 @@ public class PointOfInterestController {
             @ApiResponse(responseCode = "400", description = "Invalid search parameters",
                     content = @Content)})
     @GetMapping
-    public Collection<PointOfInterest> findPointsOfInterest(@RequestParam double lat, @RequestParam double lon,
-                                                            @RequestParam int radius, @RequestParam(value = "expand", required = false) String expand) {
+    public Collection<PointOfInterest> findPointsOfInterest(@Min(-90) @Max(90) @RequestParam double lat, @Min(-180) @Max(180) @RequestParam double lon,
+                                                            @Min(1) @Max(100000) @RequestParam int radius, @RequestParam(value = "expand", required = false) String expand) {
 
         List<PointOfInterest> poiList = poiService.listPOIs(lat, lon, radius, "details".equalsIgnoreCase(expand));
 

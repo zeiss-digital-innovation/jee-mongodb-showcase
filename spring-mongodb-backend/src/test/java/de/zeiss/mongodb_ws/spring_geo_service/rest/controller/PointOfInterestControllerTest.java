@@ -29,6 +29,86 @@ public class PointOfInterestControllerTest {
     private ObjectMapper objectMapper;
 
     @Test
+    public void testGetPointOfInterest_KnownId_ShouldReturnOk() throws Exception {
+        String knownId = "known-id";
+
+        when(poiService.getPointOfInterestById(knownId)).thenReturn(new PointOfInterest());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/poi/{id}", knownId)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.href").exists())
+                .andExpect(jsonPath("$.href").value("http://localhost/api/poi/" + knownId));
+    }
+
+    @Test
+    public void testGetPointOfInterest_UnknownId_ShouldReturnNotFound() throws Exception {
+        String unknownId = "unknown-id";
+
+        when(poiService.getPointOfInterestById(unknownId)).thenReturn(null);
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/poi/{id}", unknownId)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testFindPointsOfInterest_NearLocation_ShouldReturnOk() throws Exception {
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/poi")
+                        .param("lat", "12.34")
+                        .param("lon", "56.78")
+                        .param("radius", "1000")
+                        .param("expandDetails", "false")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testFindPointsOfInterest_InvalidParameters_ShouldReturnBadRequest() throws Exception {
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/poi")
+                        .param("lat", "-90.1") // Invalid latitude
+                        .param("lon", "-180.0")
+                        .param("radius", "1000")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/poi")
+                        .param("lat", "90.1") // Invalid latitude
+                        .param("lon", "180.0")
+                        .param("radius", "1000")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/poi")
+                        .param("lat", "-90.0")
+                        .param("lon", "-180.1") // Invalid longitude
+                        .param("radius", "1000")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/poi")
+                        .param("lat", "90.0")
+                        .param("lon", "180.1") // Invalid longitude
+                        .param("radius", "1000")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/poi")
+                        .param("lat", "90.0")
+                        .param("lon", "180.0")
+                        .param("radius", "-1") // Invalid radius
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/poi")
+                        .param("lat", "90.0")
+                        .param("lon", "180.0")
+                        .param("radius", "100001") // Invalid radius
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     public void testCreatePointOfInterest_ValidInput_ShouldReturnCreated() throws Exception {
         PointOfInterest poi = new PointOfInterest();
         poi.setName("Test POI");
@@ -238,5 +318,27 @@ public class PointOfInterestControllerTest {
                 .andExpect(jsonPath("$.location").exists()); // Check if validation result includes "location" attribute
 
         verify(poiService, never()).createPOI(any(PointOfInterest.class));
+    }
+
+    @Test
+    public void testDeletePointOfInterest_KnownId_ShouldReturnOk() throws Exception {
+        String knownId = "known-id";
+
+        when(poiService.getPointOfInterestById(knownId)).thenReturn(new PointOfInterest());
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/poi/{id}", knownId)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    public void testDeletePointOfInterest_UnknownId_ShouldReturnNotFound() throws Exception {
+        String unknownId = "unknown-id";
+
+        when(poiService.getPointOfInterestById(unknownId)).thenReturn(null);
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/poi/{id}", unknownId)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 }

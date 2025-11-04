@@ -46,8 +46,8 @@ public class PointOfInterestMapper {
         entity.setDetails(resource.getDetails());
         if (resource.getLocation() != null) {
             entity.setLocation(new GeoJsonPoint(
-                    resource.getLocation().getCoordinates().getLatitude(),
-                    resource.getLocation().getCoordinates().getLongitude()
+                    resource.getLocation().getCoordinates().getLongitude(),
+                    resource.getLocation().getCoordinates().getLatitude()
             ));
         }
 
@@ -66,8 +66,8 @@ public class PointOfInterestMapper {
         entity.setDetails(resource.getDetails());
 
         entity.setLocation(new GeoJsonPoint(
-                resource.getLocation().getCoordinates().getLatitude(),
-                resource.getLocation().getCoordinates().getLongitude()
+                resource.getLocation().getCoordinates().getLongitude(),
+                resource.getLocation().getCoordinates().getLatitude()
         ));
     }
 }
