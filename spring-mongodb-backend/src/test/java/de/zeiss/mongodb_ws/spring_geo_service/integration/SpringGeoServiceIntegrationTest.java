@@ -9,6 +9,9 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -25,6 +28,7 @@ import org.testcontainers.mongodb.MongoDBContainer;
 
 import java.net.URI;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -71,6 +75,15 @@ public class SpringGeoServiceIntegrationTest {
             int mappedPort = mongoDBContainer.getMappedPort(27017);
             return "mongodb://" + host + ":" + mappedPort;
         });
+    }
+
+    static Stream<Arguments> invalidCoordinatesProvider() {
+        return Stream.of(
+                Arguments.of(-180.1, 52.5),
+                Arguments.of(180.1, 52.5),
+                Arguments.of(13.4, -90.1),
+                Arguments.of(13.4, 90.1)
+        );
     }
 
     @LocalServerPort
@@ -391,13 +404,14 @@ public class SpringGeoServiceIntegrationTest {
     /**
      * Test validation: Create POI with invalid coordinates should return 400.
      */
-    @Test
-    void testCreatePointOfInterest_InvalidCoordinates_ShouldReturnBadRequest() {
-        // Arrange - Invalid longitude (outside -180 to 180 range)
+    @ParameterizedTest(name = "Invalid coordinate #{index}: lon={0}, lat={1}")
+    @MethodSource("invalidCoordinatesProvider")
+    void testCreatePointOfInterest_InvalidCoordinates_ShouldReturnBadRequest(double lon, double lat) {
+        // Arrange
         PointOfInterest poi = new PointOfInterest();
         poi.setName("Invalid POI");
         poi.setCategory("Test");
-        poi.setLocation(new Point(200.0, 52.5)); // Invalid longitude
+        poi.setLocation(new Point(lon, lat));
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -406,13 +420,90 @@ public class SpringGeoServiceIntegrationTest {
         // Act
         ResponseEntity<String> response = restTemplate.postForEntity(baseUrl(), request, String.class);
 
+        // Assert - include the values in the message to help diagnose failures
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode(),
+                () -> "Expected BAD_REQUEST for lon=" + lon + " lat=" + lat + " but got " + response.getStatusCode());
+        assertNotNull(response.getBody(), () -> "Response body was null for lon=" + lon + " lat=" + lat);
+        assertTrue(response.getBody().toLowerCase().contains("location") || response.getBody().toLowerCase().contains("coordinate"),
+                () -> "Validation message did not mention 'location' or 'coordinate' for lon=" + lon + " lat=" + lat + ": " + response.getBody());
+    }
+
+    /**
+     * Test validation: Update POI with invalid data (missing name) should return 400.
+     */
+    @Test
+    void testUpdatePointOfInterest_InvalidData_ShouldReturnBadRequest() throws Exception {
+        PointOfInterest poi = new PointOfInterest();
+        poi.setName("Valid POI");
+        poi.setCategory("Test");
+        poi.setLocation(new Point(13.4, 52.5));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<PointOfInterest> request = new HttpEntity<>(poi, headers);
+
+        // First create a valid POI
+        ResponseEntity<String> createResponse = restTemplate.postForEntity(baseUrl(), request, String.class);
+
+        URI location = createResponse.getHeaders().getLocation();
+        assertNotNull(location);
+
+        poi.setName(null); // Invalid: name is required
+        HttpEntity<PointOfInterest> updateRequest = new HttpEntity<>(poi, headers);
+        ResponseEntity<String> response = restTemplate.exchange(
+                location,
+                HttpMethod.PUT,
+                updateRequest,
+                String.class
+        );
+
         // Assert
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
 
-        // Verify error response contains validation details for "location"
+        // Verify error response contains validation details for "name"
         String body = response.getBody();
         assertNotNull(body);
-        assertTrue(body.contains("location") || body.contains("coordinate"));
+        assertTrue(body.contains("name") || body.contains("Name"));
+    }
+
+    /**
+     * Test validation: Update POI with invalid coordinates should return 400.
+     */
+    @ParameterizedTest(name = "Invalid coordinate #{index}: lon={0}, lat={1}")
+    @MethodSource("invalidCoordinatesProvider")
+    void testUpdatePointOfInterest_InvalidCoordinates_ShouldReturnBadRequest(double lon, double lat) {
+        PointOfInterest poi = new PointOfInterest();
+        poi.setName("Valid POI");
+        poi.setCategory("Test");
+        poi.setLocation(new Point(13.4, 52.5));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<PointOfInterest> request = new HttpEntity<>(poi, headers);
+
+        // First create a valid POI
+        ResponseEntity<String> createResponse = restTemplate.postForEntity(baseUrl(), request, String.class);
+
+        URI location = createResponse.getHeaders().getLocation();
+        assertNotNull(location);
+
+        // Now attempt to update with invalid coordinates
+        poi.setName("Invalid POI");
+        poi.setLocation(new Point(lon, lat));
+        HttpEntity<PointOfInterest> updateRequest = new HttpEntity<>(poi, headers);
+        ResponseEntity<String> response = restTemplate.exchange(
+                location,
+                HttpMethod.PUT,
+                updateRequest,
+                String.class
+        );
+
+        // Assert - include the values in the message to help diagnose failures
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode(),
+                () -> "Expected BAD_REQUEST for lon=" + lon + " lat=" + lat + " but got " + response.getStatusCode());
+        assertNotNull(response.getBody(), () -> "Response body was null for lon=" + lon + " lat=" + lat);
+        assertTrue(response.getBody().toLowerCase().contains("location") || response.getBody().toLowerCase().contains("coordinate"),
+                () -> "Validation message did not mention 'location' or 'coordinate' for lon=" + lon + " lat=" + lat + ": " + response.getBody());
     }
 
     /**
