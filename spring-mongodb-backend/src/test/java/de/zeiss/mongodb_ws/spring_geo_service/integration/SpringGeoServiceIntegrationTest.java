@@ -1,8 +1,7 @@
-package de.zeiss.mongodb_ws.spring_geo_service;
+package de.zeiss.mongodb_ws.spring_geo_service.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.client.MongoClient;
-import de.zeiss.mongodb_ws.spring_geo_service.integration.DockerAvailable;
 import de.zeiss.mongodb_ws.spring_geo_service.persistence.IPointOfInterestRepository;
 import de.zeiss.mongodb_ws.spring_geo_service.rest.model.PointOfInterest;
 import org.geojson.Point;
