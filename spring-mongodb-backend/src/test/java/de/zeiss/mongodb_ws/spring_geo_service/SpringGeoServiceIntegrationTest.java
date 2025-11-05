@@ -1,11 +1,15 @@
 package de.zeiss.mongodb_ws.spring_geo_service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.client.MongoClient;
+import de.zeiss.mongodb_ws.spring_geo_service.integration.DockerAvailable;
 import de.zeiss.mongodb_ws.spring_geo_service.persistence.IPointOfInterestRepository;
 import de.zeiss.mongodb_ws.spring_geo_service.rest.model.PointOfInterest;
 import org.geojson.Point;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -16,9 +20,9 @@ import org.springframework.data.mongodb.core.index.GeospatialIndex;
 import org.springframework.http.*;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.mongodb.MongoDBContainer;
 
 import java.net.URI;
 import java.util.logging.Logger;
@@ -29,9 +33,13 @@ import static org.junit.jupiter.api.Assertions.*;
  * Full CRUD integration tests using Testcontainers with a real MongoDB instance.
  * These tests start the entire Spring Boot application on a random port and execute
  * HTTP requests against the running server.
+ * <p>
+ * Tests will be skipped if Docker is not available on the host system.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Testcontainers
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@DockerAvailable
 public class SpringGeoServiceIntegrationTest {
 
     private static final Logger TEST_LOG = Logger.getLogger(SpringGeoServiceIntegrationTest.class.getName());
@@ -41,9 +49,29 @@ public class SpringGeoServiceIntegrationTest {
     static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:7.0");
 
     @DynamicPropertySource
-    // method must be static so Spring can call it before context initialization
     static void setProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.data.mongodb.uri", mongoDBContainer::getReplicaSetUrl);
+        registry.add("spring.data.mongodb.uri", () -> { // Defensive: ensure the container is running and return a usable connection string.
+            try {
+                if (!mongoDBContainer.isRunning()) {
+                    mongoDBContainer.start();
+                }
+            } catch (Throwable ignored) {
+            }
+            String replicaUrl = null;
+            try {
+                replicaUrl = mongoDBContainer.getReplicaSetUrl();
+            } catch (Throwable ignored) {
+            }
+
+            if (replicaUrl != null && !replicaUrl.trim().isEmpty()) {
+                return replicaUrl;
+            }
+
+            // Fallback to mongodb://host:port
+            String host = mongoDBContainer.getHost();
+            int mappedPort = mongoDBContainer.getMappedPort(27017);
+            return "mongodb://" + host + ":" + mappedPort;
+        });
     }
 
     @LocalServerPort
@@ -61,8 +89,8 @@ public class SpringGeoServiceIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-//    @Autowired
-//    private MongoClient mongoClient;
+    @Autowired
+    private MongoClient mongoClient;
 
     private String baseUrl() {
         return "http://localhost:" + port + "/zdi-geo-service/api/poi";
@@ -80,17 +108,22 @@ public class SpringGeoServiceIntegrationTest {
         );
     }
 
-//    @AfterAll
-//    void shutdownMongoClient() {
-//        try {
-//            if (mongoClient != null) {
-//                TEST_LOG.info("[TEST-CONTAINER] Closing MongoClient before container stop.");
-//                mongoClient.close();
-//            }
-//        } catch (Exception e) {
-//            TEST_LOG.warning("[TEST-CONTAINER] Error closing MongoClient: " + e.getMessage());
-//        }
-//    }
+    /**
+     * Close MongoClient after all tests to prevent resource leaks.
+     * <p>
+     * Prevents "Prematurely reached end of stream” log when the container stops.
+     */
+    @AfterAll
+    void shutdownMongoClient() {
+        try {
+            if (mongoClient != null) {
+                TEST_LOG.info("[TEST-CONTAINER] Closing MongoClient before container stop.");
+                mongoClient.close();
+            }
+        } catch (Exception e) {
+            TEST_LOG.warning("[TEST-CONTAINER] Error closing MongoClient: " + e.getMessage());
+        }
+    }
 
     /**
      * Test CREATE operation: POST a new POI and verify it is created with status 201
@@ -116,6 +149,7 @@ public class SpringGeoServiceIntegrationTest {
         assertEquals(HttpStatus.CREATED, createResponse.getStatusCode());
         assertTrue(createResponse.getHeaders().containsKey(HttpHeaders.LOCATION));
 
+        assertNotNull(createResponse.getHeaders().getLocation());
         String locationHeader = createResponse.getHeaders().getLocation().toString();
         assertNotNull(locationHeader);
         assertTrue(locationHeader.contains("/zdi-geo-service/api/poi/"));
@@ -421,6 +455,7 @@ public class SpringGeoServiceIntegrationTest {
         // 2. READ
         ResponseEntity<PointOfInterest> readResponse1 = restTemplate.getForEntity(location, PointOfInterest.class);
         assertEquals(HttpStatus.OK, readResponse1.getStatusCode());
+        assertNotNull(readResponse1.getBody());
         assertEquals("CRUD Test POI", readResponse1.getBody().getName());
         assertEquals("Initial details", readResponse1.getBody().getDetails());
 
@@ -438,6 +473,7 @@ public class SpringGeoServiceIntegrationTest {
         // 4. READ again to verify update
         ResponseEntity<PointOfInterest> readResponse2 = restTemplate.getForEntity(location, PointOfInterest.class);
         assertEquals(HttpStatus.OK, readResponse2.getStatusCode());
+        assertNotNull(readResponse2.getBody());
         assertEquals("Updated CRUD POI", readResponse2.getBody().getName());
         assertEquals("Updated details", readResponse2.getBody().getDetails());
         assertEquals("UpdatedCategory", readResponse2.getBody().getCategory());
