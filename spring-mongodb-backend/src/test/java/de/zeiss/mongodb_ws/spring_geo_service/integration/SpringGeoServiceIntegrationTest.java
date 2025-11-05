@@ -86,6 +86,13 @@ public class SpringGeoServiceIntegrationTest {
         );
     }
 
+    static Stream<Arguments> invalidRadiusProvider() {
+        return Stream.of(
+                Arguments.of(-1),
+                Arguments.of(100001)
+        );
+    }
+
     @LocalServerPort
     private int port;
 
@@ -372,6 +379,42 @@ public class SpringGeoServiceIntegrationTest {
         PointOfInterest[] results = searchResponse.getBody();
         assertNotNull(results);
         assertEquals(2, results.length); // Should find POI 1 and POI 2, not POI 3
+    }
+
+    /**
+     * Test validation: Search for POIs with invalid coordinates should return 400.
+     */
+    @ParameterizedTest(name = "Invalid coordinate #{index}: lon={0}, lat={1}")
+    @MethodSource("invalidCoordinatesProvider")
+    void testFindPointsOfInterest_InvalidCoordinates_ShouldReturnBadRequest(double lon, double lat) {
+        // Act - Search near Brandenburg Gate with 1km radius
+        String searchUrl = baseUrl() + "?lat=" + lat + "&lon=" + lon + "&radius=1000";
+        ResponseEntity<String> response = restTemplate.getForEntity(searchUrl, String.class);
+
+        // Assert - include the values in the message to help diagnose failures
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode(),
+                () -> "Expected BAD_REQUEST for lon=" + lon + " lat=" + lat + " but got " + response.getStatusCode());
+        assertNotNull(response.getBody(), () -> "Response body was null for lon=" + lon + " lat=" + lat);
+        assertTrue(response.getBody().toLowerCase().contains("lon") || response.getBody().toLowerCase().contains("lat"),
+                () -> "Validation message did not mention 'lon' or 'lat' for lon=" + lon + " lat=" + lat + ": " + response.getBody());
+    }
+
+    /**
+     * Test validation: Search for POIs with invalid radius should return 400.
+     */
+    @ParameterizedTest(name = "Invalid radius #{index}: radius={0}")
+    @MethodSource("invalidRadiusProvider")
+    void testFindPointsOfInterest_InvalidRadius_ShouldReturnBadRequest(int radius) {
+        // Act - Search near Brandenburg Gate with 1km radius
+        String searchUrl = baseUrl() + "?lat=52.516275&lon=13.377704&radius=" + radius;
+        ResponseEntity<String> response = restTemplate.getForEntity(searchUrl, String.class);
+
+        // Assert - include the values in the message to help diagnose failures
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode(),
+                () -> "Expected BAD_REQUEST for radius=" + radius + " but got " + response.getStatusCode());
+        assertNotNull(response.getBody(), () -> "Response body was null for radius=" + radius);
+        assertTrue(response.getBody().toLowerCase().contains("radius"),
+                () -> "Validation message did not mention 'radius' for radius=" + radius + ": " + response.getBody());
     }
 
     /**
