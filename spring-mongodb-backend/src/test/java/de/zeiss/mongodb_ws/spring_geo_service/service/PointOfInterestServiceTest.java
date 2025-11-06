@@ -13,7 +13,6 @@ import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -79,7 +78,7 @@ public class PointOfInterestServiceTest {
         PointOfInterest res = poiService.getPointOfInterestById("id1");
 
         assertNotNull(res);
-        assertTrue(validatePointOfInterest(res, "Name1", "cat", 13.4, 52.5, "d"));
+        assertPointOfInterestEquals(res, "Name1", "cat", 13.4, 52.5, "d");
 
         verify(poiRepository).findById("id1");
     }
@@ -151,7 +150,7 @@ public class PointOfInterestServiceTest {
         PointOfInterestEntity captured = entityCaptor.getValue();
         assertNotNull(captured);
 
-        assertTrue(validatePointOfInterest(input, captured.getName(), captured.getCategory(), captured.getLocation().getX(), captured.getLocation().getY(), captured.getDetails()));
+        assertPointOfInterestEquals(input, captured.getName(), captured.getCategory(), captured.getLocation().getX(), captured.getLocation().getY(), captured.getDetails());
     }
 
     @Test
@@ -182,7 +181,7 @@ public class PointOfInterestServiceTest {
         verify(poiRepository).findById("id-ex");
         verify(poiRepository).save(any(PointOfInterestEntity.class));
 
-        assertTrue(validatePointOfInterest(res, "NewName", "cat", 13.0, 52.0, null));
+        assertPointOfInterestEquals(res, "NewName", "cat", 13.0, 52.0, null);
     }
 
     @Test
@@ -207,36 +206,20 @@ public class PointOfInterestServiceTest {
         assertThrows(IllegalArgumentException.class, () -> poiService.updatePOI(toUpdate));
     }
 
-    private boolean validatePointOfInterest(PointOfInterest poi, String expectedName, String expectedCategory, double expectedLon, double expectedLat, String expectedDetails) {
-        if (poi == null) {
-            LOGGER.warning("PointOfInterest is null");
-            return false;
-        }
-        if (!expectedName.equals(poi.getName())) {
-            LOGGER.warning("Name mismatch: expected " + expectedName + " but got " + poi.getName());
-            return false;
-        }
-        if (!expectedCategory.equals(poi.getCategory())) {
-            LOGGER.warning("Category mismatch: expected " + expectedCategory + " but got " + poi.getCategory());
-            return false;
-        }
-        if (poi.getLocation() == null) {
-            LOGGER.warning("Location is null");
-            return false;
-        }
-        if (poi.getLocation().getCoordinates().getLongitude() != expectedLon) {
-            LOGGER.warning("Longitude mismatch: expected " + expectedLon + " but got " + poi.getLocation().getCoordinates().getLongitude());
-            return false;
-        }
-        if (poi.getLocation().getCoordinates().getLatitude() != expectedLat) {
-            LOGGER.warning("Latitude mismatch: expected " + expectedLat + " but got " + poi.getLocation().getCoordinates().getLatitude());
-            return false;
-        }
-        if (!Objects.equals(expectedDetails, poi.getDetails())) {
-            LOGGER.warning("Details mismatch: expected " + expectedDetails + " but got " + poi.getDetails());
-            return false;
-        }
-        return true;
+    private static void assertPointOfInterestEquals(PointOfInterest poi,
+                                                    String expectedName,
+                                                    String expectedCategory,
+                                                    double expectedLon,
+                                                    double expectedLat,
+                                                    String expectedDetails) {
+        assertNotNull(poi, "PointOfInterest must not be null");
+        assertEquals(expectedName, poi.getName(), "name");
+        assertEquals(expectedCategory, poi.getCategory(), "category");
+        assertNotNull(poi.getLocation(), "location must not be null");
+        assertEquals(expectedLon, poi.getLocation().getCoordinates().getLongitude(), 1e-9, "longitude");
+        assertEquals(expectedLat, poi.getLocation().getCoordinates().getLatitude(), 1e-9, "latitude");
+        assertEquals(expectedDetails, poi.getDetails(), "details");
     }
+
 }
 

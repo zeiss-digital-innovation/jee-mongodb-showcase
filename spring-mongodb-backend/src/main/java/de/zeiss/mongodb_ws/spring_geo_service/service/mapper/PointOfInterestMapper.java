@@ -38,6 +38,9 @@ public class PointOfInterestMapper {
 
             if (lastIndexOfSlash > -1) {
                 entity.setId(resource.getHref().substring(lastIndexOfSlash + 1));
+            } else {
+                // Fallback to using the whole href as id
+                entity.setId(resource.getHref());
             }
         }
 

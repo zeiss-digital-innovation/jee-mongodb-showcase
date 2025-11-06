@@ -6,8 +6,7 @@ import org.geojson.Point;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.mongodb.core.geo.GeoJsonPoint;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class PointOfInterestMapperTest {
 
@@ -55,6 +54,60 @@ public class PointOfInterestMapperTest {
         assertEquals("Test Details", entity.getDetails());
         assertEquals(LONGITUDE, entity.getLocation().getX());
         assertEquals(LATITUDE, entity.getLocation().getY());
+    }
+
+    @Test
+    public void testMapToEntity_FromHref() {
+        PointOfInterest resource = new PointOfInterest();
+        resource.setHref("/api/pois/456");
+
+        PointOfInterestEntity entity = PointOfInterestMapper.mapToEntity(resource);
+
+        assertNotNull(entity);
+        assertEquals("456", entity.getId());
+    }
+
+    @Test
+    public void testMapToEntity_FromHrefWithoutFullUri() {
+        PointOfInterest resource = new PointOfInterest();
+        resource.setHref("456");
+
+        PointOfInterestEntity entity = PointOfInterestMapper.mapToEntity(resource);
+
+        assertNotNull(entity);
+        assertEquals("456", entity.getId());
+    }
+
+    @Test
+    public void testMapToEntity_NullHref() {
+        PointOfInterest resource = new PointOfInterest();
+        resource.setHref(null);
+
+        PointOfInterestEntity entity = PointOfInterestMapper.mapToEntity(resource);
+
+        assertNotNull(entity);
+        assertNull(entity.getId());
+    }
+
+    @Test
+    public void testMapToEntity_EmptyHref() {
+        PointOfInterest resource = new PointOfInterest();
+        resource.setHref("");
+
+        PointOfInterestEntity entity = PointOfInterestMapper.mapToEntity(resource);
+
+        assertNotNull(entity);
+        assertNull(entity.getId());
+    }
+
+    @Test
+    public void testMapToEntity_NullResource() {
+        assertNull(PointOfInterestMapper.mapToEntity(null));
+    }
+
+    @Test
+    public void testMapToResource_NullEntity() {
+        assertNull(PointOfInterestMapper.mapToResource(null));
     }
 
     @Test
