@@ -60,6 +60,16 @@ endpoints see the following sections).
 
 Use the Maven build `mvn clean package` to create a `jar` file for deployment.
 
+### Build reports
+
+To generate project reports, you can use:
+
+```bash
+mvn clean site
+```
+
+This will create documentation in the `target/site` folder.
+
 ## Run
 
 This Spring Boot project is configured to run with an embedded Tomcat server. Within the embedded Tomcat server, the

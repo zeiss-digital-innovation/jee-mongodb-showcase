@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -16,8 +16,29 @@
     <description>REST backend using Spring Boot technology.</description>
     <url/>
     <licenses>
-        <license/>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+            <comments>MIT License — Copyright (c) 2025 ZEISS Digital Innovation</comments>
+        </license>
     </licenses>
+    <organization>
+        <name>ZEISS Digital Innovation</name>
+        <url>https://www.zeiss.com/digital-innovation</url>
+    </organization>
+    <developers>
+        <developer>
+            <id>andpost</id>
+            <name>Andreas Post</name>
+            <url>https://github.com/andpost</url>
+        </developer>
+        <developer>
+            <id>igr789</id>
+            <name>Igor Linkov</name>
+            <url>https://github.com/igr789</url>
+        </developer>
+    </developers>
 
     <properties>
         <java.version>21</java.version>
@@ -176,5 +197,24 @@
         </plugins>
         <finalName>${service.name}</finalName>
     </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>3.9.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <version>3.5.4</version>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </reporting>
 
 </project>
