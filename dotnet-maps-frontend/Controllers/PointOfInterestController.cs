@@ -66,7 +66,7 @@ namespace DotNetMapsFrontend.Controllers
         }
 
         [HttpPost]
-        [Route("api/pointsofinterest")]
+        [Route("api/poi")]
         public async Task<IActionResult> Create([FromBody] PointOfInterest pointOfInterest)
         {
             try
@@ -172,7 +172,8 @@ namespace DotNetMapsFrontend.Controllers
                     return NotFound($"POI with ID '{id}' was not found");
                 }
 
-                return Json(updatedPoi);
+                // Return 204 No Content
+                return NoContent();
             }
             catch (Exception ex)
             {

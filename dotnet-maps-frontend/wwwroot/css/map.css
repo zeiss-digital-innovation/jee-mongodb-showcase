@@ -17,3 +17,41 @@
 .leaflet-top.leaflet-left {
     top: 80px; /* Position below top-controls (navbar is 56px) */
 }
+
+#markerContextMenu {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    border: 1px solid var(--color-white);
+    min-width: 120px;
+}
+
+#markerContextMenu a {
+    cursor: pointer;
+    padding: 0.375rem 0.75rem; /* Same padding as btn-sm */
+    font-size: 0.875rem; /* Same as btn-sm (14px) */
+    display: block;
+    text-decoration: none;
+}
+
+/* Edit item - primary color (matching btn-outline-primary) */
+#markerContextMenu a.text-primary {
+    color: var(--color-azure) !important;
+}
+
+#markerContextMenu a.text-primary:hover {
+    background-color: var(--color-azure);
+    color: var(--color-white) !important;
+}
+
+/* Delete item - danger color (matching btn-outline-danger) */
+#markerContextMenu a.text-danger {
+    color: var(--color-bright-orange-neon) !important;
+}
+
+#markerContextMenu a.text-danger:hover {
+    background-color: var(--color-bright-orange-neon);
+    color: var(--color-white) !important;
+}
+
+#markerContextMenu .bi {
+    margin-right: 0.5rem; /* Same spacing as in buttons */
+}
