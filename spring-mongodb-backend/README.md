@@ -77,7 +77,7 @@ context path is set via application properties.
 
 ### Run with embedded server
 
-You can run the application with Docker (see the next section) or using the Spring Boot Maven plugin:
+You can run the application with Docker (see the [Docker](#docker) section) or using the Spring Boot Maven plugin:
 
 ```bash
 mvn spring-boot:run
@@ -143,7 +143,8 @@ This command builds the Docker image and tags it as demo-campus-spring-backend.
 
 ### Docker network
 
-If you run MongoDB with the provided docker configuration (see `../MongoDB/README.md`), the container will use a
+If you run MongoDB with the provided docker configuration (see [MongoDB-Readme](../MongoDB/README.md)), the container
+will use a
 docker network `demo-campus` and MongoDB will be available under the name `mongodb` in this network. Then run the
 backend container in the same network.
 
