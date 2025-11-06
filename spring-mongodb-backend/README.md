@@ -1,3 +1,7 @@
+[![Maven](https://img.shields.io/badge/maven-build-brightgreen)](https://maven.apache.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Coverage](https://img.shields.io/badge/coverage-jacoco-yellowgreen)](target/site/jacoco/index.html)
+
 # REST backend using Spring Boot technology stack
 
 This project is a REST backend application built using the Spring Boot framework. It provides a REST API to manage
@@ -8,6 +12,7 @@ interest). The data is stored in a MongoDB database.
 
 - [Quickstart](#quickstart)
 - [Prerequisites](#prerequisites)
+- [Configuration (important properties)](#configuration-important-properties)
 - [Build](#build)
 - [Run](#run)
 - [Testing](#testing)
@@ -15,6 +20,7 @@ interest). The data is stored in a MongoDB database.
 - [Troubleshooting](#troubleshooting)
 - [REST API Endpoints](#rest-api-endpoints)
 - [Swagger API Endpoint](#swagger-api-endpoint)
+- [License](#license)
 - [Further Information](#further-information)
 
 ## Quickstart
@@ -26,16 +32,68 @@ endpoints see the following sections).
 
 1. Build the project with `mvn clean package`
 2. Run the backend with `mvn spring-boot:run`
-3. Access the API with this sample
-   request http://localhost:8080/zdi-geo-service/api/poi?lat=51.0490455&lon=13.7383389&radius=100&expand=details
 
 ### Using Docker
 
 1. Build the project with `mvn clean package`
 2. Build the Docker image with `docker build -t demo-campus-spring-backend .`
 3. Run the backend with `docker run --name demo-campus-spring-backend -p 8080:8080 demo-campus-spring-backend`
-4. Access the API with this sample
-   request http://localhost:8080/zdi-geo-service/api/poi?lat=51.0490455&lon=13.7383389&radius=100&expand=details
+
+### Access the running application
+
+Once the application is running, you can access the REST API at:
+
+```http
+http://localhost:8080/zdi-geo-service/api/poi
+```
+
+Sample request to find POIs near a location:
+
+```http
+GET http://localhost:8080/zdi-geo-service/api/poi?lat=51.0490455&lon=13.7383389&radius=100&expand=details
+```
+
+Example response:
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+```json
+[
+  {
+    "href": "http://localhost:8080/zdi-geo-service/api/poi/68daa16c2dae92ecfb8823a6",
+    "name": "Carl Zeiss Digital Innovation GmbH",
+    "location": {
+      "type": "Point",
+      "coordinates": [
+        13.7383389,
+        51.0490455
+      ]
+    },
+    "category": "company",
+    "details": "Fritz-Foerster-Platz 2, 01069 Dresden, Tel.: +49 (0)351 497 01-500, https://www.zeiss.de/digital-innovation"
+  }
+]
+```
+
+Sample POST request to create a new POI using curl:
+
+```bash
+curl -X POST "http://localhost:8080/zdi-geo-service/api/poi" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name":"New POI",
+    "category":"company",
+    "location":{"type":"Point","coordinates":[13.7383389,51.0490455]},
+    "details":"Example details"
+  }' -i
+```
+
+Expected response (example):
+
+HTTP/1.1 201 Created
+Location: http://localhost:8080/zdi-geo-service/api/poi/{new-id}
+Content-Type: application/json
 
 ## Prerequisites
 
@@ -56,6 +114,16 @@ endpoints see the following sections).
   works with a MongoDB instance without any authentication necessary (default after install).
 - see also the [MongoDB README](../MongoDB/README.md) for a docker-compose setup.
 
+## Configuration (important properties)
+
+| Property                     |          Default | Description               |
+|------------------------------|-----------------:|---------------------------|
+| spring.data.mongodb.host     |        localhost | MongoDB host              |
+| spring.data.mongodb.port     |            27017 | MongoDB port              |
+| spring.data.mongodb.database |      demo_campus | DB name                   |
+| server.servlet.context-path  | /zdi-geo-service | Application context path  |
+| spring.profiles.active       |              dev | Active profile (dev/prod) |
+
 ## Build
 
 Use the Maven build `mvn clean package` to create a `jar` file for deployment.
@@ -66,6 +134,9 @@ To generate project reports, you can use:
 
 ```bash
 mvn clean site
+mvn clean test jacoco:report
+start target\site\index.html
+start target\site\jacoco\index.html
 ```
 
 This will create documentation in the `target/site` folder.
@@ -219,13 +290,43 @@ This backend exposes the following main REST endpoints:
 - All CRUD operations (Create, Read, Update, Delete) are available under the endpoint
   `/zdi-geo-service/api/poi/{id}` using standard HTTP methods (POST, GET, PUT, DELETE).
 
+### Overview on available operations and expected response codes
+
+| Endpoint                      | Method |        Success Status         |     Error Status     |
+|-------------------------------|-------:|:-----------------------------:|:--------------------:|
+| /zdi-geo-service/api/poi      |    GET |              200              | 400 (invalid params) |
+| /zdi-geo-service/api/poi      |   POST |              201              |   400 (validation)   |
+| /zdi-geo-service/api/poi/{id} |    GET |              200              |         404          |
+| /zdi-geo-service/api/poi/{id} |    PUT | 201 (created) / 204 (updated) |   400 (validation)   |
+| /zdi-geo-service/api/poi/{id} | DELETE |              204              |         404          |
+
+**PUT semantics**
+
+In this project a `PUT /zdi-geo-service/api/poi/{id}` will create the resource if it does not exist (returning
+`201 Created` with a `Location` header) and will update an existing resource if it already exists (returning
+`204 No Content`). Below are example responses for both cases.
+
+Example: resource created (201)
+
+HTTP/1.1 201 Created
+Location: http://localhost:8080/zdi-geo-service/api/poi/{new-id}
+Content-Type: application/json
+
+Example: resource updated (204)
+
+HTTP/1.1 204 No Content
+
 ## Swagger API Endpoint
 
-The backend provides a Swagger UI for exploring and testing the REST API. It is available at:
-
-```
+Swagger UI is available at:
 http://localhost:8080/zdi-geo-service/swagger
-```
+
+You can find the OpenAPI specification in JSON format at:
+http://localhost:8080/zdi-geo-service/v3/api-docs
+
+## License
+
+This project is licensed under the MIT License — see the repository root LICENSE file: [../LICENSE.md](../LICENSE.md).
 
 ## Further Information
 
