@@ -10,6 +10,7 @@ interest). The data is stored in a MongoDB database.
 - [Prerequisites](#prerequisites)
 - [Build](#build)
 - [Run](#run)
+- [Testing](#testing)
 - [Docker](#docker)
 - [Troubleshooting](#troubleshooting)
 - [REST API Endpoints](#rest-api-endpoints)
@@ -92,6 +93,22 @@ You can use different application properties for development and production.
   Docker / Kubernetes environment where a MongoDB service is available with the name `mongodb`.
 - The active profile can be set via the `SPRING_PROFILES_ACTIVE` environment variable or via command line argument
   `--spring.profiles.active=dev|prod`.
+
+## Testing
+
+You can run the tests with Maven using:
+
+```bash
+mvn clean test
+```
+
+You can also generate code coverage reports with:
+
+```bash
+mvn clean test jacoco:report
+```
+
+After running the tests, the code coverage report can be found in the folder `target/site/jacoco/index.html`.
 
 ## Docker
 
