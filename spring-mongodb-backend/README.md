@@ -1,6 +1,10 @@
+[![Java](https://img.shields.io/badge/java-21-blue.svg)](https://www.oracle.com/java/technologies/javase/jdk21-archive-downloads.html)
+[![Spring Boot](https://img.shields.io/badge/spring--boot-3.5.7-green.svg)](https://spring.io/projects/spring-boot)
 [![Maven](https://img.shields.io/badge/maven-build-brightgreen)](https://maven.apache.org/)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Docker](https://img.shields.io/badge/docker-container-blue.svg)](https://www.docker.com/)
+[![MongoDB](https://img.shields.io/badge/mongodb-database-green.svg)](https://www.mongodb.com/)
 [![Coverage](https://img.shields.io/badge/coverage-jacoco-yellowgreen)](target/site/jacoco/index.html)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](../LICENSE.md)
 
 # REST backend using Spring Boot technology stack
 
@@ -43,9 +47,7 @@ endpoints see the following sections).
 
 Once the application is running, you can access the REST API at:
 
-```http
 http://localhost:8080/zdi-geo-service/api/poi
-```
 
 Sample request to find POIs near a location:
 
@@ -53,53 +55,13 @@ Sample request to find POIs near a location:
 GET http://localhost:8080/zdi-geo-service/api/poi?lat=51.0490455&lon=13.7383389&radius=100&expand=details
 ```
 
-Example response:
-
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-```json
-[
-  {
-    "href": "http://localhost:8080/zdi-geo-service/api/poi/68daa16c2dae92ecfb8823a6",
-    "name": "Carl Zeiss Digital Innovation GmbH",
-    "location": {
-      "type": "Point",
-      "coordinates": [
-        13.7383389,
-        51.0490455
-      ]
-    },
-    "category": "company",
-    "details": "Fritz-Foerster-Platz 2, 01069 Dresden, Tel.: +49 (0)351 497 01-500, https://www.zeiss.de/digital-innovation"
-  }
-]
-```
-
-Sample POST request to create a new POI using curl:
-
-```bash
-curl -X POST "http://localhost:8080/zdi-geo-service/api/poi" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name":"New POI",
-    "category":"company",
-    "location":{"type":"Point","coordinates":[13.7383389,51.0490455]},
-    "details":"Example details"
-  }' -i
-```
-
-Expected response (example):
-
-HTTP/1.1 201 Created
-Location: http://localhost:8080/zdi-geo-service/api/poi/{new-id}
-Content-Type: application/json
+See [REST API Endpoints](#rest-api-endpoints) for more details and examples.
 
 ## Prerequisites
 
 ### Java
 
-- Java 21
+- [Java 21](https://www.oracle.com/java/technologies/javase/jdk21-archive-downloads.html)
 - [Apache Maven](https://maven.apache.org/) 3.9
 
 ### MongoDB
@@ -109,10 +71,10 @@ Content-Type: application/json
   with the database.
 - The default connection settings are host=localhost, port=27017, database=demo_campus.
   You can set different settings by supplying different values in application properties or
-  via environment variables. See the `application-dev.yaml` and `application-prod.yaml` files
+  via environment variables. See the `application-dev.yaml` and `application-prod.yaml` files.
 - As this is only a small demo application, there is currently no support for authentication with MongoDB. So it only
   works with a MongoDB instance without any authentication necessary (default after install).
-- see also the [MongoDB README](../MongoDB/README.md) for a docker-compose setup.
+- See also the [MongoDB README](../MongoDB/README.md) for a docker-compose setup.
 
 ## Configuration (important properties)
 
@@ -193,18 +155,20 @@ After running the tests, the code coverage report can be found in the folder `ta
 
 ## Docker
 
-After building the Java project you can use the Dockerfile provided in the repository to create an image. The image will
+After building the Java project you can use the [Dockerfile](Dockerfile) provided in the repository to create an image.
+The image will
 then contain:
 
 - Java 21 Runtime: eclipse-temurin:21-jre
 - Latest build from the folder `/target/`
 - Using the provided `application-prod.yaml` as active profile. This assumes that a MongoDB service is
-  available with the name `mongodb`. You can change this by providing your own application properties or environment
+  available with the host name `mongodb`. You can change this by providing your own application properties or
+  environment
   variables.
 
 ### Build the Docker image
 
-In the root folder (contains the Dockerfile) execute the following:
+In the root folder (contains the Dockerfile) execute the following (don't forget the dot at the end):
 
 ```bash
 docker build -t demo-campus-spring-backend .
@@ -214,7 +178,7 @@ This command builds the Docker image and tags it as demo-campus-spring-backend.
 
 ### Docker network
 
-If you run MongoDB with the provided docker configuration (see [MongoDB-Readme](../MongoDB/README.md)), the container
+If you run MongoDB with the provided Docker configuration (see [MongoDB-Readme](../MongoDB/README.md)), the container
 will use a
 docker network `demo-campus` and MongoDB will be available under the name `mongodb` in this network. Then run the
 backend container in the same network.
@@ -270,6 +234,10 @@ This backend exposes the following main REST endpoints:
   GET http://localhost:8080/zdi-geo-service/api/poi?lat=51.0490455&lon=13.7383389&radius=100&expand=details
   ```
 - **Example response:**
+  ```http
+  HTTP/1.1 200 OK
+  Content-Type: application/json
+  ```
   ```json
   [
     {
@@ -277,7 +245,10 @@ This backend exposes the following main REST endpoints:
       "name": "Carl Zeiss Digital Innovation GmbH",
       "location": {
         "type": "Point",
-        "coordinates": [13.7383389, 51.0490455]
+        "coordinates": [
+          13.7383389,
+          51.0490455
+        ]
       },
       "category": "company",
       "details": "Fritz-Foerster-Platz 2, 01069 Dresden, Tel.: +49 (0)351 497 01-500, https://www.zeiss.de/digital-innovation"
@@ -289,6 +260,25 @@ This backend exposes the following main REST endpoints:
 
 - All CRUD operations (Create, Read, Update, Delete) are available under the endpoint
   `/zdi-geo-service/api/poi/{id}` using standard HTTP methods (POST, GET, PUT, DELETE).
+
+- **Example POST request to create a new POI using curl:**
+  ```bash
+  curl -X POST "http://localhost:8080/zdi-geo-service/api/poi" \
+    -H "Content-Type: application/json" \
+    -d '{
+      "name":"New POI",
+      "category":"company",
+      "location":{"type":"Point","coordinates":[13.7383389,51.0490455]},
+      "details":"Example details"
+    }' -i
+  ```
+
+- **Expected response (example):**
+  ```http
+  HTTP/1.1 201 Created
+  Location: http://localhost:8080/zdi-geo-service/api/poi/{new-id}
+  Content-Type: application/json
+  ```
 
 ### Overview on available operations and expected response codes
 
@@ -302,19 +292,21 @@ This backend exposes the following main REST endpoints:
 
 **PUT semantics**
 
-In this project a `PUT /zdi-geo-service/api/poi/{id}` will create the resource if it does not exist (returning
-`201 Created` with a `Location` header) and will update an existing resource if it already exists (returning
-`204 No Content`). Below are example responses for both cases.
+For PUT this project follows the upsert semantics. This means a `PUT /zdi-geo-service/api/poi/{id}` will create the
+resource if it does not exist (returning
+`201 Created` with a `Location` header set) and will update an existing resource if it already exists (returning
+`204 No Content`). Below are example responses for both cases:
 
-Example: resource created (201)
-
-HTTP/1.1 201 Created
-Location: http://localhost:8080/zdi-geo-service/api/poi/{new-id}
-Content-Type: application/json
-
-Example: resource updated (204)
-
-HTTP/1.1 204 No Content
+- **Example: resource created (201)**
+  ```http
+  HTTP/1.1 201 Created
+  Location: http://localhost:8080/zdi-geo-service/api/poi/{new-id}
+  Content-Type: application/json
+  ```
+- **Example: resource updated (204)**
+  ```http
+  HTTP/1.1 204 No Content
+  ```
 
 ## Swagger API Endpoint
 
