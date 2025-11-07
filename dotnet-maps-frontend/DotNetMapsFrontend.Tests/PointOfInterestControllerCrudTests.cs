@@ -102,7 +102,7 @@ public class PointOfInterestControllerCrudTests
     #region Update Tests
 
     [Test]
-    public async Task Update_WithValidData_ReturnsJsonResult()
+    public async Task Update_WithValidData_ReturnsNoContent()
     {
         // Arrange
         var testId = "507f1f77bcf86cd799439011";
@@ -133,10 +133,8 @@ public class PointOfInterestControllerCrudTests
         // Act
         var result = await _controller.Update(testId, updatePoi);
 
-        // Assert
-        Assert.That(result, Is.InstanceOf<JsonResult>());
-        var jsonResult = result as JsonResult;
-        Assert.That(jsonResult.Value, Is.EqualTo(updatedPoi));
+        // Assert - PUT should return 204 No Content (JEE backend compatibility)
+        Assert.That(result, Is.InstanceOf<NoContentResult>());
         _mockService.Verify(s => s.UpdatePointOfInterestAsync(testId, It.IsAny<PointOfInterest>()), Times.Once);
     }
 

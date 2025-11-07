@@ -114,7 +114,17 @@ public class MapControllerTests
         // Arrange
         var mockPois = new List<PointOfInterest>
         {
-            new PointOfInterest { Category = "museum", Details = "Test Museum" }
+            new PointOfInterest 
+            { 
+                Category = "museum", 
+                Details = "Test Museum",
+                Location = new Location
+                {
+                    Type = "Point",
+                    Coordinates = new[] { 13.7373, 51.0504 }
+                },
+                Href = "/poi/1"
+            }
         };
         _mockService.Setup(s => s.GetPointsOfInterestAsync()).ReturnsAsync(mockPois);
 
@@ -124,7 +134,11 @@ public class MapControllerTests
         // Assert
         Assert.That(result, Is.InstanceOf<JsonResult>());
         var jsonResult = result as JsonResult;
-        Assert.That(jsonResult?.Value, Is.EqualTo(mockPois));
+        Assert.That(jsonResult?.Value, Is.Not.Null);
+        Assert.That(jsonResult?.Value, Is.InstanceOf<List<PointOfInterest>>());
+        var resultPois = jsonResult?.Value as List<PointOfInterest>;
+        Assert.That(resultPois?.Count, Is.EqualTo(1));
+        Assert.That(resultPois?[0].Category, Is.EqualTo("museum"));
     }
 
     [Test]

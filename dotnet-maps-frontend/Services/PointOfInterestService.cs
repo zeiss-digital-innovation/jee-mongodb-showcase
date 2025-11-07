@@ -455,23 +455,23 @@ namespace DotNetMapsFrontend.Services
                 },
                 new PointOfInterest
                 {
-                    Category = "cathedral",
-                    Details = "Kölner Dom\nKöln, Deutschland\nDomkloster 4",
+                    Category = "restaurant",
+                    Details = "Hofbräuhaus\nMünchen, Deutschland\nPlatzl 9",
                     Href = "http://localhost/poi/4",
                     Location = new Location
                     {
-                        Coordinates = new double[] { 6.9583, 50.9413 },
+                        Coordinates = new double[] { 11.5797, 48.1374 },
                         Type = "Point"
                     }
                 },
                 new PointOfInterest
                 {
-                    Category = "park",
-                    Details = "Englischer Garten\nMünchen, Deutschland\nSchönfeldstraße",
+                    Category = "hotel",
+                    Details = "Hotel Adlon Kempinski\nBerlin, Deutschland\nUnter den Linden 77",
                     Href = "http://localhost/poi/5",
                     Location = new Location
                     {
-                        Coordinates = new double[] { 11.5896, 48.1642 },
+                        Coordinates = new double[] { 13.3809, 52.5159 },
                         Type = "Point"
                     }
                 }

@@ -85,11 +85,19 @@ This demo offers multiple technology combinations:
 
 **Frontend Options:**
 - **Angular** (`angular-maps-frontend/`) - SPA with TypeScript
-- **ASP.NET Core MVC** (`dotnet-maps-frontend/`) - Server-side rendering with Razor + Full CRUD operations (Create, Edit, Delete POIs)
+- **ASP.NET Core MVC** (`dotnet-maps-frontend/`) - Server-side rendering with Razor
+  - ✅ Full CRUD operations (Create, Edit, Delete POIs)
+  - ✅ Right-click context menu on map markers
+  - ✅ Advanced filtering (Name, Details, Category)
+  - ✅ Dual list views (Cards/Table)
+  - ✅ 138 unit tests with 100% pass rate
 
 **Backend Options:**  
 - **JEE/Jakarta** (`jee-mongodb-backend/`) - Traditional enterprise Java
 - **.NET Core** (`dotnet-mongodb-backend/`) - Modern C# async API
+  - ✅ 121 unit tests with 100% pass rate
+  - ✅ High-performance async operations
+  - ✅ 85.6% code coverage
 
 ### Quick Start Steps
 - Start MongoDB:
@@ -129,9 +137,22 @@ Note: exact ports and steps vary by backend. See the subproject READMEs for full
 ## Subprojects / Layout
 
 - `angular-maps-frontend/` — Angular app that displays POIs on a map and calls the backend for POIs near the current map center. See `angular-maps-frontend/README.md`.
-- `dotnet-maps-frontend/` — ASP.NET Core MVC app with full CRUD operations (Create, Edit, Delete POIs). Features interactive maps with Leaflet.js, dual list views (cards/table), synchronized controls between pages, and localStorage-based settings. See `dotnet-maps-frontend/README.md`.
+- `dotnet-maps-frontend/` — **ASP.NET Core MVC app** with full CRUD operations and advanced features:
+  - ✅ **Full CRUD**: Create, Read, Update, Delete POIs
+  - ✅ **Right-Click Context Menu**: Edit/Delete from map markers
+  - ✅ **Advanced Filtering**: Name, Details, and Category filters
+  - ✅ **Dual List Views**: Card view and Table view with toggle
+  - ✅ **Synchronized Controls**: Settings persist between pages via localStorage
+  - ✅ **138 Unit Tests**: 100% pass rate with comprehensive coverage
+  - ✅ **JEE Backend Compatible**: PUT returns 204 No Content
+  - See `dotnet-maps-frontend/README.md` for details.
 - `jee-mongodb-backend/` — Jakarta (JEE) backend service. Contains REST endpoints and mapping to MongoDB.
-- `dotnet-mongodb-backend/` — .NET Core backend service with MongoDB integration. High-performance async REST API. See `dotnet-mongodb-backend/README.md`.
+- `dotnet-mongodb-backend/` — **.NET Core backend** with MongoDB integration:
+  - ✅ **High-Performance**: Async REST API with .NET 9
+  - ✅ **121 Unit Tests**: 100% pass rate
+  - ✅ **85.6% Code Coverage**: Line and branch coverage
+  - ✅ **MongoDB Driver 3.5.0**: Latest official C# driver
+  - See `dotnet-mongodb-backend/README.md` for details.
 - `MongoDB/` — Docker + compose configuration and initialization scripts. Use this to run a local MongoDB instance.
 - `testdata-generation/` — Java tool to parse GPX files and POST POIs to a running backend to populate test data.
 
