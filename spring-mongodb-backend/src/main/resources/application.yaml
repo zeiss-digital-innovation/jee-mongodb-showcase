@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: spring-geo-service
+  profiles:
+    active: dev
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: demo-campus
+server:
+  port: 8080
+  servlet:
+    context-path: /zdi-geo-service
+
+# SpringDoc OpenAPI Configuration
+springdoc:
+  swagger-ui:
+    path: /swagger
+    disable-swagger-default-url: true
+
+# Keep context-path out of the base file; use profile-specific files (application-dev.yaml/application-prod.yaml)
+# Default content-negotiation settings are left commented; enable via profiles if needed
+#spring.mvc.contentnegotiation.default-content-type=application/json
+#spring.mvc.contentnegotiation.ignore-accept-header=true
