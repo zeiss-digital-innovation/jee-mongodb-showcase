@@ -21,6 +21,10 @@ public class GeoPoint {
 
     }
 
+    public GeoPoint(double latitude, double longitude) {
+        setCoordinates(latitude, longitude);
+    }
+
     public double getLatitude() {
         return coordinates[LATITUDE_INDEX];
     }
