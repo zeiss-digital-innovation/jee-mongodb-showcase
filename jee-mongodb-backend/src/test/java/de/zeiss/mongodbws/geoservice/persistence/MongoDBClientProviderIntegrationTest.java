@@ -1,5 +1,6 @@
 package de.zeiss.mongodbws.geoservice.persistence;
 
+import de.zeiss.mongodbws.geoservice.integration.DockerAvailable;
 import dev.morphia.Datastore;
 import org.junit.jupiter.api.*;
 import org.testcontainers.mongodb.MongoDBContainer;
@@ -7,6 +8,7 @@ import org.testcontainers.mongodb.MongoDBContainer;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+@DockerAvailable
 class MongoDBClientProviderIntegrationTest {
 
     static MongoDBContainer mongoDBContainer;

@@ -2,6 +2,7 @@ package de.zeiss.mongodbws.geoservice.persistence;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import de.zeiss.mongodbws.geoservice.integration.DockerAvailable;
 import de.zeiss.mongodbws.geoservice.persistence.entity.GeoPoint;
 import de.zeiss.mongodbws.geoservice.persistence.entity.PointOfInterestEntity;
 import dev.morphia.Datastore;
@@ -15,6 +16,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@DockerAvailable
 class PersistenceServiceIntegrationTest {
     static MongoDBContainer mongoDBContainer;
     MongoClient mongoClient;
