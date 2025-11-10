@@ -7,6 +7,33 @@
     <artifactId>jee-geo-service</artifactId>
     <version>2.0.0-SNAPSHOT</version>
     <packaging>war</packaging>
+    <name>jee-geo-service</name>
+    <description>REST backend using Jakarta Enterprise technology.</description>
+    <url/>
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+            <comments>MIT License — Copyright (c) 2025 ZEISS Digital Innovation</comments>
+        </license>
+    </licenses>
+    <organization>
+        <name>ZEISS Digital Innovation</name>
+        <url>https://www.zeiss.com/digital-innovation</url>
+    </organization>
+    <developers>
+        <developer>
+            <id>andpost</id>
+            <name>Andreas Post</name>
+            <url>https://github.com/andpost</url>
+        </developer>
+        <developer>
+            <id>igr789</id>
+            <name>Igor Linkov</name>
+            <url>https://github.com/igr789</url>
+        </developer>
+    </developers>
 
     <properties>
         <service.name>zdi-geo-service</service.name>
@@ -202,6 +229,27 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.14</version> <!-- use a recent stable version -->
+                <executions>
+                    <execution>
+                        <id>default-prepare-agent</id>
+                        <!-- Preparing the agent, otherwise it cannot work (see https://stackoverflow.com/questions/18107375/getting-skipping-jacoco-execution-due-to-missing-execution-data-file-upon-exec) -->
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
 
         <pluginManagement>
@@ -234,5 +282,24 @@
 
         <finalName>${service.name}</finalName>
     </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>3.9.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <version>3.5.4</version>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </reporting>
 
 </project>
