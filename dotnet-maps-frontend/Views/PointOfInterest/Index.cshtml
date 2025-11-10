@@ -154,6 +154,11 @@
         // Session timeout: 30 minutes of inactivity = new session
         const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
         
+        // sorting state for table columns
+        let currentSortColumn = null; // null, name or details
+        let sortAscending = true;
+        let currentTablePois = []; // current POI list for Sorting
+
         $(document).ready(async function() {
             // Initialize Category Manager FIRST
             await CategoryManager.init();
@@ -645,6 +650,8 @@
             }
             
             function updatePoiTable(pois) {
+                // Store the current POI list for sorting functionality
+                currentTablePois = [...pois]; // create copy so we don't modify the original
                 const $container = $('#poiTableContainer');
                 
                 if (!pois || pois.length === 0) {
@@ -661,9 +668,15 @@
                     <table class="table table-striped table-hover">
                         <thead class="table-primary">
                             <tr>
-                                <th scope="col"><i class="bi bi-tag me-2"></i>Name</th>
+                                <th scope="col" style="cursor: pointer; user-select: none;" onclick="sortTable('name')">
+                                    <i class="bi bi-tag me-2"></i>Name
+                                    ${currentSortColumn === 'name' ? (sortAscending ? ' ▲' : ' ▼') : ''}
+                                </th>
                                 <th scope="col"><i class="bi bi-folder me-2"></i>Category</th>
-                                <th scope="col"><i class="bi bi-info-circle me-2"></i>Details</th>
+                                <th scope="col" style="cursor: pointer; user-select: none;" onclick="sortTable('details')">
+                                    <i class="bi bi-info-circle me-2"></i>Details
+                                    ${currentSortColumn === 'details' ? (sortAscending ? ' ▲' : ' ▼') : ''}
+                                </th>
                                 <th scope="col"><i class="bi bi-geo-alt me-2"></i>Location</th>
                                 <th scope="col" style="width: 180px;"><i class="bi bi-gear me-2"></i>Action</th>
                             </tr>
@@ -733,6 +746,32 @@
                 
                 // Replace newlines with <br>
                 return formatted.replace(/\n/g, '<br>');
+            }
+            window.sortTable = function(column) {
+                // If same column clicked: toggle sort headers
+                // If different column clicked: start with ascending (A-Z)
+                if (currentSortColumn === column) {
+                    sortAscending = !sortAscending;
+                } else {
+                    currentSortColumn = column;
+                    sortAscending = true;
+                }
+                // Sort the POI array based oncurrent column and direction
+                currentTablePois.sort((a, b) => {
+                    // Get values from specified column
+                    let aVal = column === 'name' ? a.name : a.details;
+                    let bVal = column === 'name' ? b.name : b.details;
+
+                    // Handle null/undefined values - convert to empty string
+                    aVal = (aVal || '').toString().toLowerCase();
+                    bVal = (bVal || '').toString().toLowerCase();
+
+                    if (aVal < bVal) return sortAscending ? -1 : 1;
+                    if (aVal > bVal) return sortAscending ? 1 : -1;
+                    return 0;
+                });
+                // Rerender the table with sorted data
+                updatePoiTable(currentTablePois);
             }
         });
         
@@ -950,23 +989,4 @@
             }, 3000);
         }
     </script>
-}
-
-@functions {
-    string FormatDetails(string details)
-    {
-       if (string.IsNullOrEmpty(details))
-            return string.Empty;
-
-        // Regex for recognition of phone numbers in format +<number> with spaces, dashes and parentheses and optionally comma at end
-        var phoneRegex = new System.Text.RegularExpressions.Regex(@"\+\d[\d\s\-\(\)/]*,?");
-        var formattedDetails = phoneRegex.Replace(details, match =>
-        {
-            // Replace just pfone nummer with the icon + phone number
-            return $"\n<i class='bi bi-telephone'></i> {match.Value}\n";
-        });
-
-        return formattedDetails.Replace("\n", "<br>");    
-    }
-
 }
