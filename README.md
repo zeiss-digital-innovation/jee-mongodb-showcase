@@ -97,18 +97,9 @@ This demo offers multiple technology combinations:
 **Frontend Options:**
 - **Angular** (`angular-maps-frontend/`) - SPA with TypeScript
 - **ASP.NET Core MVC** (`dotnet-maps-frontend/`) - Server-side rendering with Razor
-  - ✅ Full CRUD operations (Create, Edit, Delete POIs)
-  - ✅ Right-click context menu on map markers
-  - ✅ Advanced filtering (Name, Details, Category)
-  - ✅ Dual list views (Cards/Table)
-  - ✅ 138 unit tests with 100% pass rate
-
-**Backend Options:**  
+ **Backend Options:**  
 - **JEE/Jakarta** (`jee-mongodb-backend/`) - Traditional enterprise Java
 - **.NET Core** (`dotnet-mongodb-backend/`) - Modern C# async API
-  - ✅ 121 unit tests with 100% pass rate
-  - ✅ High-performance async operations
-  - ✅ 85.6% code coverage
 - **Java Spring** (`spring-mongodb-backend`) - Spring Boot technology
 
 ### Quick Start Steps
