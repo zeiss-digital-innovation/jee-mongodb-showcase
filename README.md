@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](#license)
 [![Project status](https://img.shields.io/badge/status-demo-orange.svg)](#)
 
-This repository is a demo application used for an internal campus showing the usage of MongoDBs geospatial index capabilities. The database stores points of interest (POI) that are shown on a map on frontend websites. The websites call backend services that connect to the MongoDB database. To show different ways of working with MongoDB, both multiple backend technologies (.NET Core, JEE/Jakarta) and frontend technologies (Angular, ASP.NET Core MVC) are included in the repo.
+This repository is a demo application used for an internal campus showing the usage of MongoDBs geospatial index capabilities. The database stores points of interest (POI) that are shown on a map on frontend websites. The websites call backend services that connect to the MongoDB database. To show different ways of working with MongoDB, multiple backend technologies (.NET Core, JEE/Jakarta, Spring) and frontend technologies (Angular, ASP.NET Core MVC) are included in the repo.
 
 ## Table of Contents
 - [AI-Assisted Code Generation](#ai-assisted-code-generation)
@@ -53,7 +53,7 @@ These steps will get a local demo running (frontend + example backend + local Mo
 2. Start a backend and a frontend:
    - See each subproject README for exact commands and ports (examples below).
    - The backends are configured to run under http://localhost:8080/zdi-geo-service/api/
-   - Swagger for the backends is available under http://localhost:8080/zdi-geo-service/swagger/index.html
+   - Swagger for the backends is available under http://localhost:8080/zdi-geo-service/swagger/
 
 3. Open a frontend in your browser:
    - Angular frontend: http://localhost:4200  
@@ -70,10 +70,21 @@ These steps will get a local demo running (frontend + example backend + local Mo
   </figcaption>
 </figure>
 
+<figure style="text-align:center;">
+  <a href="media/screenshots/frontend_screenshot_list.png" target="_blank" rel="noopener">
+    <img src="media/screenshots/frontend_screenshot_list.png"
+         alt="Angular frontend: list of Points of Interest"
+         style="max-width:480px;height:auto;border:1px solid #ccc;border-radius:4px;" />
+  </a>
+  <figcaption style="font-size:0.95em;color:#444;margin-top:6px;">
+    Frontend demo: List of POIs loaded with the given coordinates — click to view full-size.
+  </figcaption>
+</figure>
+
 ## Prerequisites
 - Docker & Docker Compose (when using the provided Docker files).
 - Node.js (for the Angular frontend) and npm/yarn
-- Java 21+ and Maven (for the JEE backend and the testdata generator)  
+- Java 21+ and Maven (for the JEE / Spring backend and the testdata generator)  
 - .NET 9.0 SDK (for the .NET backend and ASP.NET Core frontend)
 
 Its not necessary to have all technologies - select the frontend and backend of your choice.
@@ -98,6 +109,7 @@ This demo offers multiple technology combinations:
   - ✅ 121 unit tests with 100% pass rate
   - ✅ High-performance async operations
   - ✅ 85.6% code coverage
+- **Java Spring** (`spring-mongodb-backend`) - Spring Boot technology
 
 ### Quick Start Steps
 - Start MongoDB:
@@ -118,6 +130,12 @@ This demo offers multiple technology combinations:
     cd dotnet-mongodb-backend  
     dotnet run
     ```
+  - **OR Spring Backend**:
+    ```
+    cd spring-mongodb-backend
+    mvn clean package
+    mvn spring-boot:run
+    ```
 - Run a frontend (choose one):
   - **Angular Frontend**:
     ```
@@ -136,25 +154,13 @@ Note: exact ports and steps vary by backend. See the subproject READMEs for full
 
 ## Subprojects / Layout
 
-- `angular-maps-frontend/` — Angular app that displays POIs on a map and calls the backend for POIs near the current map center. See `angular-maps-frontend/README.md`.
-- `dotnet-maps-frontend/` — **ASP.NET Core MVC app** with full CRUD operations and advanced features:
-  - ✅ **Full CRUD**: Create, Read, Update, Delete POIs
-  - ✅ **Right-Click Context Menu**: Edit/Delete from map markers
-  - ✅ **Advanced Filtering**: Name, Details, and Category filters
-  - ✅ **Dual List Views**: Card view and Table view with toggle
-  - ✅ **Synchronized Controls**: Settings persist between pages via localStorage
-  - ✅ **138 Unit Tests**: 100% pass rate with comprehensive coverage
-  - ✅ **JEE Backend Compatible**: PUT returns 204 No Content
-  - See `dotnet-maps-frontend/README.md` for details.
-- `jee-mongodb-backend/` — Jakarta (JEE) backend service. Contains REST endpoints and mapping to MongoDB.
-- `dotnet-mongodb-backend/` — **.NET Core backend** with MongoDB integration:
-  - ✅ **High-Performance**: Async REST API with .NET 9
-  - ✅ **121 Unit Tests**: 100% pass rate
-  - ✅ **85.6% Code Coverage**: Line and branch coverage
-  - ✅ **MongoDB Driver 3.5.0**: Latest official C# driver
-  - See `dotnet-mongodb-backend/README.md` for details.
-- `MongoDB/` — Docker + compose configuration and initialization scripts. Use this to run a local MongoDB instance.
-- `testdata-generation/` — Java tool to parse GPX files and POST POIs to a running backend to populate test data.
+- `angular-maps-frontend` — Angular app that displays POIs on a map and calls the backend for POIs near the current map center. See [Angular Frontend Readme](/angular-maps-frontend/README.md).
+- `dotnet-maps-frontend` — ASP.NET Core MVC app with full CRUD operations (Create, Edit, Delete POIs). Features interactive maps with Leaflet.js, dual list views (cards/table), synchronized controls between pages, and localStorage-based settings. See [Dotnet Frontend Readme](/dotnet-maps-frontend/README.md).
+- `jee-mongodb-backend` — Jakarta (JEE) backend service. Contains REST endpoints and mapping to MongoDB. See [JEE Backend Readme](/jee-mongodb-backend/README.md).
+- `dotnet-mongodb-backend` — .NET Core backend service with MongoDB integration. High-performance async REST API. See [Dotnet Backend Readme](/dotnet-mongodb-backend/README.md).
+- `spring-mongodb-backend` - JAva Spring backend service with MongoDB integration. See [Spring Backend Readme](/spring-mongodb-backend/README.md).
+- `MongoDB` — Docker + compose configuration and initialization scripts. Use this to run a MongoDB instance with Docker.
+- `testdata-generation` — Java tool to parse GPX files and POST POIs to a running backend to populate test data.
 
 ## Test data
 
