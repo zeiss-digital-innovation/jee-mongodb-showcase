@@ -672,7 +672,10 @@
                                     <i class="bi bi-tag me-2"></i>Name
                                     <i class="bi ${currentSortColumn === 'name' ? (sortAscending ? 'bi-sort-up' : 'bi-sort-down') : 'bi-arrow-down-up'} ms-1" style="opacity: ${currentSortColumn === 'name' ? '1' : '0.8'};"</i>
                                 </th>
-                                <th scope="col" class="category-cell-header"><i class="bi bi-folder me-2"></i>Category</th>
+                                <th scope="col" class="category-cell-header" style="cursor: pointer; user-select: none;" onclick="sortTable('category')">
+                                    <i class="bi bi-folder me-2"></i>Category
+                                    <i class="bi ${currentSortColumn === 'category' ? (sortAscending ? 'bi-sort-up' : 'bi-sort-down') : 'bi-arrow-down-up'} ms-1" style="opacity: ${currentSortColumn === 'category' ? '1' : '0.8'};"</i>
+                                </th>
                                 <th scope="col" class="details-cell-header" style="cursor: pointer; user-select: none;" onclick="sortTable('details')">
                                     <i class="bi bi-info-circle me-2"></i>Details
                                     <i class="bi ${currentSortColumn === 'details' ? (sortAscending ? 'bi-sort-up' : 'bi-sort-down') : 'bi-arrow-down-up'} ms-1" style="opacity: ${currentSortColumn === 'details' ? '1' : '0.8'};"</i>
@@ -739,21 +742,20 @@
                 if (!details) return '';
                 
                 let formatted = details;
+                
+                // Format phone numbers with icon (matching Razor FormatDetails logic)
+                const phoneRegex = /\+\d[\d\s\-\(\)/]*,?/g;
+                formatted = formatted.replace(phoneRegex, (match) => {
+                    return `\n<i class='bi bi-telephone'></i> ${match}\n`;
+                });
 
                 // Format URLs/web links with icon
                 // Matches http://, https://, www. and ftp:// links
                 const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|ftp:\/\/[^\s]+)/gi;
                 formatted = formatted.replace(urlRegex, (match) => {
                     const displayText = match.length > 40 ? match.substring(0, 37) + '...' : match;
-                    return `\n<a href="${match}" target="_blank" rel="noopener noreferrer"><i class='bi bi-link-45deg'></i>${displayText}</a>\n`
+                    return `<a href="${match}" target="_blank" rel="noopener noreferrer"><i class='bi bi-link-45deg'></i>${displayText}</a>`
                 });
-
-                // Format phone numbers with icon (matching Razor FormatDetails logic)
-                const phoneRegex = /\+\d[\d\s\-\(\)/]*,?/g;
-                formatted = formatted.replace(phoneRegex, (match) => {
-                    return `\n<i class='bi bi-telephone'></i> ${match}\n`;
-                });
-                
                 // Replace newlines with <br>
                 return formatted.replace(/\n/g, '<br>');
             }
@@ -769,8 +771,17 @@
                 // Sort the POI array based oncurrent column and direction
                 currentTablePois.sort((a, b) => {
                     // Get values from specified column
-                    let aVal = column === 'name' ? a.name : a.details;
-                    let bVal = column === 'name' ? b.name : b.details;
+                    let aVal, bVal;
+                    if (column === 'name'){
+                        aVal = a.name;
+                        bVal = b.name;
+                    } else if (column === 'category') {
+                        aVal = a.category;
+                        bVal = b.category;
+                    } else if (column === 'details') {
+                        aVal = a.details;
+                        bVal = b.details;
+                    }
 
                     // Handle null/undefined values - convert to empty string
                     aVal = (aVal || '').toString().toLowerCase();
