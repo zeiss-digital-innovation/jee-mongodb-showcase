@@ -7,8 +7,32 @@
     <groupId>de.zeiss.mongodb-ws</groupId>
     <artifactId>geo-service-testdata-generation</artifactId>
     <version>1.0-SNAPSHOT</version>
-
     <packaging>jar</packaging>
+    <description>Test data generation for ZDI Geo Service</description>
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+            <comments>MIT License — Copyright (c) 2025 ZEISS Digital Innovation</comments>
+        </license>
+    </licenses>
+    <organization>
+        <name>ZEISS Digital Innovation</name>
+        <url>https://www.zeiss.com/digital-innovation</url>
+    </organization>
+    <developers>
+        <developer>
+            <id>andpost</id>
+            <name>Andreas Post</name>
+            <url>https://github.com/andpost</url>
+        </developer>
+        <developer>
+            <id>igr789</id>
+            <name>Igor Linkov</name>
+            <url>https://github.com/igr789</url>
+        </developer>
+    </developers>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
@@ -87,5 +111,15 @@
             </plugin>
         </plugins>
     </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>3.9.0</version>
+            </plugin>
+        </plugins>
+    </reporting>
 
 </project>
