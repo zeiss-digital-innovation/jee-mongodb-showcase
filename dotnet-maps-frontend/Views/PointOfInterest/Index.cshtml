@@ -738,9 +738,19 @@
             function formatDetails(details) {
                 if (!details) return '';
                 
+                let formatted = details;
+
+                // Format URLs/web links with icon
+                // Matches http://, https://, www. and ftp:// links
+                const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|ftp:\/\/[^\s]+)/gi;
+                formatted = formatted.replace(urlRegex, (match) => {
+                    const displayText = match.length > 40 ? match.substring(0, 37) + '...' : match;
+                    return `\n<a href="${match}" target="_blank" rel="noopener noreferrer"><i class='bi bi-link-45deg'></i>${displayText}</a>\n`
+                });
+
                 // Format phone numbers with icon (matching Razor FormatDetails logic)
                 const phoneRegex = /\+\d[\d\s\-\(\)/]*,?/g;
-                let formatted = details.replace(phoneRegex, (match) => {
+                formatted = formatted.replace(phoneRegex, (match) => {
                     return `\n<i class='bi bi-telephone'></i> ${match}\n`;
                 });
                 
