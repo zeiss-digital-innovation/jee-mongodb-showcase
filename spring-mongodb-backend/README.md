@@ -15,17 +15,36 @@ interest). The data is stored in a MongoDB database.
 ## Table of Contents
 
 - [Quickstart](#quickstart)
+    - [Using Maven](#using-maven)
+    - [Using Docker](#using-docker)
+    - [Access the running application](#access-the-running-application)
 - [Prerequisites](#prerequisites)
+    - [Java](#java)
+    - [MongoDB](#mongodb)
 - [Configuration (important properties)](#configuration-important-properties)
-- [Build](#build)
+    - [Build](#build)
+- [Build reports](#build-reports)
 - [Run](#run)
+    - [Run with embedded server](#run-with-embedded-server)
+    - [Run without embedded server](#run-without-embedded-server)
+    - [Development / Production configuration](#development--production-configuration)
 - [Testing](#testing)
 - [Docker](#docker)
+    - [Build the Docker image](#build-the-docker-image)
+    - [Docker network](#docker-network)
+    - [Run the Docker container](#run-the-docker-container)
 - [Troubleshooting](#troubleshooting)
 - [REST API Endpoints](#rest-api-endpoints)
+    - [Find Points of Interest](#find-points-of-interest)
+    - [CRUD Operations for Points of Interest](#crud-operations-for-points-of-interest)
+    - [Overview on available operations and expected response codes](#overview-on-available-operations-and-expected-response-codes)
+        - [PUT Semantics](#put-semantics)
 - [Swagger API Endpoint](#swagger-api-endpoint)
 - [License](#license)
+    - [Third‑party software and licenses](#third%E2%80%91party-software-and-licenses)
 - [Further Information](#further-information)
+    - [Reference Documentation](#reference-documentation)
+    - [Guides](#guides)
 
 ## Quickstart
 
@@ -290,7 +309,7 @@ This backend exposes the following main REST endpoints:
 | /zdi-geo-service/api/poi/{id} |    PUT | 201 (created) / 204 (updated) |   400 (validation)   |
 | /zdi-geo-service/api/poi/{id} | DELETE |              204              |         404          |
 
-**PUT semantics**
+#### PUT Semantics
 
 For PUT this project follows the upsert semantics. This means a `PUT /zdi-geo-service/api/poi/{id}` will create the
 resource if it does not exist (returning
