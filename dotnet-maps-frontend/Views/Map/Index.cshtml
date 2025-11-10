@@ -14,9 +14,30 @@
     </div>
 </div>
 
-<div class="container map-container">
+
+<div class="map-container" id="dynamicMapContainer">
     <div id="map" class="jumbotron map_large"></div>
 </div>
+
+<script>
+    function resizeMapContainer() {
+        var navbar = document.querySelector('.navbar'); 
+        var topControls = document.querySelector('.top-controls');
+        var mapContainer = document.getElementById('dynamicMapContainer');
+
+        if(topControls && mapContainer) {
+            var navbarHeight = navbar ? navbar.offsetHeight : 56;
+            var topControlsHeight = topControls.offsetHeight;
+            var totalTopHeight = navbarHeight + topControlsHeight;
+            var newHeight = window.innerHeight - totalTopHeight;
+            
+            mapContainer.style.height = newHeight + 'px';
+            mapContainer.style.top = totalTopHeight + 'px';
+        }
+    }
+    window.addEventListener('resize', resizeMapContainer);
+    window.addEventListener('DOMContentLoaded', resizeMapContainer);
+</script>
 
 <!-- POI Creation Modal -->
 <div class="modal fade modal-sm" id="createPoiModal" tabindex="-1" aria-labelledby="createPoiModalLabel" aria-hidden="true">
@@ -82,6 +103,15 @@
     </div>
 </div>
 
+<div id="markerContextMenu" class="dropdown-menu" style="display: none; position: absolute; z-index: 2000;">
+    <a class="dropdown-item text-primary" href="#" data-action="edit">
+        <i class="bi bi-pencil"></i> Edit
+    </a>
+    <a class="dropdown-item text-danger" href="#" data-action="delete">
+        <i class="bi bi-trash"></i> Delete
+    </a>
+</div>
+
 @section Scripts {
     <script src="~/js/category-manager.js"></script>
     <script>
@@ -124,6 +154,8 @@
         // Flag to prevent moveend from overwriting manual input changes
         let programmaticMapMove = false;
         
+        // ============ Document ready ===============
+
         // Initialize the map when the page loads
         $(document).ready(async function () {
             // Initialize CategoryManager
@@ -211,6 +243,8 @@
             });
         });
         
+        // ============ Helper functions =============
+
         function loadSettingsFromStorage() {
             // Load values from localStorage or use defaults
             const lat = localStorage.getItem(STORAGE_KEYS.latitude);
@@ -259,6 +293,35 @@
             }
         }
         
+        // ============ Setup Marker context menu ============
+        // closing context menu by clicking outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('#markerContextMenu').length){
+                $('#markerContextMenu').hide();
+            }
+        });
+
+        // closing context menu by ESC key
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape') {
+                $('#markerContextMenu').hide();
+            }
+        });
+
+        // map marker context menu action handler
+        $('#markerContextMenu a').on('click', function(e) {
+            e.preventDefault();
+            const action = $(this).data('action');
+            const poi = $('#markerContextMenu').data('poi');
+            if (action === 'delete') {
+                deletePoiFromMap(poi);
+            } else if (action === 'edit') {
+                editPoiOnTheMap(poi);
+            }
+            $('#markerContextMenu').hide();
+        });
+
+
         function setupControlHandlers() {
             // Update radius display when slider changes and save to storage
             $('#radiusInput').on('input', function () {
@@ -353,21 +416,22 @@
             // Add markers layer to map
             markersLayer.addTo(map);
             
-            // Disable default browser context menu on map
-            map.getContainer().addEventListener('contextmenu', function (e) {
-                e.preventDefault();
-            });
-            
             // Add right-click event listener for POI creation
             map.on('contextmenu', function (e) {
+                // a fallback for right mouseclick on a POI, it should not be the same reaction as on the map
+                if(e.originalEvent.target.classList.contains('leaflet-marker-icon')) return;
+                
+                e.originalEvent.preventDefault();
+                
+                // Reset form FIRST (before setting coordinates)
+                resetPoiForm();
+                
+                // THEN set coordinates (after reset)
                 selectedLatitude = e.latlng.lat;
                 selectedLongitude = e.latlng.lng;
                 
                 // Update coordinate display
                 $('#selectedCoordinates').text(`${selectedLatitude.toFixed(6)}, ${selectedLongitude.toFixed(6)}`);
-                
-                // Reset form
-                resetPoiForm();
                 
                 // Show modal
                 const modal = new bootstrap.Modal(document.getElementById('createPoiModal'));
@@ -522,11 +586,28 @@
             $('#poiName').removeClass('is-invalid');
             $('#poiDetails').removeClass('is-invalid');
             $('#savePoiBtn').prop('disabled', true);
+
+            // reset mode and ID
+            $('#savePoiBtn')
+                .removeData('mode')
+                .removeData('poiId')
+                .text('Save');
+
+        // reset modal title
+        $('#createPoiModalLabel').text('Create New Point of Interest');
+
+        // reset coordinates
+        selectedLatitude = null;
+        selectedLongitude = null;
+
         }
         
         function savePoi() {
             if (!validatePoiForm()) return;
             
+            const mode = $('#savePoiBtn').data('mode') || 'create';
+            const poiId = $('#savePoiBtn').data('poiId');
+
             const category = $('#poiCategory').val().trim();
             const name = $('#poiName').val().trim();
             const details = $('#poiDetails').val().trim();
@@ -534,76 +615,46 @@
             // Basic XSS prevention - encode HTML entities
             const sanitizedName = $('<div>').text(name).html();
             const sanitizedDetails = $('<div>').text(details).html();
-            
+
             // Only send required fields - do NOT send href or address
-            const newPoi = {
+            const poiData = {
                 category: category,
                 name: sanitizedName,
                 details: sanitizedDetails,
                 location: {
-                    type: 'Point',
+                    type: "Point",
                     coordinates: [selectedLongitude, selectedLatitude]
                 }
             };
             
+            // URL and method depending from mode 
+            const url = mode === 'edit' ? `/poi/${poiId}` : '/api/poi';
+            const method = mode === 'edit' ? 'PUT' : 'POST';
+
             // Disable save button to prevent double submission
             $('#savePoiBtn').prop('disabled', true).text('Saving...');
             
             $.ajax({
-                url: '/api/pointsofinterest',
-                type: 'POST',
+                url: url,
+                method: method,
                 contentType: 'application/json',
-                data: JSON.stringify(newPoi),
+                data: JSON.stringify(poiData),
                 success: function (response) {
-                    console.log('POI created successfully:', response);
+                    console.log(`POI ${mode === 'edit' ? 'updated' : 'created'} successfully: `, response);
                     console.log('New POI location:', selectedLatitude, selectedLongitude);
                     
                     // Hide modal
-                    bootstrap.Modal.getInstance(document.getElementById('createPoiModal')).hide();
+                    bootstrap.Modal.getInstance($('#createPoiModal')[0]).hide();
                     
-                    // Add the new POI immediately to the map
-                    // Backend returns empty response, so we use the data we sent
-                    const coords = [selectedLongitude, selectedLatitude];
-                    const lat = coords[1];
-                    const lng = coords[0];
-                    
-                    console.log('Adding marker at:', lat, lng);
-                    
-                    // Create POI object for display
-                    const displayPoi = {
-                        category: $('#poiCategory').val().trim(),
-                        name: $('#poiName').val().trim(),
-                        details: $('#poiDetails').val().trim(),
-                        location: {
-                            type: 'Point',
-                            coordinates: coords
-                        }
-                    };
-                    
-                    L.marker([lat, lng]).addTo(map)
-                        .bindPopup(getMarkerPopupFor(displayPoi))
-                        .openPopup(); // Open popup to show the newly created POI
-                    
-                    console.log('Marker added successfully');
-                    
-                    // Also refresh the map data in background to sync with server
-                    const center = map.getCenter();
-                    const radius = getRadiusForZoom(map.getZoom());
-                    loadPointsOfInterest(center.lat, center.lng, radius);
-                    
-                    // Show success message (optional)
-                    // Could add a toast notification here
+                    // Reload POIs on the map
+                    reloadCurrentPois();
+
+                    // Reset the form
+                    resetPoiForm();
                 },
-                error: function (xhr, status, error) {
-                    console.error('Error creating POI:', error);
-                    console.error('Status:', status);
-                    console.error('Response:', xhr.responseText);
-                    
-                    alert('Failed to create POI. Please try again.');
-                },
-                complete: function () {
-                    // Re-enable save button and reset text
-                    $('#savePoiBtn').prop('disabled', false).text('Save (Enter)');
+                error: function(xhr) {
+                    alert('Error: ' + xhr.responseText);
+                    $('#savePoiBtn').prop('disabled', false).text('Save');
                 }
             });
         }
@@ -653,7 +704,7 @@
         
         function showPointsOnMap(points) {
             pointsOfInterest = points;
-            
+
             if (!map) {
                 console.error('Map is not initialized');
                 return;
@@ -670,8 +721,38 @@
                 
                 const marker = L.marker([lat, lng]);
                 marker.bindPopup(getMarkerPopupFor(poi));
+
                 markersLayer.addLayer(marker);
-            });
+            }); 
+            // Register contextmenu listeners after markers are fully rendered
+            setTimeout(function() {
+                markersLayer.eachLayer(function(marker) {
+                    const icon = marker.getElement();
+                    
+                    if (icon) {
+                        // Find POI by coordinates
+                        const markerLatLng = marker.getLatLng();
+                        const poi = pointsOfInterest.find(p => 
+                            Math.abs(p.location.coordinates[1] - markerLatLng.lat) < 0.000001 &&
+                            Math.abs(p.location.coordinates[0] - markerLatLng.lng) < 0.000001
+                        );
+                        
+                        if (poi) {
+                            icon.addEventListener('contextmenu', function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                
+                                const leafletEvent = {
+                                    originalEvent: e,
+                                    latlng: markerLatLng
+                                };
+                                
+                                showMarkerContextMenu(leafletEvent, poi);
+                            });
+                        } 
+                    } 
+                });
+            }, 1000); // 1 Sekunde warten bis Rendering abgeschlossen
             
             // Apply current filters if they exist
             const nameFilter = $('#poiNameFilterInput').val() || '';
@@ -723,7 +804,64 @@
             }
             return 1000;
         }
-        
 
+
+
+
+        // Show POI ontext menu
+        function showMarkerContextMenu(e, poi) {
+            $('#markerContextMenu')
+            .css({ 
+                    left: e.originalEvent.pageX + 'px', 
+                    top: e.originalEvent.pageY + 'px'
+            })
+            .data('poi', poi)
+            .show();
+        }
+
+        function deletePoiFromMap(poi) {
+            if(!confirm(`Are you sure to delete POI "${poi.name}"?`)) return;
+
+            // Extract ID from href (format: "/api/poi/{id}")
+            const poiId = poi.href.split('/').pop();
+
+            $.ajax({
+                url: poi.href,
+                method: 'DELETE',
+                success: function() {
+                    console.log('POI deleted successfully');
+                    reloadCurrentPois();
+                },
+                error: function(xhr) {
+                    alert('Error by delete POI: ' + xhr.responseText);
+                }
+            });
+        }
+
+        // Edit POI from the map
+        function editPoiOnTheMap(poi) {
+            const poiId = poi.href.split('/').pop();
+            // Change modal header
+            $('#createPoiModalLabel').text('Edit Point of Interest');
+
+            //Open the form with POI-data
+            $('#poiCategory').val(poi.category.toLowerCase());
+            $('#poiName').val(poi.name);
+            $('#poiDetails').val(poi.details);
+
+            // Set coordinates from GeoJSON format
+            selectedLatitude = poi.location.coordinates[1];  // latitude is at index 1
+            selectedLongitude = poi.location.coordinates[0]; // longitude is at index 0
+
+            // save mode and ID
+            $('#savePoiBtn').data('mode', 'edit').data('poiId', poiId);
+
+            // Fire validatation
+            validatePoiForm();
+
+            // Open modal
+            const modal = new bootstrap.Modal($('#createPoiModal')[0]);
+            modal.show();
+        }
     </script>
 }

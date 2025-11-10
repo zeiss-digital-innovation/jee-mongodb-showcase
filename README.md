@@ -96,9 +96,8 @@ This demo offers multiple technology combinations:
 
 **Frontend Options:**
 - **Angular** (`angular-maps-frontend/`) - SPA with TypeScript
-- **ASP.NET Core MVC** (`dotnet-maps-frontend/`) - Server-side rendering with Razor + Full CRUD operations (Create, Edit, Delete POIs)
-
-**Backend Options:**  
+- **ASP.NET Core MVC** (`dotnet-maps-frontend/`) - Server-side rendering with Razor
+ **Backend Options:**  
 - **JEE/Jakarta** (`jee-mongodb-backend/`) - Traditional enterprise Java
 - **.NET Core** (`dotnet-mongodb-backend/`) - Modern C# async API
 - **Java Spring** (`spring-mongodb-backend`) - Spring Boot technology

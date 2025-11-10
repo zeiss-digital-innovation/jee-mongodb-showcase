@@ -76,7 +76,7 @@ namespace DotNetMapsFrontend.Services
                         categories.Count, string.Join(", ", categories));
                 }
 
-                // For compatibility-purposes, to correct work with JEE-Backend, toget full information to POIs.
+                // For compatibility-purposes, to correct work with JEE-Backend, to get full information to POIs.
                 // This parameter will be ignored by dotnet frontend
                 urlBuilder.Append("&expand=details");
                 
@@ -274,6 +274,26 @@ namespace DotNetMapsFrontend.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var jsonString = await response.Content.ReadAsStringAsync();
+                    
+                    // Returning 204 No Content (update) or 201 Created (new POI) without body
+                    if (string.IsNullOrWhiteSpace(jsonString))
+                    {
+                        // For 201 Created, set Href from Location header if available
+                        if (response.StatusCode == System.Net.HttpStatusCode.Created && 
+                            response.Headers.Location != null)
+                        {
+                            pointOfInterest.Href = response.Headers.Location.ToString();
+                            _logger.LogInformation("Successfully created POI via PUT with ID: {Id} (Location: {Location})", 
+                                id, response.Headers.Location.ToString());
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Successfully updated POI with ID: {Id} (empty response body)", id);
+                        }
+                        return pointOfInterest;
+                    }
+                    
+                    // If backend returns a body, deserialize it (for .NET backend compatibility)
                     var options = new JsonSerializerOptions
                     {
                         PropertyNameCaseInsensitive = true
@@ -288,7 +308,7 @@ namespace DotNetMapsFrontend.Services
                     }
                     
                     _logger.LogInformation("Successfully updated POI with ID: {Id}", id);
-                    return updatedPoi;
+                    return updatedPoi ?? pointOfInterest;
                 }
                 
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -435,23 +455,23 @@ namespace DotNetMapsFrontend.Services
                 },
                 new PointOfInterest
                 {
-                    Category = "castle",
-                    Details = "Kölner Dom\nKöln, Deutschland\nDomkloster 4",
+                    Category = "restaurant",
+                    Details = "Hofbräuhaus\nMünchen, Deutschland\nPlatzl 9",
                     Href = "http://localhost/poi/4",
                     Location = new Location
                     {
-                        Coordinates = new double[] { 6.9583, 50.9413 },
+                        Coordinates = new double[] { 11.5797, 48.1374 },
                         Type = "Point"
                     }
                 },
                 new PointOfInterest
                 {
-                    Category = "parking",
-                    Details = "Englischer Garten\nMünchen, Deutschland\nSchönfeldstraße",
+                    Category = "hotel",
+                    Details = "Hotel Adlon Kempinski\nBerlin, Deutschland\nUnter den Linden 77",
                     Href = "http://localhost/poi/5",
                     Location = new Location
                     {
-                        Coordinates = new double[] { 11.5896, 48.1642 },
+                        Coordinates = new double[] { 13.3809, 52.5159 },
                         Type = "Point"
                     }
                 }
