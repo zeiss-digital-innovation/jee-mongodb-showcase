@@ -670,12 +670,12 @@
                             <tr>
                                 <th scope="col" style="cursor: pointer; user-select: none;" onclick="sortTable('name')">
                                     <i class="bi bi-tag me-2"></i>Name
-                                    ${currentSortColumn === 'name' ? (sortAscending ? ' ▲' : ' ▼') : ''}
+                                    <i class="bi ${currentSortColumn === 'name' ? (sortAscending ? 'bi-sort-up' : 'bi-sort-down') : 'bi-arrow-down-up'} ms-1" style="opacity: ${currentSortColumn === 'name' ? '1' : '0.8'};"</i>
                                 </th>
-                                <th scope="col"><i class="bi bi-folder me-2"></i>Category</th>
-                                <th scope="col" style="cursor: pointer; user-select: none;" onclick="sortTable('details')">
+                                <th scope="col" class="category-cell-header"><i class="bi bi-folder me-2"></i>Category</th>
+                                <th scope="col" class="details-cell-header" style="cursor: pointer; user-select: none;" onclick="sortTable('details')">
                                     <i class="bi bi-info-circle me-2"></i>Details
-                                    ${currentSortColumn === 'details' ? (sortAscending ? ' ▲' : ' ▼') : ''}
+                                    <i class="bi ${currentSortColumn === 'details' ? (sortAscending ? 'bi-sort-up' : 'bi-sort-down') : 'bi-arrow-down-up'} ms-1" style="opacity: ${currentSortColumn === 'details' ? '1' : '0.8'};"</i>
                                 </th>
                                 <th scope="col"><i class="bi bi-geo-alt me-2"></i>Location</th>
                                 <th scope="col" style="width: 180px;"><i class="bi bi-gear me-2"></i>Action</th>
@@ -701,7 +701,7 @@
                     tableHtml += `
                         <tr>
                             <td style="width: 200px;"><strong>${name}</strong></td>
-                            <td class="category-cell" style="width: 200px;">${category} <i class="bi ${icon}"></i></td>
+                            <td class="category-cell" style="width: 200px;"><i class="bi ${icon}"></i>${category}</td>
                             <td class="details-cell">${details}</td>
                             <td class="location-cell">${locationHtml}</td>
                             <td class="action-buttons">

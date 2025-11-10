@@ -59,16 +59,25 @@ thead.table-primary td {
     color: var(--color-white) !important;
 }
 
+.category-cell-header,
+.details-cell-header {
+    text-align: center;
+}
+
 
 .category-cell {
+    text-align: center;
     color: gray !important;
     font-family: "Consolas", "Courier New", monospace;
     font-size: 0.7rem;
+    line-height: 1.5;
 }
 
 .category-cell i {
     color: black;
     font-size: 1rem;
+    display: block;
+    margin-bottom: 0.25rem;
 }
 
 .details-cell {
