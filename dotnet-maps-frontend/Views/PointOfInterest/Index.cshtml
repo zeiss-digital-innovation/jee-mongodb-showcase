@@ -670,15 +670,15 @@
                             <tr>
                                 <th scope="col" style="cursor: pointer; user-select: none;" onclick="sortTable('name')">
                                     <i class="bi bi-tag me-2"></i>Name
-                                    <i class="bi ${currentSortColumn === 'name' ? (sortAscending ? 'bi-sort-up' : 'bi-sort-down') : 'bi-arrow-down-up'} ms-1" style="opacity: ${currentSortColumn === 'name' ? '1' : '0.8'};"</i>
+                                    <i class="bi ${currentSortColumn === 'name' ? (sortAscending ? 'bi-sort-up' : 'bi-sort-down') : 'bi-arrow-down-up'} ms-1" style="opacity: ${currentSortColumn === 'name' ? '1' : '0.8'};"></i>
                                 </th>
                                 <th scope="col" class="category-cell-header" style="cursor: pointer; user-select: none;" onclick="sortTable('category')">
                                     <i class="bi bi-folder me-2"></i>Category
-                                    <i class="bi ${currentSortColumn === 'category' ? (sortAscending ? 'bi-sort-up' : 'bi-sort-down') : 'bi-arrow-down-up'} ms-1" style="opacity: ${currentSortColumn === 'category' ? '1' : '0.8'};"</i>
+                                    <i class="bi ${currentSortColumn === 'category' ? (sortAscending ? 'bi-sort-up' : 'bi-sort-down') : 'bi-arrow-down-up'} ms-1" style="opacity: ${currentSortColumn === 'category' ? '1' : '0.8'};"></i>
                                 </th>
                                 <th scope="col" class="details-cell-header" style="cursor: pointer; user-select: none;" onclick="sortTable('details')">
                                     <i class="bi bi-info-circle me-2"></i>Details
-                                    <i class="bi ${currentSortColumn === 'details' ? (sortAscending ? 'bi-sort-up' : 'bi-sort-down') : 'bi-arrow-down-up'} ms-1" style="opacity: ${currentSortColumn === 'details' ? '1' : '0.8'};"</i>
+                                    <i class="bi ${currentSortColumn === 'details' ? (sortAscending ? 'bi-sort-up' : 'bi-sort-down') : 'bi-arrow-down-up'} ms-1" style="opacity: ${currentSortColumn === 'details' ? '1' : '0.8'};"></i>
                                 </th>
                                 <th scope="col"><i class="bi bi-geo-alt me-2"></i>Location</th>
                                 <th scope="col" style="width: 180px;"><i class="bi bi-gear me-2"></i>Action</th>
@@ -772,7 +772,7 @@
                 currentTablePois.sort((a, b) => {
                     // Get values from specified column
                     let aVal, bVal;
-                    if (column === 'name'){
+                    if (column === 'name') {
                         aVal = a.name;
                         bVal = b.name;
                     } else if (column === 'category') {
@@ -783,19 +783,79 @@
                         bVal = b.details;
                     }
 
+                    // Decode html-entities for sorting
+                    const decodeHtml = (html) => {
+                        const txt = document.createElement('textarea');
+                        txt.innerHTML = html;
+                        return txt.value;
+                    }
+                    
                     // Handle null/undefined values - convert to empty string
-                    aVal = (aVal || '').toString();
-                    bVal = (bVal || '').toString();
+                    aVal = decodeHtml((aVal || '').toString());
+                    bVal = decodeHtml((bVal || '').toString());
 
-                    // Use localeCompare for proper German sorting (umlauts)
-                    const comparison = aVal.localeCompare(bVal, 'de-DE', {sensitivity: 'base', usage: 'sort' });
+
+                    // Custom German sort: A → Ä → ä → B → b → O → Ö → ö
+                    const charToSortValue = (char) => {
+                        const lower = char.toLowerCase();
+                        const isUpper = char !== lower;
+
+                        // Get base character code
+                        let base = lower.charCodeAt(0);
+                        let offset = 0;
+
+                        // Handle umlauts: map to base letter with offset
+                        if (lower === 'ä') {
+                            base = 'a'.charCodeAt(0);
+                            offset = isUpper ? 0.1 : 0.2; // Ä after A, ä after Ä
+                        }
+                        else if (lower === 'ö') {
+                            base = 'o'.charCodeAt(0);
+                            offset = isUpper ? 0.1 : 0.2;
+                        }
+                        else if (lower === 'ü') {
+                            base = 'u'.charCodeAt(0);
+                            offset = isUpper ? 0.1 : 0.2;
+                        }
+                        else if (char === 'ß') {
+                            base = 's'.charCodeAt(0);
+                            offset = 0.2;
+                        }
+                        else if (isUpper) {
+                            offset = 0.0; // Uppercase comes first
+                        }
+                        else {
+                            offset = 0.3; // Lowercase comes after all umlauts
+                        }
+                        return base + offset;
+                    };
+
+                    // Compare character by character
+                    let comparison = 0;
+                    const minLen = Math.min(aVal.length, bVal.length);
+
+                    for (let i = 0; i < minLen; i++) {
+                        const aChar = charToSortValue(aVal[i]);
+                        const bChar = charToSortValue(bVal[i]);
+
+                        if (aChar !== bChar) {
+                            comparison = aChar - bChar;
+                            break;
+                        }
+                    }
+
+                    // If all compared characters are equal, shorter string comes first
+                    if (comparison === 0) {
+                        comparison = aVal.length - bVal.length;
+                    }
+
                     return sortAscending ? comparison : -comparison;
                 });
                 // Rerender the table with sorted data
                 updatePoiTable(currentTablePois);
             }
         });
-        
+
         // Store complete POI data for editing (needed for PUT request)
         let currentPoiData = null;
         
