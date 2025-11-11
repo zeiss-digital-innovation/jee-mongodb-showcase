@@ -81,7 +81,9 @@ public class PointOfInterestResourceController {
             @APIResponse(responseCode = "201", description = "Point of interest created"),
             @APIResponse(responseCode = "500", description = "Internal server error")})
     public Response createPOI(PointOfInterest poi) {
-
+        if (poi == null) {
+            return Response.status(Status.BAD_REQUEST).build();
+        }
         URI location = null;
 
         PointOfInterest resultPoi = geoDataService.createPOI(poi);
