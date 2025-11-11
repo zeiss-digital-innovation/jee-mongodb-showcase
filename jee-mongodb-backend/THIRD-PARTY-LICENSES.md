@@ -18,7 +18,8 @@ The project bundles or uses the following notable third‑party components; this
 |                     de.grundid.opendatalab:geojson-jackson:1.14 | Apache License 2.0 | https://www.apache.org/licenses/LICENSE-2.0                                               |
 |                           org.mongodb:mongodb-driver-sync:5.5.0 | Apache License 2.0 | https://www.apache.org/licenses/LICENSE-2.0                                               |
 |                          dev.morphia.morphia:morphia-core:2.5.0 | Apache License 2.0 | https://www.apache.org/licenses/LICENSE-2.0                                               |
-|                      org.junit.jupiter:junit-jupiter-api:5.13.4 |      EPL 2.0       | https://www.eclipse.org/legal/epl-2.0/                                                    |
+|                       org.junit.jupiter:junit-jupiter-api:6.0.1 |      EPL 2.0       | https://www.eclipse.org/legal/epl-2.0/                                                    |
+|                    org.junit.jupiter:junit-jupiter-params:6.0.1 |      EPL 2.0       | https://www.eclipse.org/legal/epl-2.0/                                                    |
 |                                  org.mockito:mockito-core:5.5.0 |        MIT         | https://opensource.org/licenses/MIT                                                       |
 |                         org.mockito:mockito-junit-jupiter:5.5.0 |        MIT         | https://opensource.org/licenses/MIT                                                       |
 |                              io.rest-assured:rest-assured:5.3.2 | Apache License 2.0 | https://www.apache.org/licenses/LICENSE-2.0                                               |
