@@ -703,7 +703,7 @@
                     
                     tableHtml += `
                         <tr>
-                            <td style="width: 200px;"><strong>${name}</strong></td>
+                            <td style="width: 200px;"><span class="lead" style="font-weight: 350;">${name}</span></td>
                             <td class="category-cell" style="width: 200px;"><i class="bi ${icon}"></i>${category}</td>
                             <td class="details-cell">${details}</td>
                             <td class="location-cell">${locationHtml}</td>
@@ -784,12 +784,12 @@
                     }
 
                     // Handle null/undefined values - convert to empty string
-                    aVal = (aVal || '').toString().toLowerCase();
-                    bVal = (bVal || '').toString().toLowerCase();
+                    aVal = (aVal || '').toString();
+                    bVal = (bVal || '').toString();
 
-                    if (aVal < bVal) return sortAscending ? -1 : 1;
-                    if (aVal > bVal) return sortAscending ? 1 : -1;
-                    return 0;
+                    // Use localeCompare for proper German sorting (umlauts)
+                    const comparison = aVal.localeCompare(bVal, 'de-DE', {sensitivity: 'base', usage: 'sort' });
+                    return sortAscending ? comparison : -comparison;
                 });
                 // Rerender the table with sorted data
                 updatePoiTable(currentTablePois);
