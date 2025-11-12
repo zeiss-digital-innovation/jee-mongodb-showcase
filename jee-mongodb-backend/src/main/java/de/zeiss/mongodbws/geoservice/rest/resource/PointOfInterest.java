@@ -8,6 +8,8 @@ package de.zeiss.mongodbws.geoservice.rest.resource;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import de.zeiss.mongodbws.geoservice.rest.resource.validation.ValidCoordinates;
+import jakarta.validation.constraints.NotNull;
 import org.geojson.Point;
 
 /**
@@ -22,10 +24,13 @@ public class PointOfInterest {
     @JsonIgnore
     private String id;
 
+    @ValidCoordinates
     private Point location;
 
+    @NotNull(message = "Category must not be null")
     private String category;
 
+    @NotNull(message = "Name must not be null")
     private String name;
 
     private String details;
