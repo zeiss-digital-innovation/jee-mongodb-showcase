@@ -109,7 +109,7 @@ public class PointOfInterestResourceController {
             @APIResponse(responseCode = "201", description = "New Point of interest created if not existing for given ID"),
             @APIResponse(responseCode = "204", description = "Point of interest updated"),
             @APIResponse(responseCode = "400", description = "Invalid POI resource", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ConstraintViolationInfo.class)))})
-    public Response updatePOI(@PathParam("id") String id, PointOfInterest poi) {
+    public Response updatePOI(@PathParam("id") String id, @Valid PointOfInterest poi) {
 
         if (poi == null) {
             return Response.status(Status.BAD_REQUEST).build();

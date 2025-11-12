@@ -82,7 +82,7 @@ public class PointOfInterestControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    @ParameterizedTest(name = "Valid parameters #{index}: lon={0}, lat={1}, radius={2}, description={3}")
+    @ParameterizedTest(name = "Valid parameters #{index}: lat={0}, lon={1}, radius={2}, description={3}")
     @MethodSource("validFindParametersProvider")
     public void testFindPointsOfInterest_NearLocation_ShouldReturnOk(double lat, double lon, int radius, String description) throws Exception {
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/poi")
@@ -94,7 +94,7 @@ public class PointOfInterestControllerTest {
                 .andExpect(status().isOk());
     }
 
-    @ParameterizedTest(name = "Invalid parameters #{index}: lon={0}, lat={1}, radius={2}, description={3}")
+    @ParameterizedTest(name = "Invalid parameters #{index}: lat={0}, lon={1}, radius={2}, description={3}")
     @MethodSource("invalidFindParametersProvider")
     public void testFindPointsOfInterest_InvalidParameters_ShouldReturnBadRequest(double lat, double lon, int radius, String description) throws Exception {
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/poi")
