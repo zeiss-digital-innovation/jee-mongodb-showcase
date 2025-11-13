@@ -2,9 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using DotNetMongoDbBackend.Controllers;
@@ -12,6 +10,8 @@ using DotNetMongoDbBackend.Services;
 using DotNetMongoDbBackend.Models.Entities;
 using DotNetMongoDbBackend.Models.DTOs;
 using System;
+
+#nullable enable
 
 namespace DotNetMongoDbBackend.Tests.Tests;
 
@@ -41,8 +41,8 @@ public class PointOfInterestControllerTests
         // Arrange
         var testPois = new List<PointOfInterestEntity>
         {
-            new PointOfInterestEntity { Name = "Test POI 1", Category = "restaurant" },
-            new PointOfInterestEntity { Name = "Test POI 2", Category = "museum" }
+            new() { Name = "Test POI 1", Category = "restaurant" },
+            new() { Name = "Test POI 2", Category = "museum" }
         };
 
         _mockService.Setup(s => s.GetAllPoisAsync())
@@ -65,7 +65,7 @@ public class PointOfInterestControllerTests
         var category = "restaurant";
         var filteredPois = new List<PointOfInterestEntity>
         {
-            new PointOfInterestEntity { Name = "Restaurant POI", Category = "restaurant" }
+            new() { Name = "Restaurant POI", Category = "restaurant" }
         };
 
         _mockService.Setup(s => s.GetPoisByCategoryAsync(category))
@@ -89,7 +89,7 @@ public class PointOfInterestControllerTests
         var searchTerm = "test";
         var searchResults = new List<PointOfInterestEntity>
         {
-            new PointOfInterestEntity { Name = "Test Restaurant", Category = "restaurant" }
+            new() { Name = "Test Restaurant", Category = "restaurant" }
         };
 
         _mockService.Setup(s => s.SearchPoisAsync(searchTerm, null))
@@ -114,8 +114,7 @@ public class PointOfInterestControllerTests
         var expectedRadiusKm = radius / 1000.0; // controller converts meters to km
         var nearbyPois = new List<PointOfInterestEntity>
         {
-            new PointOfInterestEntity
-            {
+            new() {
                 Name = "Nearby POI",
                 Location = new LocationEntity { Coordinates = new double[] { 8.41, 49.01 } }
             }
@@ -164,14 +163,14 @@ public class PointOfInterestControllerTests
     public async Task GetPoiById_ShouldReturnNotFound_WhenPoiDoesNotExist()
     {
         // Arrange
-        _mockService.Setup(s => s.GetPoiByIdAsync("999")).ReturnsAsync((PointOfInterestEntity)null);
+        _mockService.Setup(s => s.GetPoiByIdAsync("999")).ReturnsAsync((PointOfInterestEntity?)null);
 
         // Act
         var result = await _controller.GetPoiById("999");
 
         // Assert - JEE-compatible: Returns 404 without body
         var actionResult = Assert.IsType<ActionResult<PointOfInterestDto>>(result);
-        var notFoundResult = Assert.IsType<NotFoundResult>(actionResult.Result);
+        Assert.IsType<NotFoundResult>(actionResult.Result);
         // NotFoundResult has no Value property (no body in response)
     }
 
@@ -244,7 +243,7 @@ public class PointOfInterestControllerTests
         Assert.Contains("123", locationHeader);
 
         // Verify it's an absolute URI (contains scheme and host)
-        Assert.True(locationHeader.StartsWith("http://") || locationHeader.StartsWith("https://") || locationHeader.StartsWith("/"),
+        Assert.True(locationHeader.StartsWith("http://") || locationHeader.StartsWith("https://") || locationHeader.StartsWith('/'),
             "Location header should be an absolute URI or absolute path");
 
         // If it's absolute, verify it contains the expected components
@@ -310,7 +309,7 @@ public class PointOfInterestControllerTests
     {
         // Arrange
         var updatePoi = new PointOfInterestDto { Name = "Updated POI", Category = "restaurant" };
-        _mockService.Setup(s => s.UpdatePoiAsync("999", It.IsAny<PointOfInterestEntity>())).ReturnsAsync((PointOfInterestEntity)null);
+        _mockService.Setup(s => s.UpdatePoiAsync("999", It.IsAny<PointOfInterestEntity>())).ReturnsAsync((PointOfInterestEntity?)null);
 
         // Act
         var result = await _controller.UpdatePoi("999", updatePoi);

@@ -17,8 +17,8 @@ public class PointOfInterestModelTests
             Id = "123",
             Name = "Test POI",
             Category = "restaurant",
-            Location = new LocationDto { Coordinates = new double[] { 8.4, 49.0 } },
-            Tags = new List<string> { "food", "outdoor" }
+            Location = new LocationDto { Coordinates = [8.4, 49.0] },
+            Tags = ["food", "outdoor"]
         };
 
         // Assert
@@ -36,7 +36,7 @@ public class PointOfInterestModelTests
         var poi = new PointOfInterestDto
         {
             Name = "Test POI",
-            Location = new LocationDto { Coordinates = new double[] { 8.4, 49.0 } }
+            Location = new LocationDto { Coordinates = [8.4, 49.0] }
         };
 
         // Act
@@ -58,9 +58,6 @@ public class PointOfInterestModelTests
             Category = "restaurant"
         };
 
-        // Act
-        var validationResults = ValidateModel(poi);
-
         // Assert
         // Since Location is a new() property, it will be automatically initialized
         // We instead check for invalid location coordinates
@@ -74,8 +71,8 @@ public class PointOfInterestModelTests
             Location = new LocationDto { Type = "Point", Coordinates = [0, 0] } // Coordinates can be 0,0 (Gulf of Guinea)
         };
         var results = ValidateModel(invalidPoi);
-        // This test shows that Location is automatically initialized
-        Assert.True(results.Count == 0 || results.Count >= 0); // Location is always present
+        // This test shows that Location is automatically initialized and validation passes
+        Assert.Empty(results); // No validation errors expected since Location is always present
     }
 
     [Fact]
