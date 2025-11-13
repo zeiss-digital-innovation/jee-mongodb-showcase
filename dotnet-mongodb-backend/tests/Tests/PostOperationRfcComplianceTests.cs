@@ -43,7 +43,7 @@ public class PostOperationRfcComplianceTests
             Location = new LocationDto
             {
                 Type = "Point",
-                Coordinates = new double[] { 13.7373, 51.0504 }
+                Coordinates = [13.7373, 51.0504]
             }
         };
 
@@ -56,7 +56,7 @@ public class PostOperationRfcComplianceTests
             Location = new LocationEntity
             {
                 Type = "Point",
-                Coordinates = new double[] { 13.7373, 51.0504 }
+                Coordinates = [13.7373, 51.0504]
             }
         };
 
@@ -97,7 +97,7 @@ public class PostOperationRfcComplianceTests
         // 5. RFC 9110 allows both absolute and relative URIs
         // Prefer absolute URI for better interoperability (matching JEE implementation)
         Assert.True(
-            locationHeader.StartsWith("http://") || locationHeader.StartsWith("https://") || locationHeader.StartsWith("/"),
+            locationHeader.StartsWith("http://") || locationHeader.StartsWith("https://") || locationHeader.StartsWith('/'),
             $"Location header should be a URI-reference per RFC 9110. Got: {locationHeader}"
         );
 
@@ -125,7 +125,7 @@ public class PostOperationRfcComplianceTests
             Location = new LocationDto
             {
                 Type = "Point",
-                Coordinates = new double[] { 8.4, 49.0 }
+                Coordinates = [8.4, 49.0]
             }
         };
 
@@ -138,7 +138,7 @@ public class PostOperationRfcComplianceTests
             Location = new LocationEntity
             {
                 Type = "Point",
-                Coordinates = new double[] { 8.4, 49.0 }
+                Coordinates = [8.4, 49.0]
             }
         };
 
@@ -178,7 +178,7 @@ public class PostOperationRfcComplianceTests
             Name = "HTTPS Test",
             Category = "test",
             Details = "Testing HTTPS",
-            Location = new LocationDto { Type = "Point", Coordinates = new double[] { 0, 0 } }
+            Location = new LocationDto { Type = "Point", Coordinates = [0, 0] }
         };
 
         var createdEntity = new PointOfInterestEntity
@@ -187,7 +187,7 @@ public class PostOperationRfcComplianceTests
             Name = "HTTPS Test",
             Category = "test",
             Details = "Testing HTTPS",
-            Location = new LocationEntity { Type = "Point", Coordinates = new double[] { 0, 0 } }
+            Location = new LocationEntity { Type = "Point", Coordinates = [0, 0] }
         };
 
         _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterestEntity>()))
@@ -268,7 +268,7 @@ public class GetDeleteOperationsRfcComplianceTests
             Id = "testid123",
             Name = "Test POI",
             Category = "restaurant",
-            Location = new LocationEntity { Type = "Point", Coordinates = new double[] { 13.7, 51.0 } }
+            Location = new LocationEntity { Type = "Point", Coordinates = [13.7, 51.0] }
         };
         _mockService.Setup(s => s.GetPoiByIdAsync("testid123")).ReturnsAsync(testEntity);
 
