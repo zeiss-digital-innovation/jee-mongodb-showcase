@@ -144,7 +144,7 @@ public class ApiIntegrationTests : IClassFixture<MongoDbTestFixture>, IDisposabl
         // Extract ID from Location header
         var locationUri = createResponse.Headers.Location.ToString();
         var parts = locationUri.Split('/');
-        var poiId = parts[parts.Length - 1];
+        var poiId = parts[^1];
         
         // GET the created POI
         var getResponse = await _client.GetAsync(createResponse.Headers.Location);
@@ -192,7 +192,7 @@ public class ApiIntegrationTests : IClassFixture<MongoDbTestFixture>, IDisposabl
         // Extract ID from Location header (e.g., /zdi-geo-service/api/poi/6916031307196fe3eeb92e2c)
         var locationUri = createResponse.Headers.Location.ToString();
         var parts = locationUri.Split('/');
-        var poiId = parts[parts.Length - 1];
+        var poiId = parts[^1];
 
         // Act - Delete POI
         var deleteResponse = await _client.DeleteAsync($"/zdi-geo-service/api/poi/{poiId}");
