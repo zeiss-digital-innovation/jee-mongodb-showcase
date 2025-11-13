@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 using DotNetMongoDbBackend.Services;
-using DotNetMongoDbBackend.Models;
+using DotNetMongoDbBackend.Models.Entities;
 
 namespace DotNetMongoDbBackend.Tests.Tests;
 
@@ -18,25 +18,25 @@ public class PointOfInterestServiceIntegrationTests
 
         // Setup mock responses for all interface methods
         mockService.Setup(s => s.GetAllPoisAsync())
-                   .ReturnsAsync(new List<PointOfInterest>());
+                   .ReturnsAsync(new List<PointOfInterestEntity>());
 
         mockService.Setup(s => s.GetPoiByIdAsync(It.IsAny<string>()))
-                   .ReturnsAsync((PointOfInterest)null);
+                   .ReturnsAsync((PointOfInterestEntity)null);
 
         mockService.Setup(s => s.GetPoisByCategoryAsync(It.IsAny<string>()))
-                   .ReturnsAsync(new List<PointOfInterest>());
+                   .ReturnsAsync(new List<PointOfInterestEntity>());
 
         mockService.Setup(s => s.SearchPoisAsync(It.IsAny<string>(), It.IsAny<int?>()))
-                   .ReturnsAsync(new List<PointOfInterest>());
+                   .ReturnsAsync(new List<PointOfInterestEntity>());
 
         mockService.Setup(s => s.GetNearbyPoisAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<double>()))
-                   .ReturnsAsync(new List<PointOfInterest>());
+                   .ReturnsAsync(new List<PointOfInterestEntity>());
 
-        mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterest>()))
-                   .ReturnsAsync(new PointOfInterest());
+        mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterestEntity>()))
+                   .ReturnsAsync(new PointOfInterestEntity());
 
-        mockService.Setup(s => s.UpdatePoiAsync(It.IsAny<string>(), It.IsAny<PointOfInterest>()))
-                   .ReturnsAsync((PointOfInterest)null);
+        mockService.Setup(s => s.UpdatePoiAsync(It.IsAny<string>(), It.IsAny<PointOfInterestEntity>()))
+                   .ReturnsAsync((PointOfInterestEntity)null);
 
         mockService.Setup(s => s.DeletePoiAsync(It.IsAny<string>()))
                    .ReturnsAsync(false);
@@ -55,8 +55,8 @@ public class PointOfInterestServiceIntegrationTests
         await service.GetPoisByCategoryAsync("test");
         await service.SearchPoisAsync("test", 10);
         await service.GetNearbyPoisAsync(0, 0, 10);
-        await service.CreatePoiAsync(new PointOfInterest());
-        await service.UpdatePoiAsync("test", new PointOfInterest());
+        await service.CreatePoiAsync(new PointOfInterestEntity());
+        await service.UpdatePoiAsync("test", new PointOfInterestEntity());
         await service.DeletePoiAsync("test");
         await service.GetAvailableCategoriesAsync();
         await service.CountByCategoryAsync("test");

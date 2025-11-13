@@ -1,4 +1,4 @@
-using DotNetMongoDbBackend.Models;
+using DotNetMongoDbBackend.Models.DTOs;
 using Xunit;
 
 namespace DotNetMongoDbBackend.Tests.Tests;
@@ -15,7 +15,7 @@ public class LocationTests
     public void Location_DefaultConstructor_InitializesCoordinates()
     {
         // Act
-        var location = new Location();
+        var location = new LocationDto();
 
         // Assert
         Assert.NotNull(location.Coordinates);
@@ -29,7 +29,7 @@ public class LocationTests
     public void Location_ParameterizedConstructor_SetsCoordinatesCorrectly()
     {
         // Arrange & Act
-        var location = new Location(13.7373, 51.0504);
+        var location = new LocationDto { Type = "Point", Coordinates = [13.7373, 51.0504] };
 
         // Assert
         Assert.Equal("Point", location.Type);
@@ -47,7 +47,7 @@ public class LocationTests
     public void Location_SetLongitude_UpdatesCoordinates()
     {
         // Arrange
-        var location = new Location();
+        var location = new LocationDto();
 
         // Act
         location.Longitude = 8.4;
@@ -61,7 +61,7 @@ public class LocationTests
     public void Location_SetLatitude_UpdatesCoordinates()
     {
         // Arrange
-        var location = new Location();
+        var location = new LocationDto();
 
         // Act
         location.Latitude = 49.0;
@@ -75,7 +75,7 @@ public class LocationTests
     public void Location_SetCoordinates_UpdatesProperties()
     {
         // Arrange
-        var location = new Location();
+        var location = new LocationDto();
 
         // Act
         location.Coordinates = new double[] { 13.7373, 51.0504 };
@@ -93,7 +93,7 @@ public class LocationTests
     public void DistanceTo_WithNullLocation_ReturnsMaxValue()
     {
         // Arrange
-        var location = new Location(13.7373, 51.0504);
+        var location = new LocationDto { Type = "Point", Coordinates = [13.7373, 51.0504] };
 
         // Act
         var distance = location.DistanceTo(null!);
@@ -106,8 +106,8 @@ public class LocationTests
     public void DistanceTo_WithSameLocation_ReturnsZero()
     {
         // Arrange
-        var location1 = new Location(13.7373, 51.0504);
-        var location2 = new Location(13.7373, 51.0504);
+        var location1 = new LocationDto { Type = "Point", Coordinates = [13.7373, 51.0504] };
+        var location2 = new LocationDto { Type = "Point", Coordinates = [13.7373, 51.0504] };
 
         // Act
         var distance = location1.DistanceTo(location2);
@@ -120,8 +120,8 @@ public class LocationTests
     public void DistanceTo_WithKnownDistance_ReturnsCorrectValue()
     {
         // Arrange - Dresden to Berlin (approx. 165 km)
-        var dresden = new Location(13.7373, 51.0504);
-        var berlin = new Location(13.4050, 52.5200);
+        var dresden = new LocationDto { Type = "Point", Coordinates = [13.7373, 51.0504] };
+        var berlin = new LocationDto { Type = "Point", Coordinates = [13.4050, 52.5200] };
 
         // Act
         var distance = dresden.DistanceTo(berlin);
@@ -135,8 +135,8 @@ public class LocationTests
     public void DistanceTo_WithOppositeHemispheres_ReturnsLargeDistance()
     {
         // Arrange - New York to Sydney
-        var newYork = new Location(-74.0060, 40.7128);
-        var sydney = new Location(151.2093, -33.8688);
+        var newYork = new LocationDto { Type = "Point", Coordinates = [-74.0060, 40.7128] };
+        var sydney = new LocationDto { Type = "Point", Coordinates = [151.2093, -33.8688] };
 
         // Act
         var distance = newYork.DistanceTo(sydney);
@@ -154,7 +154,7 @@ public class LocationTests
     public void ToString_ReturnsFormattedString()
     {
         // Arrange
-        var location = new Location(13.7373, 51.0504);
+        var location = new LocationDto { Type = "Point", Coordinates = [13.7373, 51.0504] };
 
         // Act
         var result = location.ToString();
@@ -171,7 +171,7 @@ public class LocationTests
     public void ToString_WithZeroCoordinates_ReturnsFormattedString()
     {
         // Arrange
-        var location = new Location(0, 0);
+        var location = new LocationDto { Type = "Point", Coordinates = [0, 0] };
 
         // Act
         var result = location.ToString();
@@ -190,7 +190,7 @@ public class LocationTests
     public void Location_WithExtremeCoordinates_HandlesCorrectly()
     {
         // Arrange & Act - Date Line and Equator
-        var location = new Location(180, 0);
+        var location = new LocationDto { Type = "Point", Coordinates = [180, 0] };
 
         // Assert
         Assert.Equal(180, location.Longitude);
@@ -201,7 +201,7 @@ public class LocationTests
     public void Location_WithPoleCoordinates_HandlesCorrectly()
     {
         // Arrange & Act - North Pole
-        var northPole = new Location(0, 90);
+        var northPole = new LocationDto { Type = "Point", Coordinates = [0, 90] };
 
         // Assert
         Assert.Equal(0, northPole.Longitude);
@@ -212,7 +212,7 @@ public class LocationTests
     public void Location_WithNegativeCoordinates_HandlesCorrectly()
     {
         // Arrange & Act - South America
-        var location = new Location(-60, -30);
+        var location = new LocationDto { Type = "Point", Coordinates = [-60, -30] };
 
         // Assert
         Assert.Equal(-60, location.Longitude);

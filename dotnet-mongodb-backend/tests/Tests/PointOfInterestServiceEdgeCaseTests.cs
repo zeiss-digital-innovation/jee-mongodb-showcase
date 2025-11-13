@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetMongoDbBackend.Configurations;
-using DotNetMongoDbBackend.Models;
+using DotNetMongoDbBackend.Models.Entities;
 using DotNetMongoDbBackend.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -20,7 +20,7 @@ namespace DotNetMongoDbBackend.Tests.Tests;
 public class PointOfInterestServiceEdgeCaseTests
 {
     private readonly Mock<IMongoDatabase> _mockDatabase;
-    private readonly Mock<IMongoCollection<PointOfInterest>> _mockCollection;
+    private readonly Mock<IMongoCollection<PointOfInterestEntity>> _mockCollection;
     private readonly Mock<IOptions<MongoSettings>> _mockSettings;
     private readonly Mock<ILogger<PointOfInterestService>> _mockLogger;
     private readonly PointOfInterestService _service;
@@ -28,7 +28,7 @@ public class PointOfInterestServiceEdgeCaseTests
     public PointOfInterestServiceEdgeCaseTests()
     {
         _mockDatabase = new Mock<IMongoDatabase>();
-        _mockCollection = new Mock<IMongoCollection<PointOfInterest>>();
+        _mockCollection = new Mock<IMongoCollection<PointOfInterestEntity>>();
         _mockSettings = new Mock<IOptions<MongoSettings>>();
         _mockLogger = new Mock<ILogger<PointOfInterestService>>();
 
@@ -40,19 +40,19 @@ public class PointOfInterestServiceEdgeCaseTests
         };
         _mockSettings.Setup(s => s.Value).Returns(settings);
 
-        _mockDatabase.Setup(d => d.GetCollection<PointOfInterest>(It.IsAny<string>(), null))
+        _mockDatabase.Setup(d => d.GetCollection<PointOfInterestEntity>(It.IsAny<string>(), null))
             .Returns(_mockCollection.Object);
 
         var mockNamespace = new DatabaseNamespace("test");
         _mockDatabase.Setup(d => d.DatabaseNamespace).Returns(mockNamespace);
 
         _mockCollection.Setup(c => c.CountDocuments(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
             null,
             default))
             .Returns(0);
 
-        var mockIndexManager = new Mock<IMongoIndexManager<PointOfInterest>>();
+        var mockIndexManager = new Mock<IMongoIndexManager<PointOfInterestEntity>>();
         _mockCollection.Setup(c => c.Indexes).Returns(mockIndexManager.Object);
 
         _service = new PointOfInterestService(_mockDatabase.Object, _mockSettings.Object, _mockLogger.Object);
@@ -64,21 +64,21 @@ public class PointOfInterestServiceEdgeCaseTests
     public async Task SearchPoisAsync_WithWhitespaceOnly_ReturnsAllPois()
     {
         // Arrange
-        var allPois = new List<PointOfInterest>
+        var allPois = new List<PointOfInterestEntity>
         {
-            new PointOfInterest { Name = "POI 1", Category = "restaurant", Details = "Test", Location = new Location(13, 51) },
-            new PointOfInterest { Name = "POI 2", Category = "museum", Details = "Test", Location = new Location(13, 51) }
+            new PointOfInterestEntity { Name = "POI 1", Category = "restaurant", Details = "Test", Location = new LocationEntity { Type = "Point", Coordinates = [13, 51] } },
+            new PointOfInterestEntity { Name = "POI 2", Category = "museum", Details = "Test", Location = new LocationEntity { Type = "Point", Coordinates = [13, 51] } }
         };
 
-        var mockCursor = new Mock<IAsyncCursor<PointOfInterest>>();
+        var mockCursor = new Mock<IAsyncCursor<PointOfInterestEntity>>();
         mockCursor.SetupSequence(c => c.MoveNextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(true)
             .ReturnsAsync(false);
         mockCursor.Setup(c => c.Current).Returns(allPois);
 
         _mockCollection.Setup(c => c.FindAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
-            It.IsAny<FindOptions<PointOfInterest, PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
+            It.IsAny<FindOptions<PointOfInterestEntity, PointOfInterestEntity>>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockCursor.Object);
 
@@ -93,15 +93,15 @@ public class PointOfInterestServiceEdgeCaseTests
     public async Task SearchPoisAsync_WithLimitZero_ReturnsEmptyList()
     {
         // Arrange
-        var mockCursor = new Mock<IAsyncCursor<PointOfInterest>>();
+        var mockCursor = new Mock<IAsyncCursor<PointOfInterestEntity>>();
         mockCursor.SetupSequence(c => c.MoveNextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(true)
             .ReturnsAsync(false);
-        mockCursor.Setup(c => c.Current).Returns(new List<PointOfInterest>());
+        mockCursor.Setup(c => c.Current).Returns(new List<PointOfInterestEntity>());
 
         _mockCollection.Setup(c => c.FindAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
-            It.IsAny<FindOptions<PointOfInterest, PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
+            It.IsAny<FindOptions<PointOfInterestEntity, PointOfInterestEntity>>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockCursor.Object);
 
@@ -116,20 +116,20 @@ public class PointOfInterestServiceEdgeCaseTests
     public async Task SearchPoisAsync_WithSpecialCharacters_ReturnsResults()
     {
         // Arrange
-        var pois = new List<PointOfInterest>
+        var pois = new List<PointOfInterestEntity>
         {
-            new PointOfInterest { Name = "Café München", Category = "restaurant", Details = "Test", Location = new Location(13, 51) }
+            new PointOfInterestEntity { Name = "Café München", Category = "restaurant", Details = "Test", Location = new LocationEntity { Type = "Point", Coordinates = [13, 51] } }
         };
 
-        var mockCursor = new Mock<IAsyncCursor<PointOfInterest>>();
+        var mockCursor = new Mock<IAsyncCursor<PointOfInterestEntity>>();
         mockCursor.SetupSequence(c => c.MoveNextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(true)
             .ReturnsAsync(false);
         mockCursor.Setup(c => c.Current).Returns(pois);
 
         _mockCollection.Setup(c => c.FindAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
-            It.IsAny<FindOptions<PointOfInterest, PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
+            It.IsAny<FindOptions<PointOfInterestEntity, PointOfInterestEntity>>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockCursor.Object);
 
@@ -148,15 +148,15 @@ public class PointOfInterestServiceEdgeCaseTests
     public async Task GetNearbyPoisAsync_WithDateLineCoordinates_ReturnsResults()
     {
         // Arrange - Near International Date Line
-        var mockCursor = new Mock<IAsyncCursor<PointOfInterest>>();
+        var mockCursor = new Mock<IAsyncCursor<PointOfInterestEntity>>();
         mockCursor.SetupSequence(c => c.MoveNextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(true)
             .ReturnsAsync(false);
-        mockCursor.Setup(c => c.Current).Returns(new List<PointOfInterest>());
+        mockCursor.Setup(c => c.Current).Returns(new List<PointOfInterestEntity>());
 
         _mockCollection.Setup(c => c.FindAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
-            It.IsAny<FindOptions<PointOfInterest, PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
+            It.IsAny<FindOptions<PointOfInterestEntity, PointOfInterestEntity>>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockCursor.Object);
 
@@ -171,15 +171,15 @@ public class PointOfInterestServiceEdgeCaseTests
     public async Task GetNearbyPoisAsync_WithSouthPole_ReturnsResults()
     {
         // Arrange - South Pole
-        var mockCursor = new Mock<IAsyncCursor<PointOfInterest>>();
+        var mockCursor = new Mock<IAsyncCursor<PointOfInterestEntity>>();
         mockCursor.SetupSequence(c => c.MoveNextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(true)
             .ReturnsAsync(false);
-        mockCursor.Setup(c => c.Current).Returns(new List<PointOfInterest>());
+        mockCursor.Setup(c => c.Current).Returns(new List<PointOfInterestEntity>());
 
         _mockCollection.Setup(c => c.FindAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
-            It.IsAny<FindOptions<PointOfInterest, PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
+            It.IsAny<FindOptions<PointOfInterestEntity, PointOfInterestEntity>>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockCursor.Object);
 
@@ -199,11 +199,10 @@ public class PointOfInterestServiceEdgeCaseTests
     {
         // Arrange
         var validId = MongoDB.Bson.ObjectId.GenerateNewId().ToString();
-        var poi = new PointOfInterest
-        {
+        var poi = new PointOfInterestEntity {
             Category = "restaurant",
             Details = null!, // Null details
-            Location = new Location(13, 51)
+            Location = new LocationEntity { Type = "Point", Coordinates = [13, 51] }
         };
 
         // Act & Assert
@@ -215,11 +214,10 @@ public class PointOfInterestServiceEdgeCaseTests
     {
         // Arrange
         var validId = MongoDB.Bson.ObjectId.GenerateNewId().ToString();
-        var poi = new PointOfInterest
-        {
+        var poi = new PointOfInterestEntity {
             Category = "restaurant",
             Details = "Test",
-            Location = new Location(0, -91) // Invalid latitude
+            Location = new LocationEntity { Type = "Point", Coordinates = [0, -91] } // Invalid latitude
         };
 
         // Act & Assert
@@ -231,11 +229,10 @@ public class PointOfInterestServiceEdgeCaseTests
     {
         // Arrange
         var validId = MongoDB.Bson.ObjectId.GenerateNewId().ToString();
-        var poi = new PointOfInterest
-        {
+        var poi = new PointOfInterestEntity {
             Category = "restaurant",
             Details = "Test",
-            Location = new Location(181, 0) // Invalid longitude
+            Location = new LocationEntity { Type = "Point", Coordinates = [181, 0] } // Invalid longitude
         };
 
         // Act & Assert
@@ -250,15 +247,14 @@ public class PointOfInterestServiceEdgeCaseTests
     public async Task CreatePoiAsync_WithMinimalValidData_CreatesPoi()
     {
         // Arrange - Only required fields
-        var poi = new PointOfInterest
-        {
+        var poi = new PointOfInterestEntity {
             Category = "other",
             Details = "Minimal POI",
-            Location = new Location(0, 0) // Null Island
+            Location = new LocationEntity { Type = "Point", Coordinates = [0, 0] } // Null Island
         };
 
         _mockCollection.Setup(c => c.InsertOneAsync(
-            It.IsAny<PointOfInterest>(),
+            It.IsAny<PointOfInterestEntity>(),
             null,
             default))
             .Returns(Task.CompletedTask);
@@ -275,15 +271,14 @@ public class PointOfInterestServiceEdgeCaseTests
     public async Task CreatePoiAsync_WithNegativeLongitude_CreatesPoi()
     {
         // Arrange - Western hemisphere
-        var poi = new PointOfInterest
-        {
+        var poi = new PointOfInterestEntity {
             Category = "landmark",
             Details = "Western POI",
-            Location = new Location(-120, 40)
+            Location = new LocationEntity { Type = "Point", Coordinates = [-120, 40] }
         };
 
         _mockCollection.Setup(c => c.InsertOneAsync(
-            It.IsAny<PointOfInterest>(),
+            It.IsAny<PointOfInterestEntity>(),
             null,
             default))
             .Returns(Task.CompletedTask);
@@ -293,7 +288,7 @@ public class PointOfInterestServiceEdgeCaseTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(-120, result.Location.Longitude);
+        Assert.Equal(-120, result.Location.Coordinates[0]); // Entity uses Coordinates array
     }
 
     #endregion

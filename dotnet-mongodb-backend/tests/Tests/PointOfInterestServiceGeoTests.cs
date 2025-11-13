@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetMongoDbBackend.Configurations;
-using DotNetMongoDbBackend.Models;
+using DotNetMongoDbBackend.Models.Entities;
 using DotNetMongoDbBackend.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -20,7 +20,7 @@ namespace DotNetMongoDbBackend.Tests.Tests;
 public class PointOfInterestServiceGeoTests
 {
     private readonly Mock<IMongoDatabase> _mockDatabase;
-    private readonly Mock<IMongoCollection<PointOfInterest>> _mockCollection;
+    private readonly Mock<IMongoCollection<PointOfInterestEntity>> _mockCollection;
     private readonly Mock<IOptions<MongoSettings>> _mockSettings;
     private readonly Mock<ILogger<PointOfInterestService>> _mockLogger;
     private readonly PointOfInterestService _service;
@@ -28,7 +28,7 @@ public class PointOfInterestServiceGeoTests
     public PointOfInterestServiceGeoTests()
     {
         _mockDatabase = new Mock<IMongoDatabase>();
-        _mockCollection = new Mock<IMongoCollection<PointOfInterest>>();
+        _mockCollection = new Mock<IMongoCollection<PointOfInterestEntity>>();
         _mockSettings = new Mock<IOptions<MongoSettings>>();
         _mockLogger = new Mock<ILogger<PointOfInterestService>>();
 
@@ -45,7 +45,7 @@ public class PointOfInterestServiceGeoTests
         _mockSettings.Setup(s => s.Value).Returns(settings);
 
         // Setup database to return mock collection
-        _mockDatabase.Setup(d => d.GetCollection<PointOfInterest>(It.IsAny<string>(), null))
+        _mockDatabase.Setup(d => d.GetCollection<PointOfInterestEntity>(It.IsAny<string>(), null))
             .Returns(_mockCollection.Object);
 
         // Setup database namespace
@@ -54,13 +54,13 @@ public class PointOfInterestServiceGeoTests
 
         // Mock CountDocuments for initialization
         _mockCollection.Setup(c => c.CountDocuments(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
             null,
             default))
             .Returns(0);
 
         // Mock indexes for initialization
-        var mockIndexManager = new Mock<IMongoIndexManager<PointOfInterest>>();
+        var mockIndexManager = new Mock<IMongoIndexManager<PointOfInterestEntity>>();
         _mockCollection.Setup(c => c.Indexes).Returns(mockIndexManager.Object);
 
         _service = new PointOfInterestService(_mockDatabase.Object, _mockSettings.Object, _mockLogger.Object);
@@ -76,25 +76,25 @@ public class PointOfInterestServiceGeoTests
         double latitude = 51.0504;
         double radiusKm = 5.0;
 
-        var nearbyPois = new List<PointOfInterest>
+        var nearbyPois = new List<PointOfInterestEntity>
         {
-            new PointOfInterest
+            new PointOfInterestEntity
             {
                 Name = "Nearby Restaurant",
                 Category = "restaurant",
                 Details = "Close to location",
-                Location = new Location(13.74, 51.05)
+                Location = new LocationEntity { Type = "Point", Coordinates = [13.74, 51.05] }
             },
-            new PointOfInterest
+            new PointOfInterestEntity
             {
                 Name = "Nearby Museum",
                 Category = "museum",
                 Details = "Also close",
-                Location = new Location(13.73, 51.05)
+                Location = new LocationEntity { Type = "Point", Coordinates = [13.73, 51.05] }
             }
         };
 
-        var mockCursor = new Mock<IAsyncCursor<PointOfInterest>>();
+        var mockCursor = new Mock<IAsyncCursor<PointOfInterestEntity>>();
         mockCursor.SetupSequence(c => c.MoveNext(It.IsAny<CancellationToken>()))
             .Returns(true)
             .Returns(false);
@@ -104,8 +104,8 @@ public class PointOfInterestServiceGeoTests
         mockCursor.Setup(c => c.Current).Returns(nearbyPois);
 
         _mockCollection.Setup(c => c.FindAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
-            It.IsAny<FindOptions<PointOfInterest, PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
+            It.IsAny<FindOptions<PointOfInterestEntity, PointOfInterestEntity>>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockCursor.Object);
 
@@ -126,18 +126,18 @@ public class PointOfInterestServiceGeoTests
         double latitude = 51.0504;
         double radiusKm = 0.1; // Very small radius
 
-        var mockCursor = new Mock<IAsyncCursor<PointOfInterest>>();
+        var mockCursor = new Mock<IAsyncCursor<PointOfInterestEntity>>();
         mockCursor.SetupSequence(c => c.MoveNext(It.IsAny<CancellationToken>()))
             .Returns(true)
             .Returns(false);
         mockCursor.SetupSequence(c => c.MoveNextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(true)
             .ReturnsAsync(false);
-        mockCursor.Setup(c => c.Current).Returns(new List<PointOfInterest>());
+        mockCursor.Setup(c => c.Current).Returns(new List<PointOfInterestEntity>());
 
         _mockCollection.Setup(c => c.FindAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
-            It.IsAny<FindOptions<PointOfInterest, PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
+            It.IsAny<FindOptions<PointOfInterestEntity, PointOfInterestEntity>>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockCursor.Object);
 
@@ -156,18 +156,18 @@ public class PointOfInterestServiceGeoTests
         double latitude = 51.0504;
         double radiusKm = 1.0; // Small radius
 
-        var nearbyPois = new List<PointOfInterest>
+        var nearbyPois = new List<PointOfInterestEntity>
         {
-            new PointOfInterest
+            new PointOfInterestEntity
             {
                 Name = "Nearby Restaurant",
                 Category = "restaurant",
                 Details = "Close to location",
-                Location = new Location(13.74, 51.05)
+                Location = new LocationEntity { Type = "Point", Coordinates = [13.74, 51.05] }
             }
         };
 
-        var mockCursor = new Mock<IAsyncCursor<PointOfInterest>>();
+        var mockCursor = new Mock<IAsyncCursor<PointOfInterestEntity>>();
         mockCursor.SetupSequence(c => c.MoveNext(It.IsAny<CancellationToken>()))
             .Returns(true)
             .Returns(false);
@@ -177,8 +177,8 @@ public class PointOfInterestServiceGeoTests
         mockCursor.Setup(c => c.Current).Returns(nearbyPois);
 
         _mockCollection.Setup(c => c.FindAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
-            It.IsAny<FindOptions<PointOfInterest, PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
+            It.IsAny<FindOptions<PointOfInterestEntity, PointOfInterestEntity>>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockCursor.Object);
 
@@ -197,18 +197,18 @@ public class PointOfInterestServiceGeoTests
         double latitude = 51.0504;
         double radiusKm = 0.0;
 
-        var mockCursor = new Mock<IAsyncCursor<PointOfInterest>>();
+        var mockCursor = new Mock<IAsyncCursor<PointOfInterestEntity>>();
         mockCursor.SetupSequence(c => c.MoveNext(It.IsAny<CancellationToken>()))
             .Returns(true)
             .Returns(false);
         mockCursor.SetupSequence(c => c.MoveNextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(true)
             .ReturnsAsync(false);
-        mockCursor.Setup(c => c.Current).Returns(new List<PointOfInterest>());
+        mockCursor.Setup(c => c.Current).Returns(new List<PointOfInterestEntity>());
 
         _mockCollection.Setup(c => c.FindAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
-            It.IsAny<FindOptions<PointOfInterest, PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
+            It.IsAny<FindOptions<PointOfInterestEntity, PointOfInterestEntity>>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockCursor.Object);
 
@@ -227,18 +227,18 @@ public class PointOfInterestServiceGeoTests
         double latitude = 89.9;
         double radiusKm = 100.0;
 
-        var mockCursor = new Mock<IAsyncCursor<PointOfInterest>>();
+        var mockCursor = new Mock<IAsyncCursor<PointOfInterestEntity>>();
         mockCursor.SetupSequence(c => c.MoveNext(It.IsAny<CancellationToken>()))
             .Returns(true)
             .Returns(false);
         mockCursor.SetupSequence(c => c.MoveNextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(true)
             .ReturnsAsync(false);
-        mockCursor.Setup(c => c.Current).Returns(new List<PointOfInterest>());
+        mockCursor.Setup(c => c.Current).Returns(new List<PointOfInterestEntity>());
 
         _mockCollection.Setup(c => c.FindAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
-            It.IsAny<FindOptions<PointOfInterest, PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
+            It.IsAny<FindOptions<PointOfInterestEntity, PointOfInterestEntity>>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockCursor.Object);
 
@@ -262,25 +262,25 @@ public class PointOfInterestServiceGeoTests
         double radiusKm = 5.0;
         var categories = new List<string> { "restaurant", "museum" };
 
-        var nearbyPois = new List<PointOfInterest>
+        var nearbyPois = new List<PointOfInterestEntity>
         {
-            new PointOfInterest
+            new PointOfInterestEntity
             {
                 Name = "Nearby Restaurant",
                 Category = "restaurant",
                 Details = "Close restaurant",
-                Location = new Location(13.74, 51.05)
+                Location = new LocationEntity { Type = "Point", Coordinates = [13.74, 51.05] }
             },
-            new PointOfInterest
+            new PointOfInterestEntity
             {
                 Name = "Nearby Museum",
                 Category = "museum",
                 Details = "Close museum",
-                Location = new Location(13.73, 51.05)
+                Location = new LocationEntity { Type = "Point", Coordinates = [13.73, 51.05] }
             }
         };
 
-        var mockCursor = new Mock<IAsyncCursor<PointOfInterest>>();
+        var mockCursor = new Mock<IAsyncCursor<PointOfInterestEntity>>();
         mockCursor.SetupSequence(c => c.MoveNext(It.IsAny<CancellationToken>()))
             .Returns(true)
             .Returns(false);
@@ -290,8 +290,8 @@ public class PointOfInterestServiceGeoTests
         mockCursor.Setup(c => c.Current).Returns(nearbyPois);
 
         _mockCollection.Setup(c => c.FindAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
-            It.IsAny<FindOptions<PointOfInterest, PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
+            It.IsAny<FindOptions<PointOfInterestEntity, PointOfInterestEntity>>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockCursor.Object);
 
@@ -313,18 +313,18 @@ public class PointOfInterestServiceGeoTests
         double radiusKm = 5.0;
         var categories = new List<string>();
 
-        var mockCursor = new Mock<IAsyncCursor<PointOfInterest>>();
+        var mockCursor = new Mock<IAsyncCursor<PointOfInterestEntity>>();
         mockCursor.SetupSequence(c => c.MoveNext(It.IsAny<CancellationToken>()))
             .Returns(true)
             .Returns(false);
         mockCursor.SetupSequence(c => c.MoveNextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(true)
             .ReturnsAsync(false);
-        mockCursor.Setup(c => c.Current).Returns(new List<PointOfInterest>());
+        mockCursor.Setup(c => c.Current).Returns(new List<PointOfInterestEntity>());
 
         _mockCollection.Setup(c => c.FindAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
-            It.IsAny<FindOptions<PointOfInterest, PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
+            It.IsAny<FindOptions<PointOfInterestEntity, PointOfInterestEntity>>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockCursor.Object);
 
@@ -344,18 +344,18 @@ public class PointOfInterestServiceGeoTests
         double radiusKm = 5.0;
         var categories = new List<string> { "restaurant" };
 
-        var nearbyPois = new List<PointOfInterest>
+        var nearbyPois = new List<PointOfInterestEntity>
         {
-            new PointOfInterest
+            new PointOfInterestEntity
             {
                 Name = "Nearby Restaurant",
                 Category = "restaurant",
                 Details = "Close restaurant",
-                Location = new Location(13.74, 51.05)
+                Location = new LocationEntity { Type = "Point", Coordinates = [13.74, 51.05] }
             }
         };
 
-        var mockCursor = new Mock<IAsyncCursor<PointOfInterest>>();
+        var mockCursor = new Mock<IAsyncCursor<PointOfInterestEntity>>();
         mockCursor.SetupSequence(c => c.MoveNext(It.IsAny<CancellationToken>()))
             .Returns(true)
             .Returns(false);
@@ -365,8 +365,8 @@ public class PointOfInterestServiceGeoTests
         mockCursor.Setup(c => c.Current).Returns(nearbyPois);
 
         _mockCollection.Setup(c => c.FindAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
-            It.IsAny<FindOptions<PointOfInterest, PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
+            It.IsAny<FindOptions<PointOfInterestEntity, PointOfInterestEntity>>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockCursor.Object);
 
@@ -387,18 +387,18 @@ public class PointOfInterestServiceGeoTests
         double radiusKm = 1.0; // Small radius
         var categories = new List<string> { "restaurant", "museum" };
 
-        var nearbyPois = new List<PointOfInterest>
+        var nearbyPois = new List<PointOfInterestEntity>
         {
-            new PointOfInterest
+            new PointOfInterestEntity
             {
                 Name = "Nearby Restaurant",
                 Category = "restaurant",
                 Details = "Close restaurant",
-                Location = new Location(13.74, 51.05)
+                Location = new LocationEntity { Type = "Point", Coordinates = [13.74, 51.05] }
             }
         };
 
-        var mockCursor = new Mock<IAsyncCursor<PointOfInterest>>();
+        var mockCursor = new Mock<IAsyncCursor<PointOfInterestEntity>>();
         mockCursor.SetupSequence(c => c.MoveNext(It.IsAny<CancellationToken>()))
             .Returns(true)
             .Returns(false);
@@ -408,8 +408,8 @@ public class PointOfInterestServiceGeoTests
         mockCursor.Setup(c => c.Current).Returns(nearbyPois);
 
         _mockCollection.Setup(c => c.FindAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
-            It.IsAny<FindOptions<PointOfInterest, PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
+            It.IsAny<FindOptions<PointOfInterestEntity, PointOfInterestEntity>>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockCursor.Object);
 
@@ -429,18 +429,18 @@ public class PointOfInterestServiceGeoTests
         double radiusKm = 5.0;
         var categories = new List<string> { "nonexistent_category" };
 
-        var mockCursor = new Mock<IAsyncCursor<PointOfInterest>>();
+        var mockCursor = new Mock<IAsyncCursor<PointOfInterestEntity>>();
         mockCursor.SetupSequence(c => c.MoveNext(It.IsAny<CancellationToken>()))
             .Returns(true)
             .Returns(false);
         mockCursor.SetupSequence(c => c.MoveNextAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(true)
             .ReturnsAsync(false);
-        mockCursor.Setup(c => c.Current).Returns(new List<PointOfInterest>());
+        mockCursor.Setup(c => c.Current).Returns(new List<PointOfInterestEntity>());
 
         _mockCollection.Setup(c => c.FindAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
-            It.IsAny<FindOptions<PointOfInterest, PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
+            It.IsAny<FindOptions<PointOfInterestEntity, PointOfInterestEntity>>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockCursor.Object);
 
@@ -453,3 +453,4 @@ public class PointOfInterestServiceGeoTests
 
     #endregion
 }
+

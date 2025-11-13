@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Xunit;
-using DotNetMongoDbBackend.Models;
+using DotNetMongoDbBackend.Models.DTOs;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,12 +12,12 @@ public class PointOfInterestModelTests
     public void PointOfInterest_ShouldHaveValidProperties()
     {
         // Arrange & Act
-        var poi = new PointOfInterest
+        var poi = new PointOfInterestDto
         {
             Id = "123",
             Name = "Test POI",
             Category = "restaurant",
-            Location = new Location(8.4, 49.0),
+            Location = new LocationDto { Coordinates = new double[] { 8.4, 49.0 } },
             Tags = new List<string> { "food", "outdoor" }
         };
 
@@ -33,10 +33,10 @@ public class PointOfInterestModelTests
     public void PointOfInterest_ShouldFailValidation_WhenCategoryIsMissing()
     {
         // Arrange
-        var poi = new PointOfInterest
+        var poi = new PointOfInterestDto
         {
             Name = "Test POI",
-            Location = new Location(8.4, 49.0)
+            Location = new LocationDto { Coordinates = new double[] { 8.4, 49.0 } }
         };
 
         // Act
@@ -52,7 +52,7 @@ public class PointOfInterestModelTests
     public void PointOfInterest_ShouldFailValidation_WhenLocationIsMissing()
     {
         // Arrange
-        var poi = new PointOfInterest
+        var poi = new PointOfInterestDto
         {
             Name = "Test POI",
             Category = "restaurant"
@@ -67,11 +67,11 @@ public class PointOfInterestModelTests
         Assert.Null(poi.Location); // Location is automatically created
 
         // Testing invalid location coordinates
-        var invalidPoi = new PointOfInterest
+        var invalidPoi = new PointOfInterestDto
         {
             Name = "Test POI",
             Category = "restaurant",
-            Location = new Location(0, 0) // Coordinates can be 0,0 (Gulf of Guinea)
+            Location = new LocationDto { Type = "Point", Coordinates = [0, 0] } // Coordinates can be 0,0 (Gulf of Guinea)
         };
         var results = ValidateModel(invalidPoi);
         // This test shows that Location is automatically initialized
@@ -82,7 +82,7 @@ public class PointOfInterestModelTests
     public void Location_ShouldHaveValidCoordinates()
     {
         // Arrange & Act
-        var location = new Location(8.4, 49.0);
+        var location = new LocationDto { Type = "Point", Coordinates = [8.4, 49.0] };
 
         // Assert
         Assert.Equal(8.4, location.Longitude);
@@ -93,8 +93,8 @@ public class PointOfInterestModelTests
     public void Location_ShouldCalculateDistance()
     {
         // Arrange
-        var location1 = new Location(8.4, 49.0);
-        var location2 = new Location(8.5, 49.1);
+        var location1 = new LocationDto { Type = "Point", Coordinates = [8.4, 49.0] };
+        var location2 = new LocationDto { Type = "Point", Coordinates = [8.5, 49.1] };
 
         // Act
         var distance = location1.DistanceTo(location2);
@@ -108,7 +108,7 @@ public class PointOfInterestModelTests
     public void Location_ShouldFailValidation_WhenLatitudeOutOfRange()
     {
         // Arrange
-        var location = new Location(8.4, 95.0); // Invalid latitude > 90
+        var location = new LocationDto { Type = "Point", Coordinates = [8.4, 95.0] }; // Invalid latitude > 90
 
         // Act
         var validationResults = ValidateModel(location);
@@ -123,7 +123,7 @@ public class PointOfInterestModelTests
     public void Location_ShouldFailValidation_WhenLongitudeOutOfRange()
     {
         // Arrange
-        var location = new Location(185.0, 49.0); // Invalid longitude > 180
+        var location = new LocationDto { Type = "Point", Coordinates = [185.0, 49.0] }; // Invalid longitude > 180
 
         // Act
         var validationResults = ValidateModel(location);

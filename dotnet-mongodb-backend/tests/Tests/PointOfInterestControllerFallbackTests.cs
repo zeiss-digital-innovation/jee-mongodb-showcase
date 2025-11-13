@@ -1,7 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using DotNetMongoDbBackend.Controllers;
-using DotNetMongoDbBackend.Models;
+using DotNetMongoDbBackend.Models.Entities;
+using DotNetMongoDbBackend.Models.DTOs;
 using DotNetMongoDbBackend.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -47,11 +48,11 @@ public class PointOfInterestControllerFallbackTests
     {
         // Arrange
         var poiId = "507f1f77bcf86cd799439011";
-        var testPoi = new PointOfInterest
+        var testPoi = new PointOfInterestEntity
         {
             Id = poiId,
             Name = "Test POI",
-            Location = new Location { Longitude = 10.0, Latitude = 50.0 }
+            Location = new LocationEntity { Coordinates = new double[] { 10.0, 50.0 } }
         };
 
         _mockService.Setup(s => s.GetPoiByIdAsync(poiId)).ReturnsAsync(testPoi);
@@ -64,7 +65,7 @@ public class PointOfInterestControllerFallbackTests
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
-        var poi = Assert.IsType<PointOfInterest>(okResult.Value);
+        var poi = Assert.IsType<PointOfInterestDto>(okResult.Value);
         Assert.Equal(poiId, poi.Id);
     }
 
@@ -73,11 +74,11 @@ public class PointOfInterestControllerFallbackTests
     {
         // Arrange
         var poiId = "507f1f77bcf86cd799439011";
-        var testPoi = new PointOfInterest
+        var testPoi = new PointOfInterestEntity
         {
             Id = poiId,
             Name = "Test POI",
-            Location = new Location { Longitude = 10.0, Latitude = 50.0 }
+            Location = new LocationEntity { Coordinates = new double[] { 10.0, 50.0 } }
         };
 
         _mockService.Setup(s => s.GetPoiByIdAsync(poiId)).ReturnsAsync(testPoi);
@@ -94,7 +95,7 @@ public class PointOfInterestControllerFallbackTests
 
         // Assert
         var okResult = Assert.IsType<OkObjectResult>(result.Result);
-        var poi = Assert.IsType<PointOfInterest>(okResult.Value);
+        var poi = Assert.IsType<PointOfInterestDto>(okResult.Value);
         Assert.Equal(poiId, poi.Id);
         Assert.Null(poi.Href); // Href should be null since LinkGenerator is null
     }
@@ -107,22 +108,22 @@ public class PointOfInterestControllerFallbackTests
     public async Task CreatePoi_WhenUrlActionSucceeds_ShouldUseAbsoluteUri()
     {
         // Arrange
-        var newPoi = new PointOfInterest
+        var newPoi = new PointOfInterestDto
         {
             Name = "New POI",
             Category = "restaurant",
-            Location = new Location { Longitude = 10.0, Latitude = 50.0 }
+            Location = new LocationDto { Coordinates = new double[] { 10.0, 50.0 } }
         };
 
-        var createdPoi = new PointOfInterest
+        var createdPoi = new PointOfInterestEntity
         {
             Id = "507f1f77bcf86cd799439011",
             Name = "New POI",
             Category = "restaurant",
-            Location = new Location { Longitude = 10.0, Latitude = 50.0 }
+            Location = new LocationEntity { Coordinates = new double[] { 10.0, 50.0 } }
         };
 
-        _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterest>())).ReturnsAsync(createdPoi);
+        _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterestEntity>())).ReturnsAsync(createdPoi);
 
         // Setup HttpContext with request information
         _controller.ControllerContext.HttpContext.Request.Scheme = "https";
@@ -150,22 +151,22 @@ public class PointOfInterestControllerFallbackTests
     public async Task CreatePoi_WhenUrlActionFails_ShouldFallbackToManualConstruction()
     {
         // Arrange
-        var newPoi = new PointOfInterest
+        var newPoi = new PointOfInterestDto
         {
             Name = "New POI",
             Category = "restaurant",
-            Location = new Location { Longitude = 10.0, Latitude = 50.0 }
+            Location = new LocationDto { Coordinates = new double[] { 10.0, 50.0 } }
         };
 
-        var createdPoi = new PointOfInterest
+        var createdPoi = new PointOfInterestEntity
         {
             Id = "507f1f77bcf86cd799439011",
             Name = "New POI",
             Category = "restaurant",
-            Location = new Location { Longitude = 10.0, Latitude = 50.0 }
+            Location = new LocationEntity { Coordinates = new double[] { 10.0, 50.0 } }
         };
 
-        _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterest>())).ReturnsAsync(createdPoi);
+        _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterestEntity>())).ReturnsAsync(createdPoi);
 
         // Setup HttpContext with request information
         _controller.ControllerContext.HttpContext.Request.Scheme = "https";
@@ -195,22 +196,22 @@ public class PointOfInterestControllerFallbackTests
     public async Task CreatePoi_WhenUrlActionReturnsEmpty_ShouldFallbackToManualConstruction()
     {
         // Arrange
-        var newPoi = new PointOfInterest
+        var newPoi = new PointOfInterestDto
         {
             Name = "New POI",
             Category = "restaurant",
-            Location = new Location { Longitude = 10.0, Latitude = 50.0 }
+            Location = new LocationDto { Coordinates = new double[] { 10.0, 50.0 } }
         };
 
-        var createdPoi = new PointOfInterest
+        var createdPoi = new PointOfInterestEntity
         {
             Id = "507f1f77bcf86cd799439011",
             Name = "New POI",
             Category = "restaurant",
-            Location = new Location { Longitude = 10.0, Latitude = 50.0 }
+            Location = new LocationEntity { Coordinates = new double[] { 10.0, 50.0 } }
         };
 
-        _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterest>())).ReturnsAsync(createdPoi);
+        _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterestEntity>())).ReturnsAsync(createdPoi);
 
         // Setup HttpContext
         _controller.ControllerContext.HttpContext.Request.Scheme = "http";
@@ -238,22 +239,22 @@ public class PointOfInterestControllerFallbackTests
     public async Task CreatePoi_WhenUrlActionReturnsNull_ShouldFallbackToManualConstruction()
     {
         // Arrange
-        var newPoi = new PointOfInterest
+        var newPoi = new PointOfInterestDto
         {
             Name = "New POI",
             Category = "restaurant",
-            Location = new Location { Longitude = 10.0, Latitude = 50.0 }
+            Location = new LocationDto { Coordinates = new double[] { 10.0, 50.0 } }
         };
 
-        var createdPoi = new PointOfInterest
+        var createdPoi = new PointOfInterestEntity
         {
             Id = "507f1f77bcf86cd799439011",
             Name = "New POI",
             Category = "restaurant",
-            Location = new Location { Longitude = 10.0, Latitude = 50.0 }
+            Location = new LocationEntity { Coordinates = new double[] { 10.0, 50.0 } }
         };
 
-        _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterest>())).ReturnsAsync(createdPoi);
+        _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterestEntity>())).ReturnsAsync(createdPoi);
 
         // Setup HttpContext
         _controller.ControllerContext.HttpContext.Request.Scheme = "http";
@@ -280,22 +281,22 @@ public class PointOfInterestControllerFallbackTests
     public async Task CreatePoi_WhenUrlHelperNotSet_ShouldUseManualConstruction()
     {
         // Arrange
-        var newPoi = new PointOfInterest
+        var newPoi = new PointOfInterestDto
         {
             Name = "New POI",
             Category = "restaurant",
-            Location = new Location { Longitude = 10.0, Latitude = 50.0 }
+            Location = new LocationDto { Coordinates = new double[] { 10.0, 50.0 } }
         };
 
-        var createdPoi = new PointOfInterest
+        var createdPoi = new PointOfInterestEntity
         {
             Id = "507f1f77bcf86cd799439011",
             Name = "New POI",
             Category = "restaurant",
-            Location = new Location { Longitude = 10.0, Latitude = 50.0 }
+            Location = new LocationEntity { Coordinates = new double[] { 10.0, 50.0 } }
         };
 
-        _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterest>())).ReturnsAsync(createdPoi);
+        _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterestEntity>())).ReturnsAsync(createdPoi);
 
         // Setup HttpContext
         _controller.ControllerContext.HttpContext.Request.Scheme = "http";
