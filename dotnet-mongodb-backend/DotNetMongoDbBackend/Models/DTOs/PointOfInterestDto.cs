@@ -95,4 +95,12 @@ public class LocationDto
 
         return earthRadiusKm * c;
     }
+
+    /// <summary>
+    /// Returns a string representation of the location
+    /// </summary>
+    public override string ToString()
+    {
+        return $"Location: Longitude={Longitude:F4}, Latitude={Latitude:F4}";
+    }
 }
