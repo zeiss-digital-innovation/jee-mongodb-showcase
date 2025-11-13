@@ -72,4 +72,27 @@ public class LocationDto
             Coordinates[1] = value;
         }
     }
+
+    /// <summary>
+    /// Calculates the distance to another location using the Haversine formula
+    /// </summary>
+    /// <param name="other">The other location</param>
+    /// <returns>Distance in kilometers</returns>
+    public double DistanceTo(LocationDto? other)
+    {
+        if (other == null) return double.MaxValue;
+
+        const double earthRadiusKm = 6371.0;
+        var lat1Rad = Latitude * Math.PI / 180.0;
+        var lat2Rad = other.Latitude * Math.PI / 180.0;
+        var deltaLat = (other.Latitude - Latitude) * Math.PI / 180.0;
+        var deltaLon = (other.Longitude - Longitude) * Math.PI / 180.0;
+
+        var a = Math.Sin(deltaLat / 2) * Math.Sin(deltaLat / 2) +
+                Math.Cos(lat1Rad) * Math.Cos(lat2Rad) *
+                Math.Sin(deltaLon / 2) * Math.Sin(deltaLon / 2);
+        var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+
+        return earthRadiusKm * c;
+    }
 }

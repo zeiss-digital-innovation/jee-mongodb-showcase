@@ -16,8 +16,8 @@ public interface IPointOfInterestService
     /// </summary>
     Task<List<PointOfInterestEntity>> GetNearbyPoisByCategoriesAsync(double longitude, double latitude, double radiusInKm, List<string> categories);
     
-    Task<PointOfInterestEntity> CreatePoiAsync(PointOfInterestEntity poi);
-    Task<PointOfInterestEntity?> UpdatePoiAsync(string id, PointOfInterestEntity poi);
+    Task<PointOfInterestEntity> CreatePoiAsync(PointOfInterestEntity poiEntity);
+    Task<PointOfInterestEntity?> UpdatePoiAsync(string id, PointOfInterestEntity poiEntity);
     Task<bool> DeletePoiAsync(string id);
     Task<List<string>> GetAvailableCategoriesAsync();
     Task<long> CountByCategoryAsync(string category);
