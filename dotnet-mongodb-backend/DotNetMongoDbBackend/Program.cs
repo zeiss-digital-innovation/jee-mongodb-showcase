@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using DotNetMongoDbBackend.Configurations;
-using DotNetMongoDbBackend.Models;
 using DotNetMongoDbBackend.Services;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.HttpOverrides;
+using DotNetMongoDbBackend.Models.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,7 +60,7 @@ builder.Services.AddSingleton(sp =>
 {
     var cfg = sp.GetRequiredService<IOptions<MongoSettings>>().Value;
     var db = sp.GetRequiredService<IMongoDatabase>();
-    return db.GetCollection<PointOfInterest>(cfg.Collections.Pois);
+    return db.GetCollection<PointOfInterestEntity>(cfg.Collections.Pois);
 });
 
 // Register PointOfInterestService as Singleton (not Scoped) 

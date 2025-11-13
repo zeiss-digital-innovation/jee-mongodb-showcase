@@ -1,4 +1,6 @@
-using DotNetMongoDbBackend.Models;
+using DotNetMongoDbBackend.Mappers;
+using DotNetMongoDbBackend.Models.DTOs;
+using DotNetMongoDbBackend.Models.Entities;
 using DotNetMongoDbBackend.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
@@ -28,19 +30,19 @@ public class PointOfInterestController : ControllerBase
     /// Encapsulates URL generation for a POI so tests can override behavior without mocking LinkGenerator.
     /// Default implementation sets the Href property using LinkGenerator when available.
     /// </summary>
-    protected virtual void GenerateHref(PointOfInterest p)
+    protected virtual void GenerateHref(PointOfInterestDto poiDto)
     {
         try
         {
-            if (p != null && !string.IsNullOrWhiteSpace(p.Id))
+            if (poiDto != null && !string.IsNullOrWhiteSpace(poiDto.Id))
             {
-                var uri = _linkGenerator?.GetUriByAction(HttpContext, action: nameof(GetPoiById), controller: "PointOfInterest", values: new { id = p.Id });
-                p.Href = uri;
+                var uri = _linkGenerator?.GetUriByAction(HttpContext, action: nameof(GetPoiById), controller: "PointOfInterest", values: new { id = poiDto.Id });
+                poiDto.Href = uri;
             }
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Error generating href for POI with ID: {Id}", p?.Id);
+            _logger.LogWarning(ex, "Error generating href for POI with ID: {Id}", poiDto?.Id);
         }
     }
 
@@ -58,7 +60,7 @@ public class PointOfInterestController : ControllerBase
     /// <param name="radius">Radius for geographic search in meters</param>
     /// <returns>List of POIs</returns>
     [HttpGet]
-    public async Task<ActionResult<List<PointOfInterest>>> GetAllPois(
+    public async Task<ActionResult<List<PointOfInterestDto>>> GetAllPois(
         [FromQuery] List<string>? category = null,  // CHANGED: Now accepts multiple categories
         [FromQuery] string? search = null,
         [FromQuery] int? limit = null,
@@ -69,7 +71,11 @@ public class PointOfInterestController : ControllerBase
     {
         try
         {
-            List<PointOfInterest> pois;
+            // service sends entities
+            List<PointOfInterestEntity> entities;
+            
+            // method returns DTOs
+            List<PointOfInterestDto> dtos;
 
             // Normalize lon/lng parameter
             double? longitude = lng ?? lon;
@@ -86,9 +92,9 @@ public class PointOfInterestController : ControllerBase
                 _logger.LogInformation("Performing geographic search WITH category filter: lat={Lat}, lng={Lng}, radius={Radius}m, categories=[{Categories}]",
                     lat, longitude, radiusMeters, string.Join(", ", category));
 
-                pois = await _poiService.GetNearbyPoisByCategoriesAsync(longitude.Value, lat.Value, radiusKm, category);
+                entities = await _poiService.GetNearbyPoisByCategoriesAsync(longitude.Value, lat.Value, radiusKm, category);
 
-                _logger.LogInformation("Geographic search with categories completed: {Count} POIs found", pois.Count);
+                _logger.LogInformation("Geographic search with categories completed: {Count} POIs found", entities.Count);
             }
             // PRIORITY 2: Geographic search WITHOUT category filter (BACKWARD COMPATIBLE)
             else if (lat.HasValue && longitude.HasValue)
@@ -99,38 +105,45 @@ public class PointOfInterestController : ControllerBase
                 _logger.LogInformation("Performing geographic search: lat={Lat}, lng={Lng}, radius={Radius}m ({RadiusKm}km)",
                     lat, longitude, radiusMeters, radiusKm);
 
-                pois = await _poiService.GetNearbyPoisAsync(longitude.Value, lat.Value, radiusKm);
+                entities = await _poiService.GetNearbyPoisAsync(longitude.Value, lat.Value, radiusKm);
 
                 _logger.LogInformation("Geographic search completed: {Count} POIs found within radius {Radius}m",
-                    pois.Count, radiusMeters);
+                    entities.Count, radiusMeters);
             }
             // PRIORITY 3: Category filter only (BACKWARD COMPATIBLE - single category)
             else if (category != null && category.Count == 1 && !string.IsNullOrWhiteSpace(category[0]))
             {
                 _logger.LogInformation("Performing single category filter: {Category}", category[0]);
-                pois = await _poiService.GetPoisByCategoryAsync(category[0]);
+                entities = await _poiService.GetPoisByCategoryAsync(category[0]);
             }
             // PRIORITY 4: Full-text search
             else if (!string.IsNullOrWhiteSpace(search))
             {
                 _logger.LogInformation("Performing full-text search: {Search}, limit={Limit}", search, limit);
-                pois = await _poiService.SearchPoisAsync(search, limit);
+                entities = await _poiService.SearchPoisAsync(search, limit);
             }
             // PRIORITY 5: All POIs (fallback)
             else
             {
                 _logger.LogWarning("Fallback: All POIs retrieved (no filters specified) - this can be very slow!");
-                pois = await _poiService.GetAllPoisAsync();
+                entities = await _poiService.GetAllPoisAsync();
             }
+            
+            _logger.LogInformation("POIs retrieved: {Count} results", entities.Count);
 
+            dtos = PointOfInterestMapper.ToDtoList(entities);
             // Set absolute href for each poi
-            foreach (var p in pois)
+            foreach (var dto in dtos)
             {
-                GenerateHref(p);
+                GenerateHref(dto);
+            }
+            // use limit if exists
+            if (limit.HasValue && limit.Value > 0)
+            {
+                dtos = [.. dtos.Take(limit.Value)];
             }
 
-            _logger.LogInformation("POIs retrieved: {Count} results", pois.Count);
-            return Ok(pois);
+            return Ok(dtos);
         }
         catch (Exception ex)
         {
@@ -147,22 +160,25 @@ public class PointOfInterestController : ControllerBase
     /// <param name="id">MongoDB ObjectId of the POI</param>
     /// <returns>POI or 404 if not found</returns>
     [HttpGet("{id}")]
-    public async Task<ActionResult<PointOfInterest>> GetPoiById([Required] string id)
+    public async Task<ActionResult<PointOfInterestDto>> GetPoiById([Required] string id)
     {
         try
         {
-            var poi = await _poiService.GetPoiByIdAsync(id);
+            var poiEntity = await _poiService.GetPoiByIdAsync(id);
 
-            if (poi == null)
+            if (poiEntity == null)
             {
                 _logger.LogWarning("POI not found with ID: {Id}", id);
                 // JEE-compatible: Return 404 without body (throws NotFoundException in JEE)
                 return NotFound();
             }
 
-            _logger.LogInformation("POI retrieved: {Name} (ID: {Id})", poi.Name, poi.Id);
-            GenerateHref(poi);
-            return Ok(poi);
+            _logger.LogInformation("POI retrieved: {Name} (ID: {Id})", poiEntity.Name, poiEntity.Id);
+            // Entity to DTO transformation
+            PointOfInterestDto poiDto = PointOfInterestMapper.ToDto(poiEntity);
+            // href generation
+            GenerateHref(poiDto);
+            return Ok(poiDto);
         }
         catch (Exception ex)
         {
@@ -176,19 +192,32 @@ public class PointOfInterestController : ControllerBase
     /// Compatible with JEE Backend: Returns HTTP 201 with Location header, but NO body
     /// Implements RFC 9110 Section 10.2.2 (Location header)
     /// </summary>
-    /// <param name="poi">POI data</param>
+    /// <param name="poiDto">POI data</param>
     /// <returns>HTTP 201 Created with Location header</returns>
     [HttpPost]
-    public async Task<ActionResult> CreatePoi([FromBody] PointOfInterest poi)
+    public async Task<ActionResult> CreatePoi([FromBody] PointOfInterestDto poiDto)
     {
         try
         {
+            // validation happens automatically over DTO-attributes
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // additional business-check
+            if (poiDto.Location?.Coordinates == null || poiDto.Location.Coordinates.Length != 2)
+            {
+                return BadRequest(new { message = "Valid coordinates [longitude, lattitude] are required" });
+            }
+
             // NOTE: ModelState validation is automatically performed by [ApiController]
             // Manual check here would cause problems in unit tests
+            var createdPoiDto = PointOfInterestMapper.ToDto(await _poiService.CreatePoiAsync(PointOfInterestMapper.ToEntity(poiDto)));
+            GenerateHref(createdPoiDto);
 
-            var createdPoi = await _poiService.CreatePoiAsync(poi);
 
-            _logger.LogInformation("POI created: {Name} (ID: {Id})", createdPoi.Name, createdPoi.Id);
+            _logger.LogInformation("POI created: {Name} (ID: {Id})", createdPoiDto.Name, createdPoiDto.Id);
 
             // RFC 9110 Section 10.2.2: Location header can be absolute or relative URI
             // Prefer absolute URI for better interoperability (matching JEE implementation)
@@ -202,7 +231,7 @@ public class PointOfInterestController : ControllerBase
                     locationUri = Url.Action(
                         action: nameof(GetPoiById),
                         controller: null,
-                        values: new { id = createdPoi.Id },
+                        values: new { id = createdPoiDto.Id },
                         protocol: HttpContext.Request.Scheme,
                         host: HttpContext.Request.Host.ToString()
                     );
@@ -218,12 +247,12 @@ public class PointOfInterestController : ControllerBase
             {
                 var request = HttpContext.Request;
                 var baseUri = $"{request.Scheme}://{request.Host}{request.PathBase}";
-                locationUri = $"{baseUri}/poi/{createdPoi.Id}";
+                locationUri = $"{baseUri}/poi/{createdPoiDto.Id}";
             }
             // Last resort fallback: relative URI (valid per RFC 9110, but less preferred)
             else if (string.IsNullOrEmpty(locationUri))
             {
-                locationUri = $"/poi/{createdPoi.Id}";
+                locationUri = $"/poi/{createdPoiDto.Id}";
             }
 
             Response.Headers.Location = locationUri;
@@ -236,7 +265,7 @@ public class PointOfInterestController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating POI: {Name}", poi?.Name);
+            _logger.LogError(ex, "Error creating POI: {Name}", poiDto?.Name);
             return StatusCode(500, "Internal server error creating POI");
         }
     }
@@ -245,10 +274,10 @@ public class PointOfInterestController : ControllerBase
     /// PUT /geoservice/poi/{id} - Update POI
     /// </summary>
     /// <param name="id">MongoDB ObjectId of the POI</param>
-    /// <param name="poi">Updated POI data</param>
+    /// <param name="poiDto">Updated POI data</param>
     /// <returns>Updated POI or 404 if not found</returns>
     [HttpPut("{id}")]
-    public async Task<ActionResult<PointOfInterest>> UpdatePoi([Required] string id, [FromBody] PointOfInterest poi)
+    public async Task<ActionResult<PointOfInterestDto>> UpdatePoi([Required] string id, [FromBody] PointOfInterestDto poiDto)
     {
         try
         {
@@ -257,16 +286,32 @@ public class PointOfInterestController : ControllerBase
                 return BadRequest(ModelState);
             }
 
-            var updatedPoi = await _poiService.UpdatePoiAsync(id, poi);
+            if (!string.IsNullOrWhiteSpace(poiDto.Id) && poiDto.Id != id)
+            {
+                return BadRequest(new { message = "ID in URL and body do not match" });
+            }
+            // check if DTO has right ID
+            poiDto.Id = id;
 
-            if (updatedPoi == null)
+            // Map DTO to entity
+            var poiEntity = PointOfInterestMapper.ToEntity(poiDto);
+            // Service does entity update
+            var updatedPoiEntity = await _poiService.UpdatePoiAsync(id, poiEntity);
+
+            if (updatedPoiEntity == null)
             {
                 _logger.LogWarning("POI not found for update with ID: {Id}", id);
                 return NotFound($"POI with ID '{id}' was not found");
             }
 
-            _logger.LogInformation("POI updated: {Name} (ID: {Id})", updatedPoi.Name, updatedPoi.Id);
-            return Ok(updatedPoi);
+            // Mapper entity to DTO
+            var updatedPoiDto = PointOfInterestMapper.ToDto(updatedPoiEntity);
+
+            // Generate href
+            GenerateHref(updatedPoiDto);
+
+            _logger.LogInformation("POI updated: {Name} (ID: {Id})", updatedPoiDto.Name, id);
+            return Ok(updatedPoiDto);
         }
         catch (ArgumentException ex)
         {
@@ -379,5 +424,56 @@ public class PointOfInterestController : ControllerBase
         }
     }
 
-    
+    [HttpPatch("{id}")]
+    public async Task<ActionResult<PointOfInterestDto>> PatchPoi(string id, [FromBody] PointOfInterestDto dto)
+    {
+        try
+        {
+            // Existierenden POI laden
+            var existingEntity = await _poiService.GetPoiByIdAsync(id);
+
+            if (existingEntity == null)
+            {
+                return NotFound(new { message = $"POI with ID {id} not found" });
+            }
+
+            // Nur nicht-null Felder aktualisieren
+            if (dto.Category != null) existingEntity.Category = dto.Category;
+            if (dto.Name != null) existingEntity.Name = dto.Name;
+            if (dto.Details != null) existingEntity.Details = dto.Details;
+            if (dto.Tags != null) existingEntity.Tags = dto.Tags;
+            if (dto.Location != null)
+            {
+                existingEntity.Location = new LocationEntity
+                {
+                    Type = dto.Location.Type,
+                    Coordinates = dto.Location.Coordinates
+                };
+            }
+
+            // Service aktualisiert Entity
+            var updatedEntity = await _poiService.UpdatePoiAsync(id, existingEntity);
+
+            if (updatedEntity == null)
+            {
+                _logger.LogWarning("POI update failed for ID: {Id}", id);
+                return StatusCode(500, "Failed to update POI");
+            }
+
+            // Mapper: Entity → DTO
+            var updatedDto = PointOfInterestMapper.ToDto(updatedEntity);
+
+            // Href generieren
+            GenerateHref(updatedDto);
+
+            _logger.LogInformation("POI patched successfully: {Id}", id);
+
+            return Ok(updatedDto);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error patching POI: {Id}", id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
 }

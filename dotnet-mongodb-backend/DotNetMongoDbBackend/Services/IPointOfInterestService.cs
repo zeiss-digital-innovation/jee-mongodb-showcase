@@ -1,23 +1,23 @@
-using DotNetMongoDbBackend.Models;
+using DotNetMongoDbBackend.Models.Entities;
 
 namespace DotNetMongoDbBackend.Services;
 
 public interface IPointOfInterestService
 {
-    Task<List<PointOfInterest>> GetAllPoisAsync();
-    Task<PointOfInterest?> GetPoiByIdAsync(string id);
-    Task<List<PointOfInterest>> GetPoisByCategoryAsync(string category);
-    Task<List<PointOfInterest>> SearchPoisAsync(string searchTerm, int? limit = null);
-    Task<List<PointOfInterest>> GetNearbyPoisAsync(double longitude, double latitude, double radiusInKm = 10.0);
+    Task<List<PointOfInterestEntity>> GetAllPoisAsync();
+    Task<PointOfInterestEntity?> GetPoiByIdAsync(string id);
+    Task<List<PointOfInterestEntity>> GetPoisByCategoryAsync(string category);
+    Task<List<PointOfInterestEntity>> SearchPoisAsync(string searchTerm, int? limit = null);
+    Task<List<PointOfInterestEntity>> GetNearbyPoisAsync(double longitude, double latitude, double radiusInKm = 10.0);
     
     /// <summary>
     /// Get nearby POIs filtered by multiple categories
     /// NEW: Category filtering at MongoDB level
     /// </summary>
-    Task<List<PointOfInterest>> GetNearbyPoisByCategoriesAsync(double longitude, double latitude, double radiusInKm, List<string> categories);
+    Task<List<PointOfInterestEntity>> GetNearbyPoisByCategoriesAsync(double longitude, double latitude, double radiusInKm, List<string> categories);
     
-    Task<PointOfInterest> CreatePoiAsync(PointOfInterest poi);
-    Task<PointOfInterest?> UpdatePoiAsync(string id, PointOfInterest poi);
+    Task<PointOfInterestEntity> CreatePoiAsync(PointOfInterestEntity poi);
+    Task<PointOfInterestEntity?> UpdatePoiAsync(string id, PointOfInterestEntity poi);
     Task<bool> DeletePoiAsync(string id);
     Task<List<string>> GetAvailableCategoriesAsync();
     Task<long> CountByCategoryAsync(string category);
