@@ -23,6 +23,7 @@ This **.NET Backend** is part of the MongoDB Workshop project and provides a hig
 - ✅ **Full-Text Search** with Regex-Pattern Matching
 - ✅ **Category Filter** with case-insensitive search
 - ✅ **Distance Calculation** with Haversine Formula
+- ✅ **Clean Architecture** - Entity/DTO separation with Mapper layer
 - ✅ **Data Annotations** Validation
 - ✅ **Structured Logging** with ILogger
 - ✅ **Auto-Index Creation** for optimal performance
@@ -115,22 +116,44 @@ dotnet run -c Release
 - **Debug Information**: http://localhost:8080/zdi-geo-service/api/debug
 - **Swagger UI**: http://localhost:8080/zdi-geo-service/swagger (only active in development mode)
 
-## 📊 MongoDB Schema
+## 📊 Data Models
 
+### MongoDB Entity (Persistence Layer)
 ```json
 {
   "_id": "ObjectId",
-  "href": "/zdi-geo-service/api/poi/{id}",
   "name": "POI Name",
   "category": "restaurant|pharmacy|parking|etc",
   "location": {
     "type": "Point",
     "coordinates": [13.7373, 51.0504]
   },
-  "address": "Street 123, 01067 Dresden",
+  "details": "Street 123, 01067 Dresden",
   "tags": ["tag1", "tag2"]
 }
 ```
+
+### API DTO (REST API Layer)
+```json
+{
+  "href": "/zdi-geo-service/api/poi/{id}",
+  "name": "POI Name",
+  "category": "restaurant|pharmacy|parking|etc",
+  "location": {
+    "type": "Point",
+    "coordinates": [13.7373, 51.0504],
+    "longitude": 13.7373,
+    "latitude": 51.0504
+  },
+  "details": "Street 123, 01067 Dresden",
+  "tags": ["tag1", "tag2"]
+}
+```
+
+**Architecture:**
+- **Entity classes** (`Models/Entities/`): BSON attributes for MongoDB persistence
+- **DTO classes** (`Models/DTOs/`): JSON attributes and validation for REST API
+- **Mapper** (`Mappers/`): Bidirectional conversion (Entity ↔ DTO)
 
 ## 🔧 Configuration
 
@@ -223,19 +246,25 @@ curl -X POST http://localhost:8080/zdi-geo-service/api/poi \
 
 ```
 DotNetMongoDbBackend/
-├── Controllers/         # API Controllers
-├── Services/           # Business Logic Layer
-├── Models/             # Data Models & DTOs
+├── Controllers/         # API Controllers (use DTOs)
+├── Services/           # Business Logic Layer (use Entities)
+├── Mappers/            # Entity ↔ DTO Conversion
+├── Models/
+│   ├── Entities/       # MongoDB persistence models (BSON attributes)
+│   └── DTOs/           # API data transfer objects (JSON attributes, validation)
+├── Configurations/     # Configuration classes
 ├── Program.cs          # Application Configuration
 └── appsettings.json    # Configuration
 ```
 
 ### Design Patterns
+- **Clean Architecture** - Entity/DTO separation with Mapper layer
 - **Repository Pattern** - Implemented in Service Layer
 - **Dependency Injection** - Native .NET DI
 - **Async Pattern** - Task-based asynchronous operations
 - **Builder Pattern** - MongoDB Filter Building
 - **Option Pattern** - Configuration Management
+- **Mapper Pattern** - Static methods for Entity ↔ DTO conversion
 
 ## 🔗 Integration
 
@@ -313,8 +342,13 @@ dotnet run --launch-profile https
 
 ### Modern C# Features used
 ```csharp
-// Records for DTOs
-public record PoiDto(string Name, string Category, Location Location);
+// Entity/DTO Separation with Mapper
+public static class PointOfInterestMapper
+{
+    public static PointOfInterestDto ToDto(PointOfInterestEntity entity) { /*...*/ }
+    public static PointOfInterestEntity ToEntity(PointOfInterestDto dto) { /*...*/ }
+    public static List<PointOfInterestDto> ToDtoList(List<PointOfInterestEntity> entities) { /*...*/ }
+}
 
 // Pattern Matching
 return poi switch
@@ -324,27 +358,37 @@ return poi switch
 };
 
 // Nullable Reference Types
-public string? Address { get; set; }
+public string? Details { get; set; }
 
 // Local Functions
 double CalculateDistance() => location.DistanceTo(other);
+
+// Init-only properties in DTOs
+public class PointOfInterestDto
+{
+    [Required] public string Category { get; init; } = string.Empty;
+    public LocationDto? Location { get; init; }
+}
 ```
 
 ### MongoDB.Driver Advanced Features
 ```csharp
-// Fluent Filter Building
-var filter = Builders<PointOfInterest>.Filter.And(
-    Builders<PointOfInterest>.Filter.Eq(p => p.Category, category),
-    Builders<PointOfInterest>.Filter.Near(p => p.Location, lng, lat, radius)
+// Fluent Filter Building with Entity types
+var filter = Builders<PointOfInterestEntity>.Filter.And(
+    Builders<PointOfInterestEntity>.Filter.Eq(p => p.Category, category),
+    Builders<PointOfInterestEntity>.Filter.Near(p => p.Location, lng, lat, radius)
 );
 
-// Aggregation Pipeline
-var pipeline = new BsonDocument[]
+// Service Layer uses Entities
+public async Task<List<PointOfInterestEntity>> GetAllPoisAsync()
 {
-    new("$match", new BsonDocument("category", category)),
-    new("$group", new BsonDocument("_id", "$category")
-        .Add("count", new BsonDocument("$sum", 1)))
-};
+    return await _collection.Find(FilterDefinition<PointOfInterestEntity>.Empty).ToListAsync();
+}
+
+// Controller Layer uses DTOs with Mapper
+var entities = await _poiService.GetAllPoisAsync();
+var dtos = PointOfInterestMapper.ToDtoList(entities);
+return Ok(dtos);
 ```
 
 ## 🐳 Docker Support

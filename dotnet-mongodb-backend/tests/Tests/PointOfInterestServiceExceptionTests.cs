@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using DotNetMongoDbBackend.Configurations;
-using DotNetMongoDbBackend.Models;
+using DotNetMongoDbBackend.Models.Entities;
 using DotNetMongoDbBackend.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -20,7 +20,7 @@ namespace DotNetMongoDbBackend.Tests.Tests;
 public class PointOfInterestServiceExceptionTests
 {
     private readonly Mock<IMongoDatabase> _mockDatabase;
-    private readonly Mock<IMongoCollection<PointOfInterest>> _mockCollection;
+    private readonly Mock<IMongoCollection<PointOfInterestEntity>> _mockCollection;
     private readonly Mock<IOptions<MongoSettings>> _mockSettings;
     private readonly Mock<ILogger<PointOfInterestService>> _mockLogger;
     private readonly PointOfInterestService _service;
@@ -28,7 +28,7 @@ public class PointOfInterestServiceExceptionTests
     public PointOfInterestServiceExceptionTests()
     {
         _mockDatabase = new Mock<IMongoDatabase>();
-        _mockCollection = new Mock<IMongoCollection<PointOfInterest>>();
+        _mockCollection = new Mock<IMongoCollection<PointOfInterestEntity>>();
         _mockSettings = new Mock<IOptions<MongoSettings>>();
         _mockLogger = new Mock<ILogger<PointOfInterestService>>();
 
@@ -45,7 +45,7 @@ public class PointOfInterestServiceExceptionTests
         _mockSettings.Setup(s => s.Value).Returns(settings);
 
         // Setup database to return mock collection
-        _mockDatabase.Setup(d => d.GetCollection<PointOfInterest>(It.IsAny<string>(), null))
+        _mockDatabase.Setup(d => d.GetCollection<PointOfInterestEntity>(It.IsAny<string>(), null))
             .Returns(_mockCollection.Object);
 
         // Setup database namespace
@@ -54,13 +54,13 @@ public class PointOfInterestServiceExceptionTests
 
         // Mock CountDocuments for initialization
         _mockCollection.Setup(c => c.CountDocuments(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
             null,
             default))
             .Returns(0);
 
         // Mock indexes for initialization
-        var mockIndexManager = new Mock<IMongoIndexManager<PointOfInterest>>();
+        var mockIndexManager = new Mock<IMongoIndexManager<PointOfInterestEntity>>();
         _mockCollection.Setup(c => c.Indexes).Returns(mockIndexManager.Object);
 
         _service = new PointOfInterestService(_mockDatabase.Object, _mockSettings.Object, _mockLogger.Object);
@@ -72,13 +72,13 @@ public class PointOfInterestServiceExceptionTests
     public async Task GetAllPoisAsync_WithDatabaseException_ThrowsException()
     {
         // Arrange
-        var mockCursor = new Mock<IAsyncCursor<PointOfInterest>>();
+        var mockCursor = new Mock<IAsyncCursor<PointOfInterestEntity>>();
         mockCursor.Setup(c => c.MoveNextAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new MongoException("Database connection lost"));
 
         _mockCollection.Setup(c => c.FindAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
-            It.IsAny<FindOptions<PointOfInterest, PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
+            It.IsAny<FindOptions<PointOfInterestEntity, PointOfInterestEntity>>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockCursor.Object);
 
@@ -96,13 +96,13 @@ public class PointOfInterestServiceExceptionTests
         // Arrange
         var validId = MongoDB.Bson.ObjectId.GenerateNewId().ToString();
         
-        var mockCursor = new Mock<IAsyncCursor<PointOfInterest>>();
+        var mockCursor = new Mock<IAsyncCursor<PointOfInterestEntity>>();
         mockCursor.Setup(c => c.MoveNextAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new MongoException("Database error"));
 
         _mockCollection.Setup(c => c.FindAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
-            It.IsAny<FindOptions<PointOfInterest, PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
+            It.IsAny<FindOptions<PointOfInterestEntity, PointOfInterestEntity>>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockCursor.Object);
 
@@ -118,13 +118,13 @@ public class PointOfInterestServiceExceptionTests
     public async Task GetPoisByCategoryAsync_WithDatabaseException_ThrowsException()
     {
         // Arrange
-        var mockCursor = new Mock<IAsyncCursor<PointOfInterest>>();
+        var mockCursor = new Mock<IAsyncCursor<PointOfInterestEntity>>();
         mockCursor.Setup(c => c.MoveNextAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new MongoException("Database error"));
 
         _mockCollection.Setup(c => c.FindAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
-            It.IsAny<FindOptions<PointOfInterest, PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
+            It.IsAny<FindOptions<PointOfInterestEntity, PointOfInterestEntity>>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockCursor.Object);
 
@@ -140,13 +140,13 @@ public class PointOfInterestServiceExceptionTests
     public async Task SearchPoisAsync_WithDatabaseException_ThrowsException()
     {
         // Arrange
-        var mockCursor = new Mock<IAsyncCursor<PointOfInterest>>();
+        var mockCursor = new Mock<IAsyncCursor<PointOfInterestEntity>>();
         mockCursor.Setup(c => c.MoveNextAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new MongoException("Database error"));
 
         _mockCollection.Setup(c => c.FindAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
-            It.IsAny<FindOptions<PointOfInterest, PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
+            It.IsAny<FindOptions<PointOfInterestEntity, PointOfInterestEntity>>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockCursor.Object);
 
@@ -162,13 +162,13 @@ public class PointOfInterestServiceExceptionTests
     public async Task GetNearbyPoisAsync_WithDatabaseException_ThrowsException()
     {
         // Arrange
-        var mockCursor = new Mock<IAsyncCursor<PointOfInterest>>();
+        var mockCursor = new Mock<IAsyncCursor<PointOfInterestEntity>>();
         mockCursor.Setup(c => c.MoveNextAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new MongoException("Database error"));
 
         _mockCollection.Setup(c => c.FindAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
-            It.IsAny<FindOptions<PointOfInterest, PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
+            It.IsAny<FindOptions<PointOfInterestEntity, PointOfInterestEntity>>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockCursor.Object);
 
@@ -186,13 +186,13 @@ public class PointOfInterestServiceExceptionTests
     {
         // Arrange
         var categories = new List<string> { "restaurant", "museum" };
-        var mockCursor = new Mock<IAsyncCursor<PointOfInterest>>();
+        var mockCursor = new Mock<IAsyncCursor<PointOfInterestEntity>>();
         mockCursor.Setup(c => c.MoveNextAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new MongoException("Database error"));
 
         _mockCollection.Setup(c => c.FindAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
-            It.IsAny<FindOptions<PointOfInterest, PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
+            It.IsAny<FindOptions<PointOfInterestEntity, PointOfInterestEntity>>(),
             It.IsAny<CancellationToken>()))
             .ReturnsAsync(mockCursor.Object);
 
@@ -209,15 +209,14 @@ public class PointOfInterestServiceExceptionTests
     public async Task CreatePoiAsync_WithDatabaseException_ThrowsException()
     {
         // Arrange
-        var poi = new PointOfInterest
-        {
+        var poi = new PointOfInterestEntity {
             Category = "restaurant",
             Details = "Test Restaurant",
-            Location = new Location(13.7373, 51.0504)
+            Location = new LocationEntity { Type = "Point", Coordinates = [13.7373, 51.0504] }
         };
 
         _mockCollection.Setup(c => c.InsertOneAsync(
-            It.IsAny<PointOfInterest>(),
+            It.IsAny<PointOfInterestEntity>(),
             null,
             default))
             .ThrowsAsync(new MongoException("Database error"));
@@ -235,16 +234,15 @@ public class PointOfInterestServiceExceptionTests
     {
         // Arrange
         var validId = MongoDB.Bson.ObjectId.GenerateNewId().ToString();
-        var poi = new PointOfInterest
-        {
+        var poi = new PointOfInterestEntity {
             Category = "museum",
             Details = "Updated Museum",
-            Location = new Location(13.7373, 51.0504)
+            Location = new LocationEntity { Type = "Point", Coordinates = [13.7373, 51.0504] }
         };
 
         _mockCollection.Setup(c => c.ReplaceOneAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
-            It.IsAny<PointOfInterest>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
+            It.IsAny<PointOfInterestEntity>(),
             It.IsAny<ReplaceOptions>(),
             default))
             .ThrowsAsync(new MongoException("Database error"));
@@ -264,7 +262,7 @@ public class PointOfInterestServiceExceptionTests
         var validId = MongoDB.Bson.ObjectId.GenerateNewId().ToString();
 
         _mockCollection.Setup(c => c.DeleteOneAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
             default))
             .ThrowsAsync(new MongoException("Database error"));
 
@@ -281,7 +279,7 @@ public class PointOfInterestServiceExceptionTests
     {
         // Arrange
         _mockCollection.Setup(c => c.CountDocumentsAsync(
-            It.IsAny<FilterDefinition<PointOfInterest>>(),
+            It.IsAny<FilterDefinition<PointOfInterestEntity>>(),
             null,
             default))
             .ThrowsAsync(new MongoException("Database error"));
@@ -292,3 +290,4 @@ public class PointOfInterestServiceExceptionTests
 
     #endregion
 }
+

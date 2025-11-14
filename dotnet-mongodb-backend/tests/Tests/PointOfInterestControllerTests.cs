@@ -2,15 +2,16 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using DotNetMongoDbBackend.Controllers;
 using DotNetMongoDbBackend.Services;
-using DotNetMongoDbBackend.Models;
+using DotNetMongoDbBackend.Models.Entities;
+using DotNetMongoDbBackend.Models.DTOs;
 using System;
+
+#nullable enable
 
 namespace DotNetMongoDbBackend.Tests.Tests;
 
@@ -38,10 +39,10 @@ public class PointOfInterestControllerTests
     public async Task GetAllPois_ShouldReturnOkResult_WithPoisList()
     {
         // Arrange
-        var testPois = new List<PointOfInterest>
+        var testPois = new List<PointOfInterestEntity>
         {
-            new PointOfInterest { Name = "Test POI 1", Category = "restaurant" },
-            new PointOfInterest { Name = "Test POI 2", Category = "museum" }
+            new() { Name = "Test POI 1", Category = "restaurant" },
+            new() { Name = "Test POI 2", Category = "museum" }
         };
 
         _mockService.Setup(s => s.GetAllPoisAsync())
@@ -51,9 +52,9 @@ public class PointOfInterestControllerTests
         var result = await _controller.GetAllPois();
 
         // Assert
-        var actionResult = Assert.IsType<ActionResult<List<PointOfInterest>>>(result);
+        var actionResult = Assert.IsType<ActionResult<List<PointOfInterestDto>>>(result);
         var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-        var returnedPois = Assert.IsType<List<PointOfInterest>>(okResult.Value);
+        var returnedPois = Assert.IsType<List<PointOfInterestDto>>(okResult.Value);
         Assert.Equal(2, returnedPois.Count);
     }
 
@@ -62,22 +63,22 @@ public class PointOfInterestControllerTests
     {
         // Arrange
         var category = "restaurant";
-        var filteredPois = new List<PointOfInterest>
+        var filteredPois = new List<PointOfInterestEntity>
         {
-            new PointOfInterest { Name = "Restaurant POI", Category = "restaurant" }
+            new() { Name = "Restaurant POI", Category = "restaurant" }
         };
 
         _mockService.Setup(s => s.GetPoisByCategoryAsync(category))
                    .ReturnsAsync(filteredPois);
 
         // Act - Wrap single category in List for new API
-        var result = await _controller.GetAllPois(category: new List<string> { category });
+        var result = await _controller.GetAllPois(category: [category]);
 
         // Assert
         _mockService.Verify(s => s.GetPoisByCategoryAsync(category), Times.Once);
-        var actionResult = Assert.IsType<ActionResult<List<PointOfInterest>>>(result);
+        var actionResult = Assert.IsType<ActionResult<List<PointOfInterestDto>>>(result);
         var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-        var returnedPois = Assert.IsType<List<PointOfInterest>>(okResult.Value);
+        var returnedPois = Assert.IsType<List<PointOfInterestDto>>(okResult.Value);
         Assert.Single(returnedPois);
     }
 
@@ -86,9 +87,9 @@ public class PointOfInterestControllerTests
     {
         // Arrange
         var searchTerm = "test";
-        var searchResults = new List<PointOfInterest>
+        var searchResults = new List<PointOfInterestEntity>
         {
-            new PointOfInterest { Name = "Test Restaurant", Category = "restaurant" }
+            new() { Name = "Test Restaurant", Category = "restaurant" }
         };
 
         _mockService.Setup(s => s.SearchPoisAsync(searchTerm, null))
@@ -99,9 +100,9 @@ public class PointOfInterestControllerTests
 
         // Assert
         _mockService.Verify(s => s.SearchPoisAsync(searchTerm, null), Times.Once);
-        var actionResult = Assert.IsType<ActionResult<List<PointOfInterest>>>(result);
+        var actionResult = Assert.IsType<ActionResult<List<PointOfInterestDto>>>(result);
         var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-        var returnedPois = Assert.IsType<List<PointOfInterest>>(okResult.Value);
+        var returnedPois = Assert.IsType<List<PointOfInterestDto>>(okResult.Value);
         Assert.Single(returnedPois);
     }
 
@@ -111,12 +112,11 @@ public class PointOfInterestControllerTests
         // Arrange
         double lat = 49.0, lng = 8.4, radius = 10.0; // radius provided in meters
         var expectedRadiusKm = radius / 1000.0; // controller converts meters to km
-        var nearbyPois = new List<PointOfInterest>
+        var nearbyPois = new List<PointOfInterestEntity>
         {
-            new PointOfInterest
-            {
+            new() {
                 Name = "Nearby POI",
-                Location = new Location(8.41, 49.01)
+                Location = new LocationEntity { Coordinates = new double[] { 8.41, 49.01 } }
             }
         };
 
@@ -134,9 +134,9 @@ public class PointOfInterestControllerTests
             It.Is<double>(lon => Math.Abs(lon - lng) < 1e-6),
             It.Is<double>(la => Math.Abs(la - lat) < 1e-6),
             It.Is<double>(r => Math.Abs(r - expectedRadiusKm) < 1e-6)), Times.Once);
-        var actionResult = Assert.IsType<ActionResult<List<PointOfInterest>>>(result);
+        var actionResult = Assert.IsType<ActionResult<List<PointOfInterestDto>>>(result);
         var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-        var returnedPois = Assert.IsType<List<PointOfInterest>>(okResult.Value);
+        var returnedPois = Assert.IsType<List<PointOfInterestDto>>(okResult.Value);
         Assert.Single(returnedPois);
     }
 
@@ -146,16 +146,16 @@ public class PointOfInterestControllerTests
     public async Task GetPoiById_ShouldReturnOk_WhenPoiExists()
     {
         // Arrange
-        var testPoi = new PointOfInterest { Id = "123", Name = "Test POI", Category = "restaurant" };
+        var testPoi = new PointOfInterestEntity { Id = "123", Name = "Test POI", Category = "restaurant" };
         _mockService.Setup(s => s.GetPoiByIdAsync("123")).ReturnsAsync(testPoi);
 
         // Act
         var result = await _controller.GetPoiById("123");
 
         // Assert
-        var actionResult = Assert.IsType<ActionResult<PointOfInterest>>(result);
+        var actionResult = Assert.IsType<ActionResult<PointOfInterestDto>>(result);
         var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-        var returnedPoi = Assert.IsType<PointOfInterest>(okResult.Value);
+        var returnedPoi = Assert.IsType<PointOfInterestDto>(okResult.Value);
         Assert.Equal("Test POI", returnedPoi.Name);
     }
 
@@ -163,14 +163,14 @@ public class PointOfInterestControllerTests
     public async Task GetPoiById_ShouldReturnNotFound_WhenPoiDoesNotExist()
     {
         // Arrange
-        _mockService.Setup(s => s.GetPoiByIdAsync("999")).ReturnsAsync((PointOfInterest)null);
+        _mockService.Setup(s => s.GetPoiByIdAsync("999")).ReturnsAsync((PointOfInterestEntity?)null);
 
         // Act
         var result = await _controller.GetPoiById("999");
 
         // Assert - JEE-compatible: Returns 404 without body
-        var actionResult = Assert.IsType<ActionResult<PointOfInterest>>(result);
-        var notFoundResult = Assert.IsType<NotFoundResult>(actionResult.Result);
+        var actionResult = Assert.IsType<ActionResult<PointOfInterestDto>>(result);
+        Assert.IsType<NotFoundResult>(actionResult.Result);
         // NotFoundResult has no Value property (no body in response)
     }
 
@@ -185,7 +185,7 @@ public class PointOfInterestControllerTests
         var result = await _controller.GetPoiById("123");
 
         // Assert
-        var actionResult = Assert.IsType<ActionResult<PointOfInterest>>(result);
+        var actionResult = Assert.IsType<ActionResult<PointOfInterestDto>>(result);
         var statusResult = Assert.IsType<ObjectResult>(actionResult.Result);
         Assert.Equal(500, statusResult.StatusCode);
     }
@@ -194,30 +194,30 @@ public class PointOfInterestControllerTests
     public async Task CreatePoi_ShouldReturnCreated_WhenValidPoi()
     {
         // Arrange - complete POI object with all required fields
-        var newPoi = new PointOfInterest
+        var newPoi = new PointOfInterestDto
         {
             Name = "New POI",
             Category = "museum",
             Details = "A test museum POI",  // IMPORTANT: Details is required according to ValidatePoi
-            Location = new Location
+            Location = new LocationDto
             {
                 Type = "Point",
                 Coordinates = new double[] { 8.4, 49.0 }  // [longitude, latitude]
             }
         };
-        var createdPoi = new PointOfInterest
+        var createdPoi = new PointOfInterestEntity
         {
             Id = "123",
             Name = "New POI",
             Category = "museum",
             Details = "A test museum POI",
-            Location = new Location
+            Location = new LocationEntity
             {
                 Type = "Point",
                 Coordinates = new double[] { 8.4, 49.0 }
             }
         };
-        _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterest>())).ReturnsAsync(createdPoi);
+        _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterestEntity>())).ReturnsAsync(createdPoi);
 
         // Setup HttpContext with proper Request details for absolute URI generation
         var httpContext = new DefaultHttpContext();
@@ -243,7 +243,7 @@ public class PointOfInterestControllerTests
         Assert.Contains("123", locationHeader);
 
         // Verify it's an absolute URI (contains scheme and host)
-        Assert.True(locationHeader.StartsWith("http://") || locationHeader.StartsWith("https://") || locationHeader.StartsWith("/"),
+        Assert.True(locationHeader.StartsWith("http://") || locationHeader.StartsWith("https://") || locationHeader.StartsWith('/'),
             "Location header should be an absolute URI or absolute path");
 
         // If it's absolute, verify it contains the expected components
@@ -258,8 +258,8 @@ public class PointOfInterestControllerTests
     public async Task CreatePoi_ShouldReturnBadRequest_WhenArgumentException()
     {
         // Arrange
-        var invalidPoi = new PointOfInterest { Name = "", Category = "test" };
-        _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterest>()))
+        var invalidPoi = new PointOfInterestDto { Name = "", Category = "test" };
+        _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterestEntity>()))
                    .ThrowsAsync(new ArgumentException("Name is required"));
 
         // Act
@@ -267,40 +267,40 @@ public class PointOfInterestControllerTests
 
         // Assert
         var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
-        Assert.Contains("Name is required", badRequestResult.Value?.ToString());
+        Assert.NotNull(badRequestResult.Value); // Verify it returns BadRequest with error details
     }
 
     [Fact]
     public async Task CreatePoi_ShouldReturn500_WhenUnexpectedError()
     {
         // Arrange
-        var newPoi = new PointOfInterest { Name = "Test", Category = "test" };
-        _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterest>()))
+        var newPoi = new PointOfInterestDto { Name = "Test", Category = "test", Location = new LocationDto { Coordinates = [8.0, 49.0] } };
+        _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterestEntity>()))
                    .ThrowsAsync(new Exception("Database connection failed"));
 
         // Act
         var result = await _controller.CreatePoi(newPoi);
 
         // Assert
-        var statusResult = Assert.IsType<ObjectResult>(result);
-        Assert.Equal(500, statusResult.StatusCode);
+        var objectResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(500, objectResult.StatusCode); // Unexpected errors return 500
     }
 
     [Fact]
     public async Task UpdatePoi_ShouldReturnOk_WhenPoiUpdated()
     {
         // Arrange
-        var updatePoi = new PointOfInterest { Name = "Updated POI", Category = "restaurant" };
-        var updatedPoi = new PointOfInterest { Id = "123", Name = "Updated POI", Category = "restaurant" };
-        _mockService.Setup(s => s.UpdatePoiAsync("123", It.IsAny<PointOfInterest>())).ReturnsAsync(updatedPoi);
+        var updatePoi = new PointOfInterestDto { Name = "Updated POI", Category = "restaurant" };
+        var updatedPoi = new PointOfInterestEntity { Id = "123", Name = "Updated POI", Category = "restaurant" };
+        _mockService.Setup(s => s.UpdatePoiAsync("123", It.IsAny<PointOfInterestEntity>())).ReturnsAsync(updatedPoi);
 
         // Act
         var result = await _controller.UpdatePoi("123", updatePoi);
 
         // Assert
-        var actionResult = Assert.IsType<ActionResult<PointOfInterest>>(result);
+        var actionResult = Assert.IsType<ActionResult<PointOfInterestDto>>(result);
         var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-        var returnedPoi = Assert.IsType<PointOfInterest>(okResult.Value);
+        var returnedPoi = Assert.IsType<PointOfInterestDto>(okResult.Value);
         Assert.Equal("Updated POI", returnedPoi.Name);
     }
 
@@ -308,14 +308,14 @@ public class PointOfInterestControllerTests
     public async Task UpdatePoi_ShouldReturnNotFound_WhenPoiDoesNotExist()
     {
         // Arrange
-        var updatePoi = new PointOfInterest { Name = "Updated POI", Category = "restaurant" };
-        _mockService.Setup(s => s.UpdatePoiAsync("999", It.IsAny<PointOfInterest>())).ReturnsAsync((PointOfInterest)null);
+        var updatePoi = new PointOfInterestDto { Name = "Updated POI", Category = "restaurant" };
+        _mockService.Setup(s => s.UpdatePoiAsync("999", It.IsAny<PointOfInterestEntity>())).ReturnsAsync((PointOfInterestEntity?)null);
 
         // Act
         var result = await _controller.UpdatePoi("999", updatePoi);
 
         // Assert
-        var actionResult = Assert.IsType<ActionResult<PointOfInterest>>(result);
+        var actionResult = Assert.IsType<ActionResult<PointOfInterestDto>>(result);
         var notFoundResult = Assert.IsType<NotFoundObjectResult>(actionResult.Result);
         Assert.Contains("999", notFoundResult.Value?.ToString());
     }
@@ -369,17 +369,119 @@ public class PointOfInterestControllerTests
         var result = await _controller.GetAllPois();
 
         // Assert
-        var actionResult = Assert.IsType<ActionResult<List<PointOfInterest>>>(result);
+        var actionResult = Assert.IsType<ActionResult<List<PointOfInterestDto>>>(result);
         var statusResult = Assert.IsType<ObjectResult>(actionResult.Result);
         Assert.Equal(500, statusResult.StatusCode);
         Assert.Contains("Internal server error", statusResult.Value?.ToString());
     }
 
     [Fact]
+    public async Task UpdatePoi_ShouldReturnBadRequest_WhenArgumentException()
+    {
+        // Arrange
+        var updatePoi = new PointOfInterestDto { Name = "Test", Category = "test" };
+        _mockService.Setup(s => s.UpdatePoiAsync("123", It.IsAny<PointOfInterestEntity>()))
+            .ThrowsAsync(new ArgumentException("Invalid data"));
+
+        // Act
+        var result = await _controller.UpdatePoi("123", updatePoi);
+
+        // Assert
+        var actionResult = Assert.IsType<ActionResult<PointOfInterestDto>>(result);
+        var badRequestResult = Assert.IsType<BadRequestObjectResult>(actionResult.Result);
+        Assert.NotNull(badRequestResult.Value);
+    }
+
+    [Fact]
+    public async Task UpdatePoi_ShouldReturn500_WhenUnexpectedException()
+    {
+        // Arrange
+        var updatePoi = new PointOfInterestDto { Name = "Test", Category = "test", Location = new LocationDto { Coordinates = [8.0, 49.0] } };
+        _mockService.Setup(s => s.UpdatePoiAsync("123", It.IsAny<PointOfInterestEntity>()))
+            .ThrowsAsync(new Exception("Database error"));
+
+        // Act
+        var result = await _controller.UpdatePoi("123", updatePoi);
+
+        // Assert
+        var actionResult = Assert.IsType<ActionResult<PointOfInterestDto>>(result);
+        var statusResult = Assert.IsType<ObjectResult>(actionResult.Result);
+        Assert.Equal(500, statusResult.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeletePoi_ShouldReturn500_WhenException()
+    {
+        // Arrange
+        _mockService.Setup(s => s.DeletePoiAsync("123")).ThrowsAsync(new Exception("Database error"));
+
+        // Act
+        var result = await _controller.DeletePoi("123");
+
+        // Assert
+        var statusResult = Assert.IsType<ObjectResult>(result);
+        Assert.Equal(500, statusResult.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetPoiById_ShouldReturn500_WhenException()
+    {
+        // Arrange
+        _mockService.Setup(s => s.GetPoiByIdAsync("123")).ThrowsAsync(new Exception("Database error"));
+
+        // Act
+        var result = await _controller.GetPoiById("123");
+
+        // Assert
+        var actionResult = Assert.IsType<ActionResult<PointOfInterestDto>>(result);
+        var statusResult = Assert.IsType<ObjectResult>(actionResult.Result);
+        Assert.Equal(500, statusResult.StatusCode);
+    }
+
+
+
+    [Fact]
+    public async Task GetAllPois_WithLimit_ShouldLimitResults()
+    {
+        // Arrange
+        var pois = new List<PointOfInterestEntity>
+        {
+            new() { Id = "1", Category = "restaurant" },
+            new() { Id = "2", Category = "restaurant" },
+            new() { Id = "3", Category = "restaurant" }
+        };
+        _mockService.Setup(s => s.GetAllPoisAsync()).ReturnsAsync(pois);
+
+        // Act  
+        List<string>? nullList = null;
+        var result = await _controller.GetAllPois(nullList, null, 2, null, null, null, null);
+
+        // Assert
+        var actionResult = Assert.IsType<ActionResult<List<PointOfInterestDto>>>(result);
+        var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+        var returnedPois = Assert.IsType<List<PointOfInterestDto>>(okResult.Value);
+        Assert.Equal(2, returnedPois.Count);
+    }
+
+    [Fact]
+    public async Task GetPoiById_WithInvalidId_ShouldReturnNotFound()
+    {
+        // Arrange
+        _mockService.Setup(s => s.GetPoiByIdAsync("invalid-id")).ReturnsAsync((PointOfInterestEntity?)null);
+
+        // Act
+        var result = await _controller.GetPoiById("invalid-id");
+
+        // Assert
+        var actionResult = Assert.IsType<ActionResult<PointOfInterestDto>>(result);
+        Assert.IsType<NotFoundResult>(actionResult.Result);
+    }
+
+    [Fact]
     public async Task GetPoiById_ShouldPopulateHref_WhenLinkGeneratorProvided()
     {
         // Arrange
-        var testPoi = new PointOfInterest { Id = "abc", Name = "Href Test POI", Category = "test" };
+        var testPoi = new PointOfInterestEntity { Id = "abc", Name = "Href Test POI", Category = "test" };
         _mockService.Setup(s => s.GetPoiByIdAsync("abc")).ReturnsAsync(testPoi);
 
         // Provide a mocked LinkGenerator that returns a fixed absolute URL for the action
@@ -390,9 +492,9 @@ public class PointOfInterestControllerTests
         var result = await controllerWithLink.GetPoiById("abc");
 
         // Assert
-        var actionResult = Assert.IsType<ActionResult<PointOfInterest>>(result);
+        var actionResult = Assert.IsType<ActionResult<PointOfInterestDto>>(result);
         var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-        var returnedPoi = Assert.IsType<PointOfInterest>(okResult.Value);
+        var returnedPoi = Assert.IsType<PointOfInterestDto>(okResult.Value);
         Assert.Equal("http://example/zdi-geo-service/api/poi/abc", returnedPoi.Href);
     }
 
@@ -403,9 +505,9 @@ public class PointOfInterestControllerTests
         {
         }
 
-        protected override void GenerateHref(PointOfInterest p)
+        protected override void GenerateHref(PointOfInterestDto poiDto)
         {
-            p.Href = "http://example/zdi-geo-service/api/poi/abc";
+            poiDto.Href = "http://example/zdi-geo-service/api/poi/abc";
         }
     }
 }

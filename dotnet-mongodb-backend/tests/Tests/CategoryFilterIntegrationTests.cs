@@ -1,5 +1,4 @@
 using DotNetMongoDbBackend.Controllers;
-using DotNetMongoDbBackend.Models;
 using DotNetMongoDbBackend.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -8,6 +7,8 @@ using Moq;
 using Xunit;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using DotNetMongoDbBackend.Models.Entities;
+using DotNetMongoDbBackend.Models.DTOs;
 
 namespace DotNetMongoDbBackend.Tests;
 
@@ -43,11 +44,11 @@ public class CategoryFilterIntegrationTests
         var radius = 2000.0; // meters
         var categories = new List<string> { "restaurant", "cafe", "museum" };
         
-        var expectedPois = new List<PointOfInterest>
+        var expectedPois = new List<PointOfInterestEntity>
         {
-            new PointOfInterest { Id = "1", Category = "restaurant", Details = "Test Restaurant" },
-            new PointOfInterest { Id = "2", Category = "cafe", Details = "Test Cafe" },
-            new PointOfInterest { Id = "3", Category = "museum", Details = "Test Museum" }
+            new() { Id = "1", Category = "restaurant", Details = "Test Restaurant" },
+            new() { Id = "2", Category = "cafe", Details = "Test Cafe" },
+            new() { Id = "3", Category = "museum", Details = "Test Museum" }
         };
 
         _mockService.Setup(s => s.GetNearbyPoisByCategoriesAsync(
@@ -65,9 +66,9 @@ public class CategoryFilterIntegrationTests
         _mockService.Verify(s => s.GetNearbyPoisByCategoriesAsync(
             lon, lat, radius / 1000.0, categories), Times.Once);
         
-        var actionResult = Assert.IsType<ActionResult<List<PointOfInterest>>>(result);
+        var actionResult = Assert.IsType<ActionResult<List<PointOfInterestDto>>>(result);
         var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-        var returnedPois = Assert.IsType<List<PointOfInterest>>(okResult.Value);
+        var returnedPois = Assert.IsType<List<PointOfInterestDto>>(okResult.Value);
         
         Assert.Equal(3, returnedPois.Count);
         Assert.Contains(returnedPois, p => p.Category == "restaurant");
@@ -83,11 +84,11 @@ public class CategoryFilterIntegrationTests
         var lon = 13.7373;
         var radius = 2000.0;
         
-        var expectedPois = new List<PointOfInterest>
+        var expectedPois = new List<PointOfInterestEntity>
         {
-            new PointOfInterest { Id = "1", Category = "restaurant" },
-            new PointOfInterest { Id = "2", Category = "museum" },
-            new PointOfInterest { Id = "3", Category = "park" }
+            new() { Id = "1", Category = "restaurant" },
+            new() { Id = "2", Category = "museum" },
+            new() { Id = "3", Category = "park" }
         };
 
         _mockService.Setup(s => s.GetNearbyPoisAsync(lon, lat, radius / 1000.0))
@@ -109,9 +110,9 @@ public class CategoryFilterIntegrationTests
             It.IsAny<double>(), It.IsAny<double>(), It.IsAny<double>(), It.IsAny<List<string>>()), 
             Times.Never);
         
-        var actionResult = Assert.IsType<ActionResult<List<PointOfInterest>>>(result);
+        var actionResult = Assert.IsType<ActionResult<List<PointOfInterestDto>>>(result);
         var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-        var returnedPois = Assert.IsType<List<PointOfInterest>>(okResult.Value);
+        var returnedPois = Assert.IsType<List<PointOfInterestDto>>(okResult.Value);
         
         Assert.Equal(3, returnedPois.Count);
     }
@@ -125,9 +126,9 @@ public class CategoryFilterIntegrationTests
         var radius = 2000.0;
         var emptyCategories = new List<string>(); // Empty list
         
-        var expectedPois = new List<PointOfInterest>
+        var expectedPois = new List<PointOfInterestEntity>
         {
-            new PointOfInterest { Id = "1", Category = "any" }
+            new() { Id = "1", Category = "any" }
         };
 
         _mockService.Setup(s => s.GetNearbyPoisAsync(lon, lat, radius / 1000.0))
@@ -154,9 +155,9 @@ public class CategoryFilterIntegrationTests
         var category = "restaurant";
         var categories = new List<string> { category };
         
-        var expectedPois = new List<PointOfInterest>
+        var expectedPois = new List<PointOfInterestEntity>
         {
-            new PointOfInterest { Id = "1", Category = "restaurant" }
+            new() { Id = "1", Category = "restaurant" }
         };
 
         _mockService.Setup(s => s.GetPoisByCategoryAsync(category))
@@ -168,9 +169,9 @@ public class CategoryFilterIntegrationTests
         // Assert - Should use old category filter method
         _mockService.Verify(s => s.GetPoisByCategoryAsync(category), Times.Once);
         
-        var actionResult = Assert.IsType<ActionResult<List<PointOfInterest>>>(result);
+        var actionResult = Assert.IsType<ActionResult<List<PointOfInterestDto>>>(result);
         var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-        var returnedPois = Assert.IsType<List<PointOfInterest>>(okResult.Value);
+        var returnedPois = Assert.IsType<List<PointOfInterestDto>>(okResult.Value);
         
         Assert.Single(returnedPois);
         Assert.Equal("restaurant", returnedPois[0].Category);
@@ -185,9 +186,9 @@ public class CategoryFilterIntegrationTests
         var radius = 2000.0;
         var categories = new List<string> { "Restaurant", "CAFE", "MuSeUm" };
         
-        var expectedPois = new List<PointOfInterest>
+        var expectedPois = new List<PointOfInterestEntity>
         {
-            new PointOfInterest { Id = "1", Category = "restaurant" }
+            new() { Id = "1", Category = "restaurant" }
         };
 
         _mockService.Setup(s => s.GetNearbyPoisByCategoriesAsync(

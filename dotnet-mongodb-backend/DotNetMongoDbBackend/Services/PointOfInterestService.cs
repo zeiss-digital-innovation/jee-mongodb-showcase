@@ -1,8 +1,8 @@
-using DotNetMongoDbBackend.Models;
 using DotNetMongoDbBackend.Configurations;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 using MongoDB.Bson;
+using DotNetMongoDbBackend.Models.Entities;
 
 namespace DotNetMongoDbBackend.Services;
 
@@ -12,14 +12,14 @@ namespace DotNetMongoDbBackend.Services;
 /// </summary>
 public class PointOfInterestService : IPointOfInterestService
 {
-    private readonly IMongoCollection<PointOfInterest> _poisCollection;
+    private readonly IMongoCollection<PointOfInterestEntity> _poisCollection;
     private readonly ILogger<PointOfInterestService> _logger;
 
     public PointOfInterestService(IMongoDatabase database, IOptions<MongoSettings> mongoSettings, ILogger<PointOfInterestService> logger)
     {
         // Use central configuration from MongoSettings
         var collectionName = mongoSettings.Value.Collections.Pois;
-        _poisCollection = database.GetCollection<PointOfInterest>(collectionName);
+        _poisCollection = database.GetCollection<PointOfInterestEntity>(collectionName);
         _logger = logger;
 
         _logger.LogInformation("PointOfInterestService initialized with Collection: {CollectionName}", collectionName);
@@ -28,7 +28,7 @@ public class PointOfInterestService : IPointOfInterestService
         // Test collection connection immediately
         try
         {
-            var testCount = _poisCollection.CountDocuments(FilterDefinition<PointOfInterest>.Empty);
+            var testCount = _poisCollection.CountDocuments(FilterDefinition<PointOfInterestEntity>.Empty);
             _logger.LogInformation("MongoDB test successful: {Count} documents found in Collection '{CollectionName}'", testCount, collectionName);
         }
         catch (Exception ex)
@@ -43,7 +43,7 @@ public class PointOfInterestService : IPointOfInterestService
     /// <summary>
     /// Get all POIs
     /// </summary>
-    public async Task<List<PointOfInterest>> GetAllPoisAsync()
+    public async Task<List<PointOfInterestEntity>> GetAllPoisAsync()
     {
         try
         {
@@ -59,7 +59,7 @@ public class PointOfInterestService : IPointOfInterestService
     /// <summary>
     /// Find POI by ID
     /// </summary>
-    public async Task<PointOfInterest?> GetPoiByIdAsync(string id)
+    public async Task<PointOfInterestEntity?> GetPoiByIdAsync(string id)
     {
         try
         {
@@ -80,11 +80,11 @@ public class PointOfInterestService : IPointOfInterestService
     /// <summary>
     /// Filter POIs by category
     /// </summary>
-    public async Task<List<PointOfInterest>> GetPoisByCategoryAsync(string category)
+    public async Task<List<PointOfInterestEntity>> GetPoisByCategoryAsync(string category)
     {
         try
         {
-            var filter = Builders<PointOfInterest>.Filter.Regex(
+            var filter = Builders<PointOfInterestEntity>.Filter.Regex(
                 p => p.Category,
                 new BsonRegularExpression(category, "i")
             );
@@ -101,7 +101,7 @@ public class PointOfInterestService : IPointOfInterestService
     /// <summary>
     /// Search POIs (Name, Tags)
     /// </summary>
-    public async Task<List<PointOfInterest>> SearchPoisAsync(string searchTerm, int? limit = null)
+    public async Task<List<PointOfInterestEntity>> SearchPoisAsync(string searchTerm, int? limit = null)
     {
         try
         {
@@ -110,17 +110,17 @@ public class PointOfInterestService : IPointOfInterestService
                 return await GetAllPoisAsync();
             }
 
-            var nameFilter = Builders<PointOfInterest>.Filter.Regex(
+            var nameFilter = Builders<PointOfInterestEntity>.Filter.Regex(
                 p => p.Name,
                 new BsonRegularExpression(searchTerm, "i")
             );
 
-            var tagsFilter = Builders<PointOfInterest>.Filter.AnyEq(
+            var tagsFilter = Builders<PointOfInterestEntity>.Filter.AnyEq(
                 p => p.Tags,
                 searchTerm
             );
 
-            var combinedFilter = Builders<PointOfInterest>.Filter.Or(nameFilter, tagsFilter);
+            var combinedFilter = Builders<PointOfInterestEntity>.Filter.Or(nameFilter, tagsFilter);
 
             var query = _poisCollection.Find(combinedFilter);
 
@@ -141,14 +141,14 @@ public class PointOfInterestService : IPointOfInterestService
     /// <summary>
     /// Find POIs near a geographic location
     /// </summary>
-    public async Task<List<PointOfInterest>> GetNearbyPoisAsync(double longitude, double latitude, double radiusInKm)
+    public async Task<List<PointOfInterestEntity>> GetNearbyPoisAsync(double longitude, double latitude, double radiusInKm)
     {
         try
         {
             // Use GeoWithin instead of Near for better 2dsphere index compatibility
             var radiusInRadians = radiusInKm / 6378.1; // Earth radius in km
 
-            var geoWithinFilter = Builders<PointOfInterest>.Filter.GeoWithinCenterSphere(
+            var geoWithinFilter = Builders<PointOfInterestEntity>.Filter.GeoWithinCenterSphere(
                 p => p.Location,
                 longitude,
                 latitude,
@@ -168,14 +168,14 @@ public class PointOfInterestService : IPointOfInterestService
     /// Find POIs near a geographic location filtered by multiple categories
     /// NEW: MongoDB-based category filtering with $in operator
     /// </summary>
-    public async Task<List<PointOfInterest>> GetNearbyPoisByCategoriesAsync(double longitude, double latitude, double radiusInKm, List<string> categories)
+    public async Task<List<PointOfInterestEntity>> GetNearbyPoisByCategoriesAsync(double longitude, double latitude, double radiusInKm, List<string> categories)
     {
         try
         {
             // Use GeoWithin for geographic search
             var radiusInRadians = radiusInKm / 6378.1; // Earth radius in km
 
-            var geoWithinFilter = Builders<PointOfInterest>.Filter.GeoWithinCenterSphere(
+            var geoWithinFilter = Builders<PointOfInterestEntity>.Filter.GeoWithinCenterSphere(
                 p => p.Location,
                 longitude,
                 latitude,
@@ -186,13 +186,13 @@ public class PointOfInterestService : IPointOfInterestService
             // Convert all categories to lowercase for consistent matching
             var normalizedCategories = categories.Select(c => c.ToLower()).ToList();
             
-            var categoryFilter = Builders<PointOfInterest>.Filter.In(
+            var categoryFilter = Builders<PointOfInterestEntity>.Filter.In(
                 p => p.Category,
                 normalizedCategories
             );
 
             // Combine both filters with AND
-            var combinedFilter = Builders<PointOfInterest>.Filter.And(geoWithinFilter, categoryFilter);
+            var combinedFilter = Builders<PointOfInterestEntity>.Filter.And(geoWithinFilter, categoryFilter);
 
             _logger.LogInformation(
                 "MongoDB Query: GeoWithin({Longitude}, {Latitude}, {RadiusKm}km) AND Category IN [{Categories}]",
@@ -211,7 +211,7 @@ public class PointOfInterestService : IPointOfInterestService
     /// <summary>
     /// Create POI
     /// </summary>
-    public async Task<PointOfInterest> CreatePoiAsync(PointOfInterest poi)
+    public async Task<PointOfInterestEntity> CreatePoiAsync(PointOfInterestEntity poi)
     {
         try
         {
@@ -219,7 +219,6 @@ public class PointOfInterestService : IPointOfInterestService
 
             // Clear client-provided fields that should be managed by backend
             poi.Id = null; // New ObjectId will be automatically generated
-            poi.Href = null; // Href is not stored in DB, will be generated on retrieval
             
             await _poisCollection.InsertOneAsync(poi);
 
@@ -236,7 +235,7 @@ public class PointOfInterestService : IPointOfInterestService
     /// <summary>
     /// Update POI
     /// </summary>
-    public async Task<PointOfInterest?> UpdatePoiAsync(string id, PointOfInterest poi)
+    public async Task<PointOfInterestEntity?> UpdatePoiAsync(string id, PointOfInterestEntity poi)
     {
         try
         {
@@ -302,7 +301,7 @@ public class PointOfInterestService : IPointOfInterestService
         try
         {
             var categories = await _poisCollection
-                .Distinct<string>("category", FilterDefinition<PointOfInterest>.Empty)
+                .Distinct<string>("category", FilterDefinition<PointOfInterestEntity>.Empty)
                 .ToListAsync();
 
             return categories.Where(c => !string.IsNullOrWhiteSpace(c))
@@ -323,7 +322,7 @@ public class PointOfInterestService : IPointOfInterestService
     {
         try
         {
-            var filter = Builders<PointOfInterest>.Filter.Regex(
+            var filter = Builders<PointOfInterestEntity>.Filter.Regex(
                 p => p.Category,
                 new BsonRegularExpression(category, "i")
             );
@@ -340,7 +339,7 @@ public class PointOfInterestService : IPointOfInterestService
     /// <summary>
     /// POI validation
     /// </summary>
-    private static void ValidatePoi(PointOfInterest poi)
+    private static void ValidatePoi(PointOfInterestEntity poi)
     {
         if (poi == null)
             throw new ArgumentNullException(nameof(poi), "POI must not be null.");
@@ -354,10 +353,10 @@ public class PointOfInterestService : IPointOfInterestService
         if (poi.Location == null)
             throw new ArgumentException("POI Location required.");
 
-        if (poi.Location.Latitude < -90 || poi.Location.Latitude > 90)
+        if (poi.Location.Coordinates[1] < -90 || poi.Location.Coordinates[1] > 90)
             throw new ArgumentException("Latitude must be between -90 and 90.");
 
-        if (poi.Location.Longitude < -180 || poi.Location.Longitude > 180)
+        if (poi.Location.Coordinates[0] < -180 || poi.Location.Coordinates[0] > 180)
             throw new ArgumentException("Longitude must be between -180 and 180.");
     }
 
@@ -369,16 +368,16 @@ public class PointOfInterestService : IPointOfInterestService
         try
         {
             // 2dsphere index for geographic searches
-            var locationIndex = Builders<PointOfInterest>.IndexKeys.Geo2DSphere(p => p.Location);
-            _poisCollection.Indexes.CreateOne(new CreateIndexModel<PointOfInterest>(locationIndex));
+            var locationIndex = Builders<PointOfInterestEntity>.IndexKeys.Geo2DSphere(p => p.Location);
+            _poisCollection.Indexes.CreateOne(new CreateIndexModel<PointOfInterestEntity>(locationIndex));
 
             // Text index for full-text search on name field
-            var textIndex = Builders<PointOfInterest>.IndexKeys.Text(p => p.Name);
-            _poisCollection.Indexes.CreateOne(new CreateIndexModel<PointOfInterest>(textIndex));
+            var textIndex = Builders<PointOfInterestEntity>.IndexKeys.Text(p => p.Name);
+            _poisCollection.Indexes.CreateOne(new CreateIndexModel<PointOfInterestEntity>(textIndex));
 
             // Index for category searches
-            var categoryIndex = Builders<PointOfInterest>.IndexKeys.Ascending(p => p.Category);
-            _poisCollection.Indexes.CreateOne(new CreateIndexModel<PointOfInterest>(categoryIndex));
+            var categoryIndex = Builders<PointOfInterestEntity>.IndexKeys.Ascending(p => p.Category);
+            _poisCollection.Indexes.CreateOne(new CreateIndexModel<PointOfInterestEntity>(categoryIndex));
 
             _logger.LogInformation("MongoDB indexes created successfully");
         }

@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 using Xunit;
 using DotNetMongoDbBackend.Controllers;
 using DotNetMongoDbBackend.Services;
-using DotNetMongoDbBackend.Models;
+using DotNetMongoDbBackend.Models.Entities;
+using DotNetMongoDbBackend.Models.DTOs;
 using System;
 using System.Collections.Generic;
 
@@ -34,33 +35,33 @@ public class PostOperationRfcComplianceTests
         // Arrange
         var controller = new PointOfInterestController(_mockService.Object, _mockLogger.Object);
 
-        var newPoi = new PointOfInterest
+        var newPoi = new PointOfInterestDto
         {
             Name = "Test POI",
             Category = "restaurant",
             Details = "Test Details",
-            Location = new Location
+            Location = new LocationDto
             {
                 Type = "Point",
-                Coordinates = new double[] { 13.7373, 51.0504 }
+                Coordinates = [13.7373, 51.0504]
             }
         };
 
-        var createdPoi = new PointOfInterest
+        var createdEntity = new PointOfInterestEntity
         {
             Id = "507f1f77bcf86cd799439011",
             Name = "Test POI",
             Category = "restaurant",
             Details = "Test Details",
-            Location = new Location
+            Location = new LocationEntity
             {
                 Type = "Point",
-                Coordinates = new double[] { 13.7373, 51.0504 }
+                Coordinates = [13.7373, 51.0504]
             }
         };
 
-        _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterest>()))
-                   .ReturnsAsync(createdPoi);
+        _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterestEntity>()))
+                   .ReturnsAsync(createdEntity);
 
         // Setup HttpContext to simulate real HTTP request
         var httpContext = new DefaultHttpContext();
@@ -91,12 +92,12 @@ public class PostOperationRfcComplianceTests
         Assert.NotEmpty(locationHeader);
 
         // 4. Verify Location header contains the created resource ID
-        Assert.Contains(createdPoi.Id, locationHeader);
+        Assert.Contains(createdEntity.Id, locationHeader);
 
         // 5. RFC 9110 allows both absolute and relative URIs
         // Prefer absolute URI for better interoperability (matching JEE implementation)
         Assert.True(
-            locationHeader.StartsWith("http://") || locationHeader.StartsWith("https://") || locationHeader.StartsWith("/"),
+            locationHeader.StartsWith("http://") || locationHeader.StartsWith("https://") || locationHeader.StartsWith('/'),
             $"Location header should be a URI-reference per RFC 9110. Got: {locationHeader}"
         );
 
@@ -106,7 +107,7 @@ public class PostOperationRfcComplianceTests
         {
             Assert.Contains("http://localhost:8080", locationHeader);
             Assert.Contains("/poi/", locationHeader);
-            Assert.EndsWith(createdPoi.Id, locationHeader);
+            Assert.EndsWith(createdEntity.Id, locationHeader);
         }
     }
 
@@ -116,33 +117,33 @@ public class PostOperationRfcComplianceTests
         // Arrange
         var controller = new PointOfInterestController(_mockService.Object, _mockLogger.Object);
 
-        var newPoi = new PointOfInterest
+        var newPoi = new PointOfInterestDto
         {
             Name = "Test POI",
             Category = "museum",
             Details = "Test museum",
-            Location = new Location
+            Location = new LocationDto
             {
                 Type = "Point",
-                Coordinates = new double[] { 8.4, 49.0 }
+                Coordinates = [8.4, 49.0]
             }
         };
 
-        var createdPoi = new PointOfInterest
+        var createdEntity = new PointOfInterestEntity
         {
             Id = "abc123",
             Name = "Test POI",
             Category = "museum",
             Details = "Test museum",
-            Location = new Location
+            Location = new LocationEntity
             {
                 Type = "Point",
-                Coordinates = new double[] { 8.4, 49.0 }
+                Coordinates = [8.4, 49.0]
             }
         };
 
-        _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterest>()))
-                   .ReturnsAsync(createdPoi);
+        _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterestEntity>()))
+                   .ReturnsAsync(createdEntity);
 
         var httpContext = new DefaultHttpContext();
         httpContext.Request.Scheme = "https";
@@ -172,25 +173,25 @@ public class PostOperationRfcComplianceTests
         // Arrange
         var controller = new PointOfInterestController(_mockService.Object, _mockLogger.Object);
 
-        var newPoi = new PointOfInterest
+        var newPoi = new PointOfInterestDto
         {
             Name = "HTTPS Test",
             Category = "test",
             Details = "Testing HTTPS",
-            Location = new Location { Type = "Point", Coordinates = new double[] { 0, 0 } }
+            Location = new LocationDto { Type = "Point", Coordinates = [0, 0] }
         };
 
-        var createdPoi = new PointOfInterest
+        var createdEntity = new PointOfInterestEntity
         {
             Id = "https-test-id",
             Name = "HTTPS Test",
             Category = "test",
             Details = "Testing HTTPS",
-            Location = new Location { Type = "Point", Coordinates = new double[] { 0, 0 } }
+            Location = new LocationEntity { Type = "Point", Coordinates = [0, 0] }
         };
 
-        _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterest>()))
-                   .ReturnsAsync(createdPoi);
+        _mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterestEntity>()))
+                   .ReturnsAsync(createdEntity);
 
         // Test with HTTPS scheme
         var httpContext = new DefaultHttpContext();
@@ -215,7 +216,7 @@ public class PostOperationRfcComplianceTests
         // Should use HTTPS scheme
         Assert.StartsWith("https://", locationHeader);
         Assert.Contains("secure.example.com", locationHeader);
-        Assert.Contains(createdPoi.Id, locationHeader);
+        Assert.Contains(createdEntity.Id, locationHeader);
     }
 }
 
@@ -239,7 +240,7 @@ public class GetDeleteOperationsRfcComplianceTests
     {
         // Arrange
         var controller = new PointOfInterestController(_mockService.Object, _mockLogger.Object);
-        _mockService.Setup(s => s.GetPoiByIdAsync("nonexistent")).ReturnsAsync((PointOfInterest)null);
+        _mockService.Setup(s => s.GetPoiByIdAsync("nonexistent")).ReturnsAsync((PointOfInterestEntity)null);
 
         var httpContext = new DefaultHttpContext();
         controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
@@ -250,7 +251,7 @@ public class GetDeleteOperationsRfcComplianceTests
         // Assert
         // RFC 9110 Section 15.5.5: 404 Not Found
         // JEE implementation throws NotFoundException (results in 404 without body)
-        var actionResult = Assert.IsType<ActionResult<PointOfInterest>>(result);
+        var actionResult = Assert.IsType<ActionResult<PointOfInterestDto>>(result);
         var notFoundResult = Assert.IsType<NotFoundResult>(actionResult.Result);
 
         // Verify no body in response (NotFoundResult has no Value property)
@@ -262,14 +263,14 @@ public class GetDeleteOperationsRfcComplianceTests
     {
         // Arrange
         var controller = new PointOfInterestController(_mockService.Object, _mockLogger.Object);
-        var testPoi = new PointOfInterest
+        var testEntity = new PointOfInterestEntity
         {
             Id = "testid123",
             Name = "Test POI",
             Category = "restaurant",
-            Location = new Location { Type = "Point", Coordinates = new double[] { 13.7, 51.0 } }
+            Location = new LocationEntity { Type = "Point", Coordinates = [13.7, 51.0] }
         };
-        _mockService.Setup(s => s.GetPoiByIdAsync("testid123")).ReturnsAsync(testPoi);
+        _mockService.Setup(s => s.GetPoiByIdAsync("testid123")).ReturnsAsync(testEntity);
 
         var httpContext = new DefaultHttpContext();
         controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
@@ -279,9 +280,9 @@ public class GetDeleteOperationsRfcComplianceTests
 
         // Assert
         // RFC 9110 Section 15.3.1: 200 OK with representation
-        var actionResult = Assert.IsType<ActionResult<PointOfInterest>>(result);
+        var actionResult = Assert.IsType<ActionResult<PointOfInterestDto>>(result);
         var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-        var returnedPoi = Assert.IsType<PointOfInterest>(okResult.Value);
+        var returnedPoi = Assert.IsType<PointOfInterestDto>(okResult.Value);
 
         Assert.Equal("testid123", returnedPoi.Id);
         Assert.Equal("Test POI", returnedPoi.Name);
@@ -359,7 +360,7 @@ public class GetDeleteOperationsRfcComplianceTests
         // Arrange
         var controller = new PointOfInterestController(_mockService.Object, _mockLogger.Object);
         _mockService.Setup(s => s.GetNearbyPoisAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<double>()))
-            .ReturnsAsync(new List<PointOfInterest>());
+            .ReturnsAsync([]);
 
         var httpContext = new DefaultHttpContext();
         controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
@@ -370,9 +371,9 @@ public class GetDeleteOperationsRfcComplianceTests
         // Assert
         // RFC 9110 Section 15.3.1: 200 OK with empty array (not 404)
         // Collection endpoints return empty array, not 404
-        var actionResult = Assert.IsType<ActionResult<List<PointOfInterest>>>(result);
+        var actionResult = Assert.IsType<ActionResult<List<PointOfInterestDto>>>(result);
         var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-        var pois = Assert.IsType<List<PointOfInterest>>(okResult.Value);
+        var pois = Assert.IsType<List<PointOfInterestDto>>(okResult.Value);
 
         Assert.Empty(pois);
     }

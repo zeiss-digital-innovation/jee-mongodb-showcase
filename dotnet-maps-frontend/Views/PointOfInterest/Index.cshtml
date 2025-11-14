@@ -11,7 +11,7 @@
 <!-- Apply view preference immediately to prevent flash -->
 <script>
     (function() {
-        const savedView = localStorage.getItem('poi_view');
+        const savedView = sessionStorage.getItem('poi_view');
         if (savedView === 'list') {
             // Inject CSS to show list view immediately
             const style = document.createElement('style');
@@ -136,14 +136,16 @@
         // Define CATEGORY_ICONS before using it
         const CATEGORY_ICONS = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(CategoryConstants.GetIconMappingDictionary()));
         
-        // Shared localStorage keys for synchronization with Map page
+        // Shared sessionStorage keys for synchronization with Map page
         const STORAGE_KEYS = {
             latitude: 'poi_latitude',
             longitude: 'poi_longitude',
             radius: 'poi_radius',
             view: 'poi_view',
             needsReload: 'poi_needs_reload',
-            sessionStart: 'poi_session_start'
+            sessionStart: 'poi_session_start',
+            sortedColumn: 'poi_sort_column',
+            sortAscending: 'poi_sort_ascending'
         };
         
         // Default coordinates (Dresden) - must match Map page
@@ -154,6 +156,19 @@
         // Session timeout: 30 minutes of inactivity = new session
         const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
         
+        // sorting state for table columns
+        let currentTablePois = []; // current POI list for Sorting
+        let currentSortedColumn = sessionStorage.getItem(STORAGE_KEYS.sortedColumn);
+        let sortAscending = sessionStorage.getItem(STORAGE_KEYS.sortAscending) === 'true';
+
+        // Cached element for efficient HTML entity decoding (performance: avoid creating many textarea elements)
+        const _decodeElement = document.createElement('textarea');
+        function decodeHtml(html) {
+            if (html == null) return '';
+            _decodeElement.innerHTML = html;
+            return _decodeElement.value;
+        }
+
         $(document).ready(async function() {
             // Initialize Category Manager FIRST
             await CategoryManager.init();
@@ -168,24 +183,24 @@
             loadInitialPois();
             
             // Check if this is a new browser session
-            const lastActivity = localStorage.getItem(STORAGE_KEYS.sessionStart);
+            const lastActivity = sessionStorage.getItem(STORAGE_KEYS.sessionStart);
             const now = Date.now();
             const isNewSession = !lastActivity || (now - parseInt(lastActivity)) > SESSION_TIMEOUT_MS;
             
             if (isNewSession) {
                 // This is a NEW session - clear settings but keep view preference
-                localStorage.removeItem(STORAGE_KEYS.latitude);
-                localStorage.removeItem(STORAGE_KEYS.longitude);
-                localStorage.removeItem(STORAGE_KEYS.radius);
-                localStorage.removeItem(STORAGE_KEYS.needsReload);
-                localStorage.setItem(STORAGE_KEYS.view, 'cards');
+                sessionStorage.removeItem(STORAGE_KEYS.latitude);
+                sessionStorage.removeItem(STORAGE_KEYS.longitude);
+                sessionStorage.removeItem(STORAGE_KEYS.radius);
+                sessionStorage.removeItem(STORAGE_KEYS.needsReload);
+                sessionStorage.setItem(STORAGE_KEYS.view, 'cards');
             }
             
             // Update session timestamp
-            localStorage.setItem(STORAGE_KEYS.sessionStart, now.toString());
+            sessionStorage.setItem(STORAGE_KEYS.sessionStart, now.toString());
             
-            // View toggle functionality - load from localStorage or default to 'cards'
-            let currentView = localStorage.getItem(STORAGE_KEYS.view) || 'cards';
+            // View toggle functionality - load from sessionStorage or default to 'cards'
+            let currentView = sessionStorage.getItem(STORAGE_KEYS.view) || 'cards';
             
             // Store original POI data for change detection
             let originalPoiData = {
@@ -196,25 +211,25 @@
             // Apply saved view IMMEDIATELY to prevent flash
             applySavedView();
             
-            // Load settings from localStorage on page load
+            // Load settings from sessionStorage on page load
             loadSettingsFromStorage();
             
             // Check if we need to reload POIs based on updates from Map page
             checkForUpdates();
             
-            // Setup control event handlers for saving to localStorage
+            // Setup control event handlers for saving to sessionStorage
             setupControlHandlers();
             
             // Listen for page visibility changes to sync with Map page
             // This ensures input fields are updated when navigating back from Map page
             window.addEventListener('pageshow', function(event) {
-                console.log('[List] pageshow event - reloading settings from localStorage');
+                console.log('[List] pageshow event - reloading settings from sessionStorage');
                 loadSettingsFromStorage();
             });
             
             // Also listen for focus events (when user returns to this tab)
             window.addEventListener('focus', function() {
-                console.log('[List] window focus event - reloading settings from localStorage');
+                console.log('[List] window focus event - reloading settings from sessionStorage');
                 loadSettingsFromStorage();
             });
             
@@ -225,10 +240,10 @@
             setupEditModalHandlers();
             
             function loadSettingsFromStorage() {
-                // Load values from localStorage or use defaults
-                const lat = localStorage.getItem(STORAGE_KEYS.latitude);
-                const lon = localStorage.getItem(STORAGE_KEYS.longitude);
-                const radius = localStorage.getItem(STORAGE_KEYS.radius);
+                // Load values from sessionStorage or use defaults
+                const lat = sessionStorage.getItem(STORAGE_KEYS.latitude);
+                const lon = sessionStorage.getItem(STORAGE_KEYS.longitude);
+                const radius = sessionStorage.getItem(STORAGE_KEYS.radius);
                 
                 const actualLat = lat ? parseFloat(lat) : latitudeDefault;
                 const actualLon = lon ? parseFloat(lon) : longitudeDefault;
@@ -240,24 +255,24 @@
                 $('#radiusInput').val(actualRadius);
                 $('#radiusValue').text(actualRadius + ' m');
                 
-                // Save to localStorage if they were defaults (ensures consistency)
-                if (!lat) localStorage.setItem(STORAGE_KEYS.latitude, actualLat);
-                if (!lon) localStorage.setItem(STORAGE_KEYS.longitude, actualLon);
-                if (!radius) localStorage.setItem(STORAGE_KEYS.radius, actualRadius);
+                // Save to sessionStorage if they were defaults (ensures consistency)
+                if (!lat) sessionStorage.setItem(STORAGE_KEYS.latitude, actualLat);
+                if (!lon) sessionStorage.setItem(STORAGE_KEYS.longitude, actualLon);
+                if (!radius) sessionStorage.setItem(STORAGE_KEYS.radius, actualRadius);
             }
             
             function saveSettingsToStorage() {
-                localStorage.setItem(STORAGE_KEYS.latitude, $('#latitudeInput').val());
-                localStorage.setItem(STORAGE_KEYS.longitude, $('#longitudeInput').val());
-                localStorage.setItem(STORAGE_KEYS.radius, $('#radiusInput').val());
+                sessionStorage.setItem(STORAGE_KEYS.latitude, $('#latitudeInput').val());
+                sessionStorage.setItem(STORAGE_KEYS.longitude, $('#longitudeInput').val());
+                sessionStorage.setItem(STORAGE_KEYS.radius, $('#radiusInput').val());
                 
                 // Set flag that Map page needs to reload
-                localStorage.setItem(STORAGE_KEYS.needsReload, 'true');
+                sessionStorage.setItem(STORAGE_KEYS.needsReload, 'true');
             }
             
             function checkForUpdates() {
                 // Check if Map page triggered an update
-                const needsReload = localStorage.getItem(STORAGE_KEYS.needsReload);
+                const needsReload = sessionStorage.getItem(STORAGE_KEYS.needsReload);
                 const currentParams = new URLSearchParams(window.location.search);
                 const urlLat = currentParams.get('lat');
                 const urlLon = currentParams.get('lon');
@@ -265,18 +280,18 @@
                 
                 // If needsReload flag is set and we don't have URL params, reload with stored values
                 if (needsReload === 'true' && !urlLat && !urlLon) {
-                    const lat = localStorage.getItem(STORAGE_KEYS.latitude);
-                    const lon = localStorage.getItem(STORAGE_KEYS.longitude);
-                    const radius = localStorage.getItem(STORAGE_KEYS.radius);
+                    const lat = sessionStorage.getItem(STORAGE_KEYS.latitude);
+                    const lon = sessionStorage.getItem(STORAGE_KEYS.longitude);
+                    const radius = sessionStorage.getItem(STORAGE_KEYS.radius);
                     
                     if (lat && lon && radius) {
                         // Clear the reload flag and reload
-                        localStorage.removeItem(STORAGE_KEYS.needsReload);
+                        sessionStorage.removeItem(STORAGE_KEYS.needsReload);
                         window.location.href = `/poi?lat=${lat}&lon=${lon}&radius=${radius}`;
                     }
                 } else if (urlLat && urlLon) {
                     // We were loaded with URL params, clear the reload flag
-                    localStorage.removeItem(STORAGE_KEYS.needsReload);
+                    sessionStorage.removeItem(STORAGE_KEYS.needsReload);
                 }
             }
             
@@ -302,12 +317,12 @@
             }
             
             function setupControlHandlers() {
-                // Save to localStorage when inputs change
+                // Save to sessionStorage when inputs change
                 $('#latitudeInput, #longitudeInput').on('change', function() {
                     saveSettingsToStorage();
                 });
                 
-                // Update radius display and save to localStorage
+                // Update radius display and save to sessionStorage
                 $('#radiusInput').on('input', function() {
                     $('#radiusValue').text($(this).val() + 'm');
                     saveSettingsToStorage();
@@ -330,37 +345,26 @@
                 $('#longitudeInput').val(lon);
                 $('#radiusInput').val(radius);
                 
-                // Save to localStorage
+                // Save to sessionStorage
                 saveSettingsToStorage();
                 
                 // Clear reload flag (we're doing the reload now)
-                localStorage.removeItem(STORAGE_KEYS.needsReload);
+                sessionStorage.removeItem(STORAGE_KEYS.needsReload);
                 
                 // Reload POIs via AJAX instead of page reload
                 reloadCurrentPois();
             }
             
             function loadInitialPois() {
-                // Get coordinates from URL params or localStorage
+                // Get coordinates from URL params or sessionStorage
                 const urlParams = new URLSearchParams(window.location.search);
-                const lat = urlParams.get('lat') || localStorage.getItem(STORAGE_KEYS.latitude) || latitudeDefault;
-                const lon = urlParams.get('lon') || localStorage.getItem(STORAGE_KEYS.longitude) || longitudeDefault;
-                const radius = urlParams.get('radius') || localStorage.getItem(STORAGE_KEYS.radius) || radiusDefault;
+                const lat = urlParams.get('lat') || sessionStorage.getItem(STORAGE_KEYS.latitude) || latitudeDefault;
+                const lon = urlParams.get('lon') || sessionStorage.getItem(STORAGE_KEYS.longitude) || longitudeDefault;
+                const radius = urlParams.get('radius') || sessionStorage.getItem(STORAGE_KEYS.radius) || radiusDefault;
                 
                 // Get selected categories
                 const selectedCategories = CategoryManager.getSelectedCategories();
-                
-                // Build request data
-                const requestData = {
-                    lat: parseFloat(lat),
-                    lon: parseFloat(lon),
-                    radius: parseInt(radius)
-                };
-                
-                // Add category parameters
-                selectedCategories.forEach((category, index) => {
-                    requestData[`category[${index}]`] = category;
-                });
+                const requestData = buildPoiRequestData(parseFloat(lat), parseFloat(lon), parseInt(radius), selectedCategories);
                 
                 console.log('[List] Loading initial POIs with params:', requestData);
                 
@@ -487,7 +491,7 @@
             
             $('#cardsViewBtn').click(function() {
                 currentView = 'cards';
-                localStorage.setItem(STORAGE_KEYS.view, 'cards');
+                sessionStorage.setItem(STORAGE_KEYS.view, 'cards');
                 $(this).addClass('active');
                 $('#listViewBtn').removeClass('active');
                 $('#poiCardsContainer').show();
@@ -496,7 +500,7 @@
             
             $('#listViewBtn').click(function() {
                 currentView = 'list';
-                localStorage.setItem(STORAGE_KEYS.view, 'list');
+                sessionStorage.setItem(STORAGE_KEYS.view, 'list');
                 $(this).addClass('active');
                 $('#cardsViewBtn').removeClass('active');
                 $('#poiCardsContainer').hide();
@@ -545,20 +549,8 @@
                 const originalHtml = $btn.html();
                 $btn.html('<span class="spinner-border spinner-border-sm me-1"></span>Loading...').prop('disabled', true);
                 
-                // Get selected categories
                 const selectedCategories = CategoryManager.getSelectedCategories();
-                
-                // Build data object with categories
-                const requestData = { 
-                    lat: lat, 
-                    lon: lon, 
-                    radius: radius 
-                };
-                
-                // Add category parameters (repeated parameter pattern)
-                selectedCategories.forEach((category, index) => {
-                    requestData[`category[${index}]`] = category;
-                });
+                const requestData = buildPoiRequestData(lat, lon, radius, selectedCategories);
                 
                 console.log('Loading POIs with categories:', selectedCategories);
                 
@@ -587,6 +579,24 @@
             // Make these functions available globally for reloadCurrentPois
             window.updatePoiCards = updatePoiCards;
             window.updatePoiTable = updatePoiTable;
+
+            // Helper: apply current filters (name + details) if filtering is available
+            function applyCurrentFilters() {
+                const nameFilter = $('#poiNameFilterInput').val() || '';
+                const detailsFilter = $('#poiDetailsFilterInput').val() || '';
+                if (typeof applyFilters === 'function') {
+                    applyFilters(nameFilter, detailsFilter);
+                }
+            }
+
+            // Helper: build request data incl. category array (shared by initial load, reload and button click)
+            function buildPoiRequestData(lat, lon, radius, categories) {
+                const data = { lat: lat, lon: lon, radius: radius };
+                categories.forEach((category, index) => {
+                    data[`category[${index}]`] = category;
+                });
+                return data;
+            }
             
             function updatePoiCards(pois) {
                 const $container = $('#poiCardsContainer');
@@ -637,17 +647,36 @@
                 $container.html(cardsHtml);
                 
                 // Apply current filters after updating cards
-                const nameFilter = $('#poiNameFilterInput').val() || '';
-                const detailsFilter = $('#poiDetailsFilterInput').val() || '';
-                if (typeof applyFilters === 'function') {
-                    applyFilters(nameFilter, detailsFilter);
-                }
+                applyCurrentFilters();
             }
             
             function updatePoiTable(pois) {
+                // After POIs are loaded (in updatePoiTable):
+                // This block runs AFTER a successful AJAX request when fresh POI data arrives.
+                // 1. Store a copy of the new data in currentTablePois so sorting does not mutate the original array.
+                // 2. If a previous sort exists (currentSortedColumn set) restore it WITHOUT toggling the direction.
+                //    This keeps the original ascending/descending orientation instead of accidentally inverting it.
+                // 3. If no sort state exists just render the unsorted table once.
+                // 4. Apply filters exactly once. (The restore function already renders + filters when active.)
+
+                currentTablePois = [...pois]; // Copy used for sorting
+
+                if (currentSortedColumn) {
+                    restoreSortWithoutToggle(); // Restore sorting without changing direction
+                } else {
+                    renderTableHtml();
+                    // Apply filters only when we rendered here (restoreSortWithoutToggle already applied them)
+                    applyCurrentFilters();
+                }
+            }
+            
+            function getCategoryIcon(category) {
+                return CATEGORY_ICONS[category?.toLowerCase()] || CATEGORY_ICONS['_default'] || 'bi-geo';
+            }
+
+            function renderTableHtml() {
                 const $container = $('#poiTableContainer');
-                
-                if (!pois || pois.length === 0) {
+                if (!currentTablePois || currentTablePois.length === 0) {
                     $container.html(`
                         <div class="alert alert-info">
                             <i class="bi bi-info-circle me-2"></i>
@@ -656,22 +685,30 @@
                     `);
                     return;
                 }
-                
+
                 let tableHtml = `
-                    <table class="table table-striped table-hover">
+                     <table class="table table-striped table-hover">
                         <thead class="table-primary">
                             <tr>
-                                <th scope="col"><i class="bi bi-tag me-2"></i>Name</th>
-                                <th scope="col"><i class="bi bi-folder me-2"></i>Category</th>
-                                <th scope="col"><i class="bi bi-info-circle me-2"></i>Details</th>
+                                <th scope="col" style="cursor: pointer; user-select: none;" onclick="sortTable('name')">
+                                    <i class="bi bi-tag me-2"></i>Name
+                                    <i class="bi ${currentSortedColumn === 'name' ? (sortAscending ? 'bi-sort-up' : 'bi-sort-down') : 'bi-arrow-down-up'} ms-1" style="opacity: ${currentSortedColumn === 'name' ? '1' : '0.8'};"></i>
+                                </th>
+                                <th scope="col" class="category-cell-header" style="cursor: pointer; user-select: none;" onclick="sortTable('category')">
+                                    <i class="bi bi-folder me-2"></i>Category
+                                    <i class="bi ${currentSortedColumn === 'category' ? (sortAscending ? 'bi-sort-up' : 'bi-sort-down') : 'bi-arrow-down-up'} ms-1" style="opacity: ${currentSortedColumn === 'category' ? '1' : '0.8'};"></i>
+                                </th>
+                                <th scope="col" class="details-cell-header" style="cursor: pointer; user-select: none;" onclick="sortTable('details')">
+                                    <i class="bi bi-info-circle me-2"></i>Details
+                                    <i class="bi ${currentSortedColumn === 'details' ? (sortAscending ? 'bi-sort-up' : 'bi-sort-down') : 'bi-arrow-down-up'} ms-1" style="opacity: ${currentSortedColumn === 'details' ? '1' : '0.8'};"></i>
+                                </th>
                                 <th scope="col"><i class="bi bi-geo-alt me-2"></i>Location</th>
                                 <th scope="col" style="width: 180px;"><i class="bi bi-gear me-2"></i>Action</th>
                             </tr>
                         </thead>
                         <tbody id="poiTableBody">
                 `;
-                
-                pois.forEach((poi, index) => {
+                currentTablePois.forEach((poi, index) => {
                     const icon = getCategoryIcon(poi.category);
                     const details = formatDetails(poi.details);
                     const category = poi.category; // Keep lowercase
@@ -687,8 +724,8 @@
                     
                     tableHtml += `
                         <tr>
-                            <td style="width: 200px;"><strong>${name}</strong></td>
-                            <td class="category-cell" style="width: 200px;">${category} <i class="bi ${icon}"></i></td>
+                            <td style="width: 200px;"><span class="lead" style="font-weight: 350;">${name}</span></td>
+                            <td class="category-cell" style="width: 200px;"><i class="bi ${icon}"></i>${category}</td>
                             <td class="details-cell">${details}</td>
                             <td class="location-cell">${locationHtml}</td>
                             <td class="action-buttons">
@@ -709,33 +746,97 @@
                 `;
                 
                 $container.html(tableHtml);
-                
-                // Apply current filters after updating table
-                const nameFilter = $('#poiNameFilterInput').val() || '';
-                const detailsFilter = $('#poiDetailsFilterInput').val() || '';
-                if (typeof applyFilters === 'function') {
-                    applyFilters(nameFilter, detailsFilter);
-                }
-            }
-            
-            function getCategoryIcon(category) {
-                return CATEGORY_ICONS[category?.toLowerCase()] || CATEGORY_ICONS['_default'] || 'bi-geo';
             }
             
             function formatDetails(details) {
                 if (!details) return '';
                 
+                let formatted = details;
+                
                 // Format phone numbers with icon (matching Razor FormatDetails logic)
                 const phoneRegex = /\+\d[\d\s\-\(\)/]*,?/g;
-                let formatted = details.replace(phoneRegex, (match) => {
+                formatted = formatted.replace(phoneRegex, (match) => {
                     return `\n<i class='bi bi-telephone'></i> ${match}\n`;
                 });
-                
+
+                // Format URLs/web links with icon
+                // Matches http://, https://, www. and ftp:// links
+                const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|ftp:\/\/[^\s]+)/gi;
+                formatted = formatted.replace(urlRegex, (match) => {
+                    const displayText = match.length > 40 ? match.substring(0, 37) + '...' : match;
+                    return `<a href="${match}" target="_blank" rel="noopener noreferrer"><i class='bi bi-link-45deg'></i>${displayText}</a>`
+                });
                 // Replace newlines with <br>
                 return formatted.replace(/\n/g, '<br>');
             }
+            // Internal helper: column sort with German diacritic ordering
+            function sortInternal(column, ascending) {
+                currentTablePois.sort((a, b) => {
+                    let aVal, bVal;
+                    if (column === 'name') { aVal = a.name; bVal = b.name; }
+                    else if (column === 'category') { aVal = a.category; bVal = b.category; }
+                    else if (column === 'details') { aVal = a.details; bVal = b.details; }
+                    else { aVal = ''; bVal = ''; }
+
+                    aVal = decodeHtml((aVal || '').toString());
+                    bVal = decodeHtml((bVal || '').toString());
+
+                    const charToSortValue = (char) => {
+                        const lower = char.toLowerCase();
+                        const isUpper = char !== lower;
+                        let base = lower.charCodeAt(0);
+                        let offset = 0;
+                        if (lower === 'ä') { base = 'a'.charCodeAt(0); offset = isUpper ? 0.1 : 0.2; }
+                        else if (lower === 'ö') { base = 'o'.charCodeAt(0); offset = isUpper ? 0.1 : 0.2; }
+                        else if (lower === 'ü') { base = 'u'.charCodeAt(0); offset = isUpper ? 0.1 : 0.2; }
+                        else if (char === 'ß') { base = 's'.charCodeAt(0); offset = 0.2; }
+                        else if (isUpper) { offset = 0.0; }
+                        else { offset = 0.3; }
+                        return base + offset;
+                    };
+
+                    let comparison = 0;
+                    const minLen = Math.min(aVal.length, bVal.length);
+                    for (let i = 0; i < minLen; i++) {
+                        const aChar = charToSortValue(aVal[i]);
+                        const bChar = charToSortValue(bVal[i]);
+                        if (aChar !== bChar) { comparison = aChar - bChar; break; }
+                    }
+                    if (comparison === 0) comparison = aVal.length - bVal.length;
+                    return ascending ? comparison : -comparison;
+                });
+            }
+
+            // Public function for header click (toggle behaviour)
+            window.sortTable = function(column) {
+                if (currentSortedColumn === column) {
+                    sortAscending = !sortAscending; // Toggle on repeated click
+                } else {
+                    currentSortedColumn = column;
+                    sortAscending = true; // New column starts ascending
+                }
+                sessionStorage.setItem(STORAGE_KEYS.sortedColumn, currentSortedColumn);
+                sessionStorage.setItem(STORAGE_KEYS.sortAscending, sortAscending.toString());
+                sortInternal(currentSortedColumn, sortAscending);
+                renderTableHtml();
+                const nameFilter = $('#poiNameFilterInput').val() || '';
+                const detailsFilter = $('#poiDetailsFilterInput').val() || '';
+                if (typeof applyFilters === 'function') applyFilters(nameFilter, detailsFilter);
+            }
+
+            // Restore without toggle (used after loading new data / returning from navigation)
+            function restoreSortWithoutToggle() {
+                // Safety check
+                if (!currentSortedColumn) return;
+                // sortAscending already loaded from sessionStorage (no change)
+                sortInternal(currentSortedColumn, sortAscending);
+                renderTableHtml();
+                const nameFilter = $('#poiNameFilterInput').val() || '';
+                const detailsFilter = $('#poiDetailsFilterInput').val() || '';
+                if (typeof applyFilters === 'function') applyFilters(nameFilter, detailsFilter);
+            }
         });
-        
+
         // Store complete POI data for editing (needed for PUT request)
         let currentPoiData = null;
         
@@ -900,18 +1001,7 @@
             
             // Get selected categories
             const selectedCategories = CategoryManager.getSelectedCategories();
-            
-            // Build data object with categories
-            const requestData = { 
-                lat: lat, 
-                lon: lon, 
-                radius: radius 
-            };
-            
-            // Add category parameters
-            selectedCategories.forEach((category, index) => {
-                requestData[`category[${index}]`] = category;
-            });
+            const requestData = buildPoiRequestData(lat, lon, radius, selectedCategories);
             
             console.log('Reloading POIs with categories:', selectedCategories);
             
@@ -950,23 +1040,4 @@
             }, 3000);
         }
     </script>
-}
-
-@functions {
-    string FormatDetails(string details)
-    {
-       if (string.IsNullOrEmpty(details))
-            return string.Empty;
-
-        // Regex for recognition of phone numbers in format +<number> with spaces, dashes and parentheses and optionally comma at end
-        var phoneRegex = new System.Text.RegularExpressions.Regex(@"\+\d[\d\s\-\(\)/]*,?");
-        var formattedDetails = phoneRegex.Replace(details, match =>
-        {
-            // Replace just pfone nummer with the icon + phone number
-            return $"\n<i class='bi bi-telephone'></i> {match.Value}\n";
-        });
-
-        return formattedDetails.Replace("\n", "<br>");    
-    }
-
 }
