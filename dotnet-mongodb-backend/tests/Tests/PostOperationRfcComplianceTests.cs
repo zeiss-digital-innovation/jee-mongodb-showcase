@@ -360,7 +360,7 @@ public class GetDeleteOperationsRfcComplianceTests
         // Arrange
         var controller = new PointOfInterestController(_mockService.Object, _mockLogger.Object);
         _mockService.Setup(s => s.GetNearbyPoisAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<double>()))
-            .ReturnsAsync(new List<PointOfInterestEntity>());
+            .ReturnsAsync([]);
 
         var httpContext = new DefaultHttpContext();
         controller.ControllerContext = new ControllerContext { HttpContext = httpContext };

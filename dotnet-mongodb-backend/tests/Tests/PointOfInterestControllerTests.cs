@@ -72,7 +72,7 @@ public class PointOfInterestControllerTests
                    .ReturnsAsync(filteredPois);
 
         // Act - Wrap single category in List for new API
-        var result = await _controller.GetAllPois(category: new List<string> { category });
+        var result = await _controller.GetAllPois(category: [category]);
 
         // Assert
         _mockService.Verify(s => s.GetPoisByCategoryAsync(category), Times.Once);

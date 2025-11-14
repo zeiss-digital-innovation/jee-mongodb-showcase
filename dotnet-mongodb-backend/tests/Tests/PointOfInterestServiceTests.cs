@@ -18,19 +18,19 @@ public class PointOfInterestServiceIntegrationTests
 
         // Setup mock responses for all interface methods
         mockService.Setup(s => s.GetAllPoisAsync())
-                   .ReturnsAsync(new List<PointOfInterestEntity>());
+                   .ReturnsAsync([]);
 
         mockService.Setup(s => s.GetPoiByIdAsync(It.IsAny<string>()))
                    .ReturnsAsync((PointOfInterestEntity)null);
 
         mockService.Setup(s => s.GetPoisByCategoryAsync(It.IsAny<string>()))
-                   .ReturnsAsync(new List<PointOfInterestEntity>());
+                   .ReturnsAsync([]);
 
         mockService.Setup(s => s.SearchPoisAsync(It.IsAny<string>(), It.IsAny<int?>()))
-                   .ReturnsAsync(new List<PointOfInterestEntity>());
+                   .ReturnsAsync([]);
 
         mockService.Setup(s => s.GetNearbyPoisAsync(It.IsAny<double>(), It.IsAny<double>(), It.IsAny<double>()))
-                   .ReturnsAsync(new List<PointOfInterestEntity>());
+                   .ReturnsAsync([]);
 
         mockService.Setup(s => s.CreatePoiAsync(It.IsAny<PointOfInterestEntity>()))
                    .ReturnsAsync(new PointOfInterestEntity());
@@ -42,7 +42,7 @@ public class PointOfInterestServiceIntegrationTests
                    .ReturnsAsync(false);
 
         mockService.Setup(s => s.GetAvailableCategoriesAsync())
-                   .ReturnsAsync(new List<string>());
+                   .ReturnsAsync([]);
 
         mockService.Setup(s => s.CountByCategoryAsync(It.IsAny<string>()))
                    .ReturnsAsync(0);
