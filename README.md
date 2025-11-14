@@ -147,8 +147,8 @@ Note: exact ports and steps vary by backend. See the subproject READMEs for full
 
 - `angular-maps-frontend` — Angular app that displays POIs on a map and calls the backend for POIs near the current map center. See [Angular Frontend Readme](/angular-maps-frontend/README.md).
 - `dotnet-maps-frontend` — ASP.NET Core MVC app with full CRUD operations (Create, Edit, Delete POIs). Features interactive maps with Leaflet.js, dual list views (cards/table), synchronized controls between pages, and localStorage-based settings. See [Dotnet Frontend Readme](/dotnet-maps-frontend/README.md).
-- `jee-mongodb-backend` — Jakarta (JEE) backend service. Contains REST endpoints and mapping to MongoDB. See [JEE Backend Readme](/jee-mongodb-backend/README.md).
-- `dotnet-mongodb-backend` — .NET Core backend service with MongoDB integration. High-performance async REST API. See [Dotnet Backend Readme](/dotnet-mongodb-backend/README.md).
+- `jee-mongodb-backend` — Jakarta (JEE) backend service. Contains REST endpoints and mapping to MongoDB. Integration tests use Testcontainers for MongoDB. See [JEE Backend Readme](/jee-mongodb-backend/README.md).
+- `dotnet-mongodb-backend` — .NET Core backend service with MongoDB integration. High-performance async REST API. Integration tests use Testcontainers for MongoDB. See [Dotnet Backend Readme](/dotnet-mongodb-backend/README.md).
 - `spring-mongodb-backend` - JAva Spring backend service with MongoDB integration. See [Spring Backend Readme](/spring-mongodb-backend/README.md).
 - `MongoDB` — Docker + compose configuration and initialization scripts. Use this to run a MongoDB instance with Docker.
 - `testdata-generation` — Java tool to parse GPX files and POST POIs to a running backend to populate test data.
