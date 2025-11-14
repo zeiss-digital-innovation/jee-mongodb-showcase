@@ -1,227 +1,340 @@
-# Testcontainers Integration Tests - Setup Guide
+# Testcontainers Setup für .NET MongoDB Backend
 
-## ✅ Implementierung Abgeschlossen
+Dieses Dokument beschreibt die Einrichtung und Verwendung von Testcontainers für Integration Tests mit MongoDB.
 
-Die Testcontainers-Integration wurde erfolgreich für das .NET MongoDB Backend implementiert.
+## Übersicht
 
-### Was wurde erstellt:
+Testcontainers ermöglicht das Ausführen von Integration Tests gegen eine echte MongoDB-Instanz in einem Docker-Container. Dies eliminiert die Notwendigkeit von Mocks und bietet realistische Test-Szenarien.
 
-1. **NuGet-Pakete hinzugefügt** (`DotNetMongoDbBackend.Tests.csproj`):
-   - `Testcontainers` (3.10.0)
-   - `Testcontainers.MongoDb` (3.10.0)
+## Voraussetzungen
 
-2. **MongoDbTestFixture** (`tests/Tests/Fixtures/MongoDbTestFixture.cs`):
-   - Startet/stoppt MongoDB Container automatisch
-   - Erstellt eindeutige Test-Datenbanken für parallele Ausführung
-   - Initialisiert 2dsphere Geo-Index
-   - Managed Container-Lifecycle über `IAsyncLifetime`
+- Docker Desktop (Windows) oder Docker Engine (Linux/macOS)
+- .NET 9.0 SDK
+- xUnit als Test-Framework
 
-3. **PointOfInterestServiceIntegrationTests** (`tests/Tests/Integration/`):
-   - 10 Tests für CRUD-Operationen gegen echte MongoDB
-   - Testet BSON-Serialization, GeoJSON-Format
-   - Category-Filter, Name-Search
-   - **Status**: 3 Tests bestanden, 7 Tests fehlgeschlagen
+## Installation
 
-4. **GeoSpatialQueryIntegrationTests** (`tests/Tests/Integration/`):
-   - 9 Tests für MongoDB Geo-Spatial Queries
-   - Radius-Search, Category-Filter mit Geo-Queries
-   - 2dsphere Index-Nutzung
-   - **Status**: 0 Tests bestanden, 9 Tests fehlgeschlagen
+### 1. NuGet-Pakete hinzufügen
 
-5. **ApiIntegrationTests** (`tests/Tests/Integration/`):
-   - 8 End-to-End Tests mit WebApplicationFactory
-   - Testet HTTP → Controller → Service → MongoDB Container
-   - CRUD-Operationen über REST API
-   - **Status**: 0 Tests bestanden, 8 Tests fehlgeschlagen
+Fügen Sie folgende Pakete zum Test-Projekt hinzu:
 
-## 🐛 Bekannte Probleme
-
-### Problem 1: `Details` ist Pflichtfeld
-
-**Fehlermeldung:**
-```
-System.ArgumentException: POI Details required.
-at PointOfInterestService.ValidatePoi(PointOfInterestEntity poi)
+```xml
+<PackageReference Include="Testcontainers" Version="3.10.0" />
+<PackageReference Include="Testcontainers.MongoDb" Version="3.10.0" />
 ```
 
-**Ursache:** Der Service hat eine Validierung, die `Details` als Pflichtfeld definiert.
+Oder via CLI:
 
-**Lösung:** Alle Test-POIs müssen `Details` Property setzen:
+```powershell
+dotnet add package Testcontainers --version 3.10.0
+dotnet add package Testcontainers.MongoDb --version 3.10.0
+```
+
+### 2. Test-Fixture erstellen
+
+Erstellen Sie eine Fixture-Klasse zur Verwaltung des Container-Lebenszyklus:
+
 ```csharp
-// ❌ Falsch
-var poi = new PointOfInterestEntity
+public class MongoDbTestFixture : IAsyncLifetime
 {
-    Name = "Test POI",
-    Location = new LocationEntity { Coordinates = new[] { 13.7, 51.0 } },
-    Category = "Restaurant"
-};
+    private MongoDbContainer _mongoContainer = null!;
+    private string _testDatabaseName = string.Empty;
 
-// ✅ Richtig
-var poi = new PointOfInterestEntity
+    public IMongoDatabase Database { get; private set; } = null!;
+
+    public async Task InitializeAsync()
+    {
+        // 1. Container konfigurieren und starten
+        _mongoContainer = new MongoDbBuilder()
+            .WithImage("mongo:8.0")
+            .WithPortBinding(27017, true) // Random host port
+            .Build();
+
+        await _mongoContainer.StartAsync();
+
+        // 2. Eindeutige Test-Datenbank erstellen
+        _testDatabaseName = $"test_db_{Guid.NewGuid():N}";
+        var client = new MongoClient(_mongoContainer.GetConnectionString());
+        Database = client.GetDatabase(_testDatabaseName);
+
+        // 3. MongoDB 2dsphere Geo-Index erstellen
+        var collection = Database.GetCollection<PointOfInterestEntity>("pointsOfInterest");
+        var indexKeys = Builders<PointOfInterestEntity>.IndexKeys
+            .Geo2DSphere(poi => poi.Location!.Coordinates);
+        await collection.Indexes.CreateOneAsync(
+            new CreateIndexModel<PointOfInterestEntity>(indexKeys)
+        );
+    }
+
+    public async Task DisposeAsync()
+    {
+        await _mongoContainer.DisposeAsync();
+    }
+
+    // Optional: Collection zwischen Tests leeren
+    public async Task ClearCollectionAsync()
+    {
+        var collection = Database.GetCollection<PointOfInterestEntity>("pointsOfInterest");
+        await collection.DeleteManyAsync(Builders<PointOfInterestEntity>.Filter.Empty);
+    }
+
+    // MongoDB-Settings für Dependency Injection
+    public MongoSettings GetMongoSettings()
+    {
+        return new MongoSettings
+        {
+            ConnectionString = _mongoContainer.GetConnectionString(),
+            DatabaseName = _testDatabaseName
+        };
+    }
+}
+```
+
+### 3. Test-Klasse mit Fixture verwenden
+
+#### Service Integration Tests
+
+```csharp
+public class PointOfInterestServiceIntegrationTests : IClassFixture<MongoDbTestFixture>
 {
-    Name = "Test POI",
-    Details = "Test details required",  // ← HINZUFÜGEN
-    Location = new LocationEntity { Coordinates = new[] { 13.7, 51.0 } },
-    Category = "Restaurant"
-};
+    private readonly MongoDbTestFixture _fixture;
+    private readonly IPointOfInterestService _service;
+
+    public PointOfInterestServiceIntegrationTests(MongoDbTestFixture fixture)
+    {
+        _fixture = fixture;
+        
+        // Service mit echter MongoDB initialisieren
+        var mongoSettings = Options.Create(_fixture.GetMongoSettings());
+        var client = new MongoClient(_fixture.GetMongoSettings().ConnectionString);
+        var logger = new NullLogger<PointOfInterestService>();
+        
+        _service = new PointOfInterestService(client, mongoSettings, logger);
+    }
+
+    [Fact]
+    public async Task CreatePoi_ShouldPersistToMongoDB()
+    {
+        // Arrange
+        var poi = new PointOfInterestEntity
+        {
+            Name = "Test Restaurant",
+            Category = "restaurant",
+            Details = "A test restaurant",
+            Location = new LocationEntity
+            {
+                Type = "Point",
+                Coordinates = new[] { 13.7373, 51.0504 } // [longitude, latitude]
+            }
+        };
+
+        // Act
+        var created = await _service.CreatePoiAsync(poi);
+
+        // Assert
+        Assert.NotNull(created.Id);
+        
+        // Verify in database
+        var fromDb = await _service.GetPoiByIdAsync(created.Id!);
+        Assert.NotNull(fromDb);
+        Assert.Equal("Test Restaurant", fromDb.Name);
+    }
+}
 ```
 
-### Problem 2: API gibt bei POST 201 Created keinen Body zurück
+#### API End-to-End Tests mit WebApplicationFactory
 
-**Fehlermeldung:**
-```
-System.Text.Json.JsonException: The input does not contain any JSON tokens
-```
-
-**Ursache:** Der Controller gibt `StatusCode(201)` zurück, aber kein JSON-Body mit dem erstellten POI.
-
-**Lösung:** Tests müssen angepasst werden:
 ```csharp
-// Option A: Location Header parsen
-var location = response.Headers.Location!.ToString();
-var id = location.Split('/').Last();
-var getResponse = await _client.GetAsync(location);
-
-// Option B: Controller ändern (besser)
-// In PointOfInterestController.CreatePoi():
-return CreatedAtAction(
-    nameof(GetPoiById),
-    new { id = createdDto.Id },
-    createdDto  // ← Body zurückgeben
-);
-```
-
-### Problem 3: Health Endpoint existiert nicht
-
-**Fehlermeldung:**
-```
-Assert.Equal() Failure: Expected: OK, Actual: NotFound
-```
-
-**Ursache:** Es gibt keinen `/zdi-geo-service/api/health` Endpoint im Backend.
-
-**Lösung:** Test entfernen oder Endpoint implementieren:
-```csharp
-// In Program.cs hinzufügen:
-app.MapGet("/zdi-geo-service/api/health", () => Results.Ok(new { status = "healthy" }));
-```
-
-### Problem 4: Ungültige Koordinaten werfen Exception statt leerem Ergebnis
-
-**Fehlermeldung:**
-```
-MongoDB.Driver.MongoCommandException: Longitude/latitude is out of bounds
-```
-
-**Lösung:** Test anpassen um Exception zu erwarten:
-```csharp
-await Assert.ThrowsAsync<MongoCommandException>(async () =>
+public class ApiIntegrationTests : IClassFixture<MongoDbTestFixture>
 {
-    await _service.GetNearbyPoisAsync(999.0, 999.0, 1.0);
-});
+    private readonly HttpClient _client;
+    private readonly MongoDbTestFixture _fixture;
+
+    public ApiIntegrationTests(MongoDbTestFixture fixture)
+    {
+        _fixture = fixture;
+
+        // WebApplicationFactory mit Test-MongoDB konfigurieren
+        var factory = new WebApplicationFactory<Program>()
+            .WithWebHostBuilder(builder =>
+            {
+                builder.ConfigureServices(services =>
+                {
+                    // Produktive MongoDB-Konfiguration entfernen
+                    var descriptor = services.SingleOrDefault(
+                        d => d.ServiceType == typeof(IMongoClient));
+                    if (descriptor != null)
+                        services.Remove(descriptor);
+
+                    // Test-MongoDB einbinden
+                    services.AddSingleton<IMongoClient>(sp =>
+                        new MongoClient(_fixture.GetMongoSettings().ConnectionString));
+                    
+                    services.Configure<MongoSettings>(options =>
+                    {
+                        options.ConnectionString = _fixture.GetMongoSettings().ConnectionString;
+                        options.DatabaseName = _fixture.GetMongoSettings().DatabaseName;
+                    });
+                });
+            });
+
+        _client = factory.CreateClient();
+    }
+
+    [Fact]
+    public async Task POST_CreatePoi_ReturnsCreatedWithLocation()
+    {
+        // Arrange
+        var newPoi = new
+        {
+            name = "API Test POI",
+            category = "museum",
+            details = "Created via API",
+            location = new
+            {
+                type = "Point",
+                coordinates = new[] { 13.7373, 51.0504 }
+            }
+        };
+
+        // Act
+        var response = await _client.PostAsJsonAsync("/api/poi", newPoi);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.NotNull(response.Headers.Location);
+    }
+}
 ```
 
-## 🔧 Nächste Schritte zum Beheben
-
-### Schritt 1: Details Property hinzufügen (BULK FIX)
-
-Suchen und ersetzen in allen 3 Integration-Test-Dateien:
-```csharp
-// Suchen:
-Name = "([^"]+)",\s+Location
-
-// Ersetzen mit:
-Name = "$1",
-Details = "Test details",
-Location
-```
-
-### Schritt 2: API Response-Handling anpassen
-
-In `ApiIntegrationTests.cs` - alle POST-Tests ändern:
-```csharp
-// ALT:
-var createdPoi = JsonSerializer.Deserialize<PointOfInterestDto>(
-    await response.Content.ReadAsStringAsync(), ...);
-
-// NEU:
-var location = response.Headers.Location!.ToString();
-var getResponse = await _client.GetAsync(location);
-var createdPoi = JsonSerializer.Deserialize<PointOfInterestDto>(
-    await getResponse.Content.ReadAsStringAsync(), ...);
-```
-
-### Schritt 3: Test Cleanup
-
-- Health-Test entfernen oder Health-Endpoint implementieren
-- Ungültige Koordinaten-Test anpassen um Exception zu erwarten
-
-## 📊 Aktueller Teststand
-
-```
-Gesamt: 37 Integration Tests
-├─ Bestanden: 16 (43%)
-├─ Fehlgeschlagen: 21 (57%)
-└─ Container-Start: ✅ Erfolgreich
-```
-
-**Container-Lifecycle funktioniert perfekt:**
-- MongoDB Container startet in ~2-3 Sekunden
-- Tests laufen parallel in isolierten Datenbanken
-- Container wird sauber aufgeräumt nach Tests
-
-## ✨ Vorteile der Testcontainers-Lösung
-
-1. **Echte MongoDB-Features getestet**:
-   - Geo-Spatial Queries mit 2dsphere Index
-   - BSON-Serialization
-   - Aggregation Pipelines
-
-2. **Keine Mocks mehr nötig** für:
-   - `IMongoCollection<PointOfInterestEntity>`
-   - `IMongoDatabase`
-   - `FilterDefinition<T>`
-
-3. **Realistische Integration Tests**:
-   - End-to-End: HTTP → Controller → Service → MongoDB
-   - Echte Netzwerk-Latenz
-   - Echte MongoDB-Fehler
-
-4. **CI/CD Ready**:
-   - Docker muss verfügbar sein
-   - Tests laufen parallel
-   - Automatisches Cleanup
-
-## 🚀 Tests Ausführen
+## Tests ausführen
 
 ```powershell
 # Alle Integration Tests
-cd "c:\Users\diilinko\.net workspace\dotnet-frontend-PoC\dotnet-mongodb-backend"
-dotnet test tests/DotNetMongoDbBackend.Tests.csproj --filter "FullyQualifiedName~Integration"
+dotnet test --filter "FullyQualifiedName~Integration"
 
-# Nur Service Integration Tests
+# Spezifische Test-Klasse
 dotnet test --filter "FullyQualifiedName~PointOfInterestServiceIntegrationTests"
 
-# Nur GeoSpatial Tests
-dotnet test --filter "FullyQualifiedName~GeoSpatialQueryIntegrationTests"
-
-# Nur API E2E Tests
-dotnet test --filter "FullyQualifiedName~ApiIntegrationTests"
+# Mit verbosem Output
+dotnet test --filter "FullyQualifiedName~Integration" --verbosity normal
 ```
 
-## 📝 Anmerkungen
+## Best Practices
 
-- **Testdauer**: ~1.5 Minuten (MongoDB Container Start + Tests)
-- **Docker erforderlich**: Tests benötigen Docker Desktop (Windows) oder Docker Engine
-- **Parallele Ausführung**: Jeder Test bekommt eigene Datenbank (z.B. `test_db_555253c7...`)
-- **Testcontainers-Image**: `mongo:8.0`
+### 1. Test-Isolation
 
-## 🎯 Empfehlung
+Jede Test-Klasse sollte eine eigene Fixture-Instanz erhalten:
 
-Die Testcontainers-Infrastructure ist **produktionsreif**. Die Hauptprobleme sind **test-spezifisch** und können in 10-15 Minuten behoben werden durch:
+```csharp
+public class MyTests : IClassFixture<MongoDbTestFixture>
+{
+    // xUnit erstellt eine neue Fixture-Instanz pro Test-Klasse
+    // → Parallele Ausführung mit isolierten Datenbanken
+}
+```
 
-1. Globales Suchen/Ersetzen für `Details` Property
-2. API Response-Parsing anpassen  
-3. 2 Tests entfernen/anpassen
+### 2. Cleanup zwischen Tests
 
-Danach sollten **alle 37 Tests bestehen** und die Integration-Test-Suite ist vollständig funktional.
+```csharp
+public async Task InitializeAsync()
+{
+    // Wird vor jedem Test ausgeführt
+    await _fixture.ClearCollectionAsync();
+}
+```
+
+### 3. GeoJSON-Format beachten
+
+MongoDB erwartet Koordinaten im Format `[longitude, latitude]`:
+
+```csharp
+Coordinates = new[] { 13.7373, 51.0504 }  // ✅ Richtig: [lng, lat]
+Coordinates = new[] { 51.0504, 13.7373 }  // ❌ Falsch: [lat, lng]
+```
+
+### 4. Container-Logs bei Fehlern
+
+```csharp
+public async Task InitializeAsync()
+{
+    await _mongoContainer.StartAsync();
+    
+    // Logs bei Problemen ausgeben
+    var (stdout, stderr) = await _mongoContainer.GetLogsAsync();
+    Console.WriteLine($"Container logs:\n{stdout}");
+}
+```
+
+## Vorteile
+
+- ✅ **Echte MongoDB-Features**: Geo-Spatial Queries, Aggregations, Indizes
+- ✅ **Keine Mocks**: Testen gegen echte Datenbank-Implementierung
+- ✅ **Isolation**: Jeder Test läuft in eigener Datenbank
+- ✅ **Automatisches Cleanup**: Container werden nach Tests entfernt
+- ✅ **CI/CD Ready**: Funktioniert überall wo Docker verfügbar ist
+- ✅ **Parallele Ausführung**: Mehrere Test-Klassen gleichzeitig
+
+## Performance
+
+- **Erster Start**: ~3-5 Sekunden (Container-Download + Start)
+- **Folgende Starts**: ~2-3 Sekunden (Image ist gecached)
+- **36 Tests**: ~7-8 Sekunden Gesamtlaufzeit
+
+## Troubleshooting
+
+### Container startet nicht
+
+```powershell
+# Docker läuft?
+docker ps
+
+# Testcontainers-Logs aktivieren
+$env:TESTCONTAINERS_RYUK_DISABLED="false"
+dotnet test --verbosity normal
+```
+
+### Port-Konflikte
+
+Testcontainers verwendet automatisch freie Ports. Bei Konflikten:
+
+```csharp
+.WithPortBinding(27017, true) // true = random host port
+```
+
+### Connection String
+
+```csharp
+// Richtiger Connection String vom Container holen
+var connectionString = _mongoContainer.GetConnectionString();
+// Format: mongodb://localhost:<random-port>
+```
+
+## Architektur
+
+```
+Test-Ausführung:
+┌─────────────────────────────────────────┐
+│ xUnit Test Runner                       │
+│                                         │
+│  ┌───────────────────────────────────┐ │
+│  │ MongoDbTestFixture (IAsyncLife..) │ │
+│  │  ├─ StartAsync()                  │ │
+│  │  ├─ MongoDB Container (mongo:8.0) │ │
+│  │  │   Port: 27017 → Random         │ │
+│  │  └─ DisposeAsync()                │ │
+│  └───────────────────────────────────┘ │
+│           ↓                             │
+│  ┌───────────────────────────────────┐ │
+│  │ Integration Tests                 │ │
+│  │  ├─ Service Tests → MongoDB       │ │
+│  │  └─ API Tests → Controller → DB   │ │
+│  └───────────────────────────────────┘ │
+└─────────────────────────────────────────┘
+```
+
+## Weiterführende Informationen
+
+- [Testcontainers Dokumentation](https://dotnet.testcontainers.org/)
+- [Testcontainers MongoDB Module](https://dotnet.testcontainers.org/modules/mongodb/)
+- [MongoDB C# Driver](https://www.mongodb.com/docs/drivers/csharp/current/)
