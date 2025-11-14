@@ -17,25 +17,30 @@ namespace DotNetMongoDbBackend.Tests.Tests.Integration;
 public class PointOfInterestServiceIntegrationTests : IClassFixture<MongoDbTestFixture>
 {
     private readonly MongoDbTestFixture _fixture;
-    private readonly PointOfInterestService _service;
+    private readonly Lazy<PointOfInterestService> _serviceLazy;
     private readonly Mock<ILogger<PointOfInterestService>> _mockLogger;
+
+    private PointOfInterestService _service => _serviceLazy.Value;
 
     public PointOfInterestServiceIntegrationTests(MongoDbTestFixture fixture)
     {
         _fixture = fixture;
         _mockLogger = new Mock<ILogger<PointOfInterestService>>();
         
-        // Create service with real MongoDB connection
-        _service = new PointOfInterestService(
-            _fixture.Database,
-            _fixture.GetMongoSettings(),
-            _mockLogger.Object
-        );
+        // Lazy initialization - only create service when needed and Docker is available
+        _serviceLazy = new Lazy<PointOfInterestService>(() => 
+            new PointOfInterestService(
+                _fixture.Database,
+                _fixture.GetMongoSettings(),
+                _mockLogger.Object
+            ));
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task CreatePoi_ShouldPersistToMongoDB_AndGenerateObjectId()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange
         var poi = new PointOfInterestEntity
         {
@@ -61,9 +66,11 @@ public class PointOfInterestServiceIntegrationTests : IClassFixture<MongoDbTestF
         Assert.Equal(51.0504, createdPoi.Location.Coordinates[1]); // Latitude
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task GetPoiById_ShouldRetrievePersistedPoi()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange
         var poi = new PointOfInterestEntity
         {
@@ -84,9 +91,11 @@ public class PointOfInterestServiceIntegrationTests : IClassFixture<MongoDbTestF
         Assert.Equal("Museum", retrieved.Category);
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task UpdatePoi_ShouldModifyExistingDocument()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange
         var poi = new PointOfInterestEntity
         {
@@ -115,9 +124,11 @@ public class PointOfInterestServiceIntegrationTests : IClassFixture<MongoDbTestF
         Assert.Equal("Updated Name", retrieved!.Name);
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task DeletePoi_ShouldRemoveFromDatabase()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange
         var poi = new PointOfInterestEntity
         {
@@ -136,9 +147,11 @@ public class PointOfInterestServiceIntegrationTests : IClassFixture<MongoDbTestF
         Assert.Null(retrieved);
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task GetAllPois_ShouldReturnAllCreatedPois()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange - Clear collection first
         await _fixture.ClearCollectionAsync();
         
@@ -170,9 +183,11 @@ public class PointOfInterestServiceIntegrationTests : IClassFixture<MongoDbTestF
         Assert.Contains(allPois, p => p.Name == "POI 2");
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task BsonSerialization_ShouldHandleLocationCorrectly()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange - Test BSON serialization of nested Location object
         var poi = new PointOfInterestEntity
         {
@@ -195,9 +210,11 @@ public class PointOfInterestServiceIntegrationTests : IClassFixture<MongoDbTestF
         Assert.Equal(51.987654321, retrieved.Location.Coordinates[1], precision: 9);
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task CategoryFilter_ShouldFilterByCategory()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange
         await _fixture.ClearCollectionAsync();
         
@@ -227,9 +244,11 @@ public class PointOfInterestServiceIntegrationTests : IClassFixture<MongoDbTestF
         Assert.DoesNotContain(restaurants, p => p.Name == "Museum B");
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task SearchByName_ShouldFindMatchingPois()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange
         await _fixture.ClearCollectionAsync();
         
@@ -259,9 +278,11 @@ public class PointOfInterestServiceIntegrationTests : IClassFixture<MongoDbTestF
         Assert.DoesNotContain(results, p => p.Name == "Berlin Station");
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task GetAvailableCategories_ShouldReturnUniqueCategories()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange
         await _fixture.ClearCollectionAsync();
         

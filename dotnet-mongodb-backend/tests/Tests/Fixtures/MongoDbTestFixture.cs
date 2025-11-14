@@ -16,9 +16,20 @@ namespace DotNetMongoDbBackend.Tests.Tests.Fixtures;
 #nullable enable
 public class MongoDbTestFixture : IAsyncLifetime
 {
-    private readonly MongoDbContainer _mongoContainer;
+    private MongoDbContainer? _mongoContainer;
     private IMongoClient? _mongoClient;
     private IMongoDatabase? _database;
+    private bool _dockerWarningShownForThisFixture = false;
+    
+    /// <summary>
+    /// Indicates whether Docker is available and container was started successfully
+    /// </summary>
+    public bool IsDockerAvailable { get; private set; }
+    
+    /// <summary>
+    /// Error message if Docker is not available
+    /// </summary>
+    public string? DockerUnavailableMessage { get; private set; }
 #nullable restore
     
     /// <summary>
@@ -29,7 +40,8 @@ public class MongoDbTestFixture : IAsyncLifetime
     /// <summary>
     /// MongoDB connection string for the test container
     /// </summary>
-    public string ConnectionString => _mongoContainer.GetConnectionString();
+    public string ConnectionString => _mongoContainer?.GetConnectionString() 
+        ?? throw new InvalidOperationException("Container not initialized. Docker may not be available.");
     
     /// <summary>
     /// MongoClient instance connected to the test container
@@ -48,11 +60,7 @@ public class MongoDbTestFixture : IAsyncLifetime
         // Generate unique database name to allow parallel test execution
         DatabaseName = $"test_db_{Guid.NewGuid():N}";
         
-        // Configure MongoDB container
-        _mongoContainer = new MongoDbBuilder()
-            .WithImage("mongo:8.0")
-            .WithPortBinding(27017, true) // Random host port
-            .Build();
+        // Container will be built in InitializeAsync to handle Docker exceptions properly
     }
 
     /// <summary>
@@ -61,18 +69,64 @@ public class MongoDbTestFixture : IAsyncLifetime
     /// </summary>
     public async Task InitializeAsync()
     {
-        // Start MongoDB container
-        await _mongoContainer.StartAsync();
+        try
+        {
+            // Configure and build MongoDB container
+            _mongoContainer = new MongoDbBuilder()
+                .WithImage("mongo:8.0")
+                .WithPortBinding(27017, true) // Random host port
+                .Build();
+            
+            // Start MongoDB container
+            await _mongoContainer.StartAsync();
+            
+            // Create MongoDB client and database
+            _mongoClient = new MongoClient(ConnectionString);
+            _database = _mongoClient.GetDatabase(DatabaseName);
+            
+            // Create 2dsphere index for geo-spatial queries
+            var collection = _database.GetCollection<BsonDocument>("pois");
+            var indexKeys = Builders<BsonDocument>.IndexKeys.Geo2DSphere("location");
+            var indexModel = new CreateIndexModel<BsonDocument>(indexKeys);
+            await collection.Indexes.CreateOneAsync(indexModel);
+            
+            IsDockerAvailable = true;
+        }
+        catch (Exception ex) when (IsDockerException(ex))
+        {
+            IsDockerAvailable = false;
+            DockerUnavailableMessage = "Docker is not available. Please start Docker Desktop and run tests again. Docker-dependent tests will be skipped.";
+            
+            // Show warning once per test file (fixture instance)
+            if (!_dockerWarningShownForThisFixture)
+            {
+                _dockerWarningShownForThisFixture = true;
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("\n" + new string('=', 70));
+                Console.WriteLine("⚠️  WARNING: Docker is not available");
+                Console.WriteLine();
+                Console.WriteLine("Docker-dependent integration tests will be SKIPPED.");
+                Console.WriteLine("Please start Docker Desktop and run tests again.");
+                Console.WriteLine(new string('=', 70) + "\n");
+                Console.ResetColor();
+            }
+            // Do not throw - tests will be skipped individually
+        }
+    }
+    
+    /// <summary>
+    /// Check if exception indicates Docker is not available
+    /// </summary>
+    private static bool IsDockerException(Exception ex)
+    {
+        var message = ex.Message.ToLowerInvariant();
+        var innerMessage = ex.InnerException?.Message?.ToLowerInvariant() ?? string.Empty;
         
-        // Create MongoDB client and database
-        _mongoClient = new MongoClient(ConnectionString);
-        _database = _mongoClient.GetDatabase(DatabaseName);
-        
-        // Create 2dsphere index for geo-spatial queries
-        var collection = _database.GetCollection<BsonDocument>("pois");
-        var indexKeys = Builders<BsonDocument>.IndexKeys.Geo2DSphere("location");
-        var indexModel = new CreateIndexModel<BsonDocument>(indexKeys);
-        await collection.Indexes.CreateOneAsync(indexModel);
+        return message.Contains("docker") ||
+               message.Contains("connection refused") ||
+               message.Contains("cannot connect") ||
+               innerMessage.Contains("docker") ||
+               innerMessage.Contains("connection refused");
     }
 
     /// <summary>
@@ -81,7 +135,7 @@ public class MongoDbTestFixture : IAsyncLifetime
     /// </summary>
     public async Task DisposeAsync()
     {
-        if (_mongoContainer != null)
+        if (IsDockerAvailable && _mongoContainer != null)
         {
             await _mongoContainer.StopAsync();
             await _mongoContainer.DisposeAsync();

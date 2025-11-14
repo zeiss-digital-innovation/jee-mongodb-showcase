@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using DotNetMongoDbBackend.Models.Entities;
 using DotNetMongoDbBackend.Services;
@@ -15,8 +16,10 @@ namespace DotNetMongoDbBackend.Tests.Tests.Integration;
 public class GeoSpatialQueryIntegrationTests : IClassFixture<MongoDbTestFixture>
 {
     private readonly MongoDbTestFixture _fixture;
-    private readonly PointOfInterestService _service;
+    private readonly Lazy<PointOfInterestService> _serviceLazy;
     private readonly Mock<ILogger<PointOfInterestService>> _mockLogger;
+
+    private PointOfInterestService _service => _serviceLazy.Value;
 
     // Dresden coordinates
     private const double DresdenLongitude = 13.7373;
@@ -27,16 +30,20 @@ public class GeoSpatialQueryIntegrationTests : IClassFixture<MongoDbTestFixture>
         _fixture = fixture;
         _mockLogger = new Mock<ILogger<PointOfInterestService>>();
         
-        _service = new PointOfInterestService(
-            _fixture.Database,
-            _fixture.GetMongoSettings(),
-            _mockLogger.Object
-        );
+        // Lazy initialization - only create service when needed and Docker is available
+        _serviceLazy = new Lazy<PointOfInterestService>(() => 
+            new PointOfInterestService(
+                _fixture.Database,
+                _fixture.GetMongoSettings(),
+                _mockLogger.Object
+            ));
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task GetNearbyPois_ShouldReturnPoisWithinRadius()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange - Clear and create test POIs
         await _fixture.ClearCollectionAsync();
         
@@ -81,9 +88,11 @@ public class GeoSpatialQueryIntegrationTests : IClassFixture<MongoDbTestFixture>
         Assert.DoesNotContain(nearbyPois, p => p.Name == "Leipzig Hauptbahnhof");
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task GetNearbyPois_WithSmallRadius_ShouldReturnOnlyClosestPois()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange
         await _fixture.ClearCollectionAsync();
         
@@ -118,9 +127,11 @@ public class GeoSpatialQueryIntegrationTests : IClassFixture<MongoDbTestFixture>
         Assert.DoesNotContain(nearbyPois, p => p.Name == "Further POI");
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task GetNearbyPois_WithCategoryFilter_ShouldFilterByCategory()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange
         await _fixture.ClearCollectionAsync();
         
@@ -155,9 +166,11 @@ public class GeoSpatialQueryIntegrationTests : IClassFixture<MongoDbTestFixture>
         Assert.DoesNotContain(nearbyRestaurants, p => p.Name == "Museum in Dresden");
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task GetNearbyPois_WithMultipleCategories_ShouldReturnAllMatching()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange
         await _fixture.ClearCollectionAsync();
         
@@ -200,9 +213,11 @@ public class GeoSpatialQueryIntegrationTests : IClassFixture<MongoDbTestFixture>
         Assert.DoesNotContain(results, p => p.Name == "Park C");
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task GetNearbyPois_EmptyRadius_ShouldReturnEmptyList()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange
         await _fixture.ClearCollectionAsync();
         
@@ -225,9 +240,11 @@ public class GeoSpatialQueryIntegrationTests : IClassFixture<MongoDbTestFixture>
         Assert.Empty(results);
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task GetNearbyPois_LargeRadius_ShouldReturnAllPois()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange
         await _fixture.ClearCollectionAsync();
         
@@ -261,9 +278,11 @@ public class GeoSpatialQueryIntegrationTests : IClassFixture<MongoDbTestFixture>
         Assert.Contains(results, p => p.Name == "POI 50km");
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task GeoSpatialQuery_ShouldUse2dsphereIndex()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange - This test verifies that MongoDB uses the 2dsphere index
         await _fixture.ClearCollectionAsync();
         
@@ -298,9 +317,11 @@ public class GeoSpatialQueryIntegrationTests : IClassFixture<MongoDbTestFixture>
         // If index doesn't exist, query would fail or be very slow
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task GeoSpatialQuery_WithInvalidCoordinates_ShouldThrowException()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange
         await _fixture.ClearCollectionAsync();
 

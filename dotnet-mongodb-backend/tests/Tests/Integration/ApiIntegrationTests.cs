@@ -6,8 +6,10 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using DotNetMongoDbBackend.Models.DTOs;
 using DotNetMongoDbBackend.Tests.Tests.Fixtures;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace DotNetMongoDbBackend.Tests.Tests.Integration;
@@ -19,38 +21,54 @@ namespace DotNetMongoDbBackend.Tests.Tests.Integration;
 public class ApiIntegrationTests : IClassFixture<MongoDbTestFixture>, IDisposable
 {
     private readonly MongoDbTestFixture _fixture;
-    private readonly WebApplicationFactory<Program> _factory;
-    private readonly HttpClient _client;
+    private readonly Lazy<WebApplicationFactory<Program>> _factoryLazy;
+    private readonly Lazy<HttpClient> _clientLazy;
+
+    private WebApplicationFactory<Program> _factory => _factoryLazy.Value;
+    private HttpClient _client => _clientLazy.Value;
 
     public ApiIntegrationTests(MongoDbTestFixture fixture)
     {
         _fixture = fixture;
         
-        // Create WebApplicationFactory with MongoDB Testcontainer
-        _factory = new WebApplicationFactory<Program>()
-            .WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureServices(services =>
+        // Lazy initialization - only create when needed and Docker is available
+        _factoryLazy = new Lazy<WebApplicationFactory<Program>>(() =>
+        {
+            var factory = new WebApplicationFactory<Program>()
+                .WithWebHostBuilder(builder =>
                 {
-                    // Override MongoDB configuration to use test container
-                    services.Configure<DotNetMongoDbBackend.Configurations.MongoSettings>(options =>
+                    // Suppress hosting logs
+                    builder.ConfigureLogging(logging =>
                     {
-                        options.ConnectionString = _fixture.ConnectionString;
-                        options.Database = _fixture.DatabaseName;
-                        options.Collections = new DotNetMongoDbBackend.Configurations.MongoSettings.CollectionNames
+                        logging.ClearProviders();
+                        logging.SetMinimumLevel(LogLevel.None);
+                    });
+                    
+                    builder.ConfigureServices(services =>
+                    {
+                        // Override MongoDB configuration to use test container
+                        services.Configure<DotNetMongoDbBackend.Configurations.MongoSettings>(options =>
                         {
-                            Pois = "pois"
-                        };
+                            options.ConnectionString = _fixture.ConnectionString;
+                            options.Database = _fixture.DatabaseName;
+                            options.Collections = new DotNetMongoDbBackend.Configurations.MongoSettings.CollectionNames
+                            {
+                                Pois = "pois"
+                            };
+                        });
                     });
                 });
-            });
-
-        _client = _factory.CreateClient();
+            return factory;
+        });
+        
+        _clientLazy = new Lazy<HttpClient>(() => _factory.CreateClient());
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task CreatePoi_EndToEnd_ShouldPersistToMongoDBContainer()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange
         var newPoi = new PointOfInterestDto
         {
@@ -90,9 +108,11 @@ public class ApiIntegrationTests : IClassFixture<MongoDbTestFixture>, IDisposabl
         // Note: API returns ID in Href and Location header, not in Id property
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task GetPoiById_EndToEnd_ShouldRetrieveFromMongoDB()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange - Create POI first
         var newPoi = new PointOfInterestDto
         {
@@ -124,9 +144,11 @@ public class ApiIntegrationTests : IClassFixture<MongoDbTestFixture>, IDisposabl
         // Note: API returns ID in Href and Location header, not in Id property
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task UpdatePoi_EndToEnd_ShouldModifyInMongoDB()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange - Create POI
         var newPoi = new PointOfInterestDto
         {
@@ -172,9 +194,11 @@ public class ApiIntegrationTests : IClassFixture<MongoDbTestFixture>, IDisposabl
         Assert.Equal("Garden", updatedPoi.Category);
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task DeletePoi_EndToEnd_ShouldRemoveFromMongoDB()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange - Create POI
         var newPoi = new PointOfInterestDto
         {
@@ -205,9 +229,11 @@ public class ApiIntegrationTests : IClassFixture<MongoDbTestFixture>, IDisposabl
         Assert.Equal(HttpStatusCode.NotFound, verifyResponse.StatusCode);
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task GetAllPois_EndToEnd_ShouldReturnFromMongoDB()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange - Clear and create test data
         await _fixture.ClearCollectionAsync();
         
@@ -235,9 +261,11 @@ public class ApiIntegrationTests : IClassFixture<MongoDbTestFixture>, IDisposabl
         Assert.NotEmpty(pois);
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task GeoSearch_EndToEnd_ShouldUseMongoDBGeoIndex()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange - Create POIs at different locations
         await _fixture.ClearCollectionAsync();
         
@@ -275,9 +303,11 @@ public class ApiIntegrationTests : IClassFixture<MongoDbTestFixture>, IDisposabl
         Assert.DoesNotContain(pois, p => p.Name == "Far POI");
     }
 
-    [Fact]
+    [SkippableFact]
     public async Task GetCategories_EndToEnd_ShouldReturnUniqueCategories()
     {
+        Skip.IfNot(_fixture.IsDockerAvailable, _fixture.DockerUnavailableMessage);
+        
         // Arrange
         await _fixture.ClearCollectionAsync();
         
