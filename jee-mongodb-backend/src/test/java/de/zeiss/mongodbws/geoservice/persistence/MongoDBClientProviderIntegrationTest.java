@@ -16,7 +16,7 @@ class MongoDBClientProviderIntegrationTest {
 
     @BeforeAll
     static void startMongo() {
-        mongoDBContainer = new MongoDBContainer("mongo:7.0");
+        mongoDBContainer = new MongoDBContainer("mongo:8.0");
         mongoDBContainer.start();
     }
 

@@ -49,7 +49,7 @@ public class SpringGeoServiceIntegrationTest {
 
     @Container
     // make the container static so it starts before Spring context and works with static @DynamicPropertySource
-    static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:7.0");
+    static MongoDBContainer mongoDBContainer = new MongoDBContainer("mongo:8.0");
 
     @DynamicPropertySource
     static void setProperties(DynamicPropertyRegistry registry) {
