@@ -112,8 +112,8 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    // Example: options.KnownProxies.Add(IPAddress.Parse("10.0.0.100"));
-    // Example: options.KnownNetworks.Add(new IPNetwork(IPAddress.Parse("10.0.0.0"), 24));
+    // Example: options.KnownProxies.Add(IPAddress.Parse("10.0.0.100"))
+    // Example: options.KnownNetworks.Add(new IPNetwork(IPAddress.Parse("10.0.0.0"), 24))
 });
 
 var app = builder.Build();

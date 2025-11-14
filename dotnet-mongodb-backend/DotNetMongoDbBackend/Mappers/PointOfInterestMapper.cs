@@ -6,7 +6,7 @@ namespace DotNetMongoDbBackend.Mappers;
 public static class PointOfInterestMapper
 {
     // Entity -> DTO (for GET requests)
-    public static PointOfInterestDto ToDto(PointOfInterestEntity entity)
+    public static PointOfInterestDto? ToDto(PointOfInterestEntity entity)
     {
         if (entity == null) return null;
         return new PointOfInterestDto
@@ -26,7 +26,7 @@ public static class PointOfInterestMapper
 
 
     // DTO -> (for POST/PUT requests)
-    public static PointOfInterestEntity ToEntity(PointOfInterestDto dto)
+    public static PointOfInterestEntity? ToEntity(PointOfInterestDto dto)
     {
         if (dto == null) return null;
 
@@ -48,6 +48,6 @@ public static class PointOfInterestMapper
     // Batch-converting
     public static List<PointOfInterestDto> ToDtoList(List<PointOfInterestEntity> entities)
     {
-        return entities?.Select(ToDto).ToList() ?? new List<PointOfInterestDto>();
+        return entities?.Select(ToDto).Where(dto => dto != null).Cast<PointOfInterestDto>().ToList() ?? [];
     }
 }
