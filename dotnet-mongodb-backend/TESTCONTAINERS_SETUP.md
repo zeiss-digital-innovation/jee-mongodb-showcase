@@ -1,22 +1,22 @@
-# Testcontainers Setup für .NET MongoDB Backend
+# Testcontainers Setup for .NET MongoDB Backend
 
-Dieses Dokument beschreibt die Einrichtung und Verwendung von Testcontainers für Integration Tests mit MongoDB.
+This document describes the setup and usage of Testcontainers for integration tests with MongoDB.
 
-## Übersicht
+## Overview
 
-Testcontainers ermöglicht das Ausführen von Integration Tests gegen eine echte MongoDB-Instanz in einem Docker-Container. Dies eliminiert die Notwendigkeit von Mocks und bietet realistische Test-Szenarien.
+Testcontainers enables running integration tests against a real MongoDB instance in a Docker container. This eliminates the need for mocks and provides realistic test scenarios.
 
-## Voraussetzungen
+## Prerequisites
 
-- Docker Desktop (Windows) oder Docker Engine (Linux/macOS)
+- Docker Desktop (Windows) or Docker Engine (Linux/macOS)
 - .NET 9.0 SDK
-- xUnit als Test-Framework
+- xUnit as test framework
 
 ## Installation
 
-### 1. NuGet-Pakete hinzufügen
+### 1. Add NuGet Packages
 
-Fügen Sie folgende Pakete zum Test-Projekt hinzu:
+Add the following packages to your test project:
 
 ```xml
 <PackageReference Include="Testcontainers" Version="3.10.0" />
@@ -30,9 +30,9 @@ dotnet add package Testcontainers --version 3.10.0
 dotnet add package Testcontainers.MongoDb --version 3.10.0
 ```
 
-### 2. Test-Fixture erstellen
+### 2. Create Test Fixture
 
-Erstellen Sie eine Fixture-Klasse zur Verwaltung des Container-Lebenszyklus:
+Create a fixture class to manage the container lifecycle:
 
 ```csharp
 public class MongoDbTestFixture : IAsyncLifetime
@@ -44,7 +44,7 @@ public class MongoDbTestFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        // 1. Container konfigurieren und starten
+        // 1. Configure and start container
         _mongoContainer = new MongoDbBuilder()
             .WithImage("mongo:8.0")
             .WithPortBinding(27017, true) // Random host port
@@ -52,12 +52,12 @@ public class MongoDbTestFixture : IAsyncLifetime
 
         await _mongoContainer.StartAsync();
 
-        // 2. Eindeutige Test-Datenbank erstellen
+        // 2. Create unique test database
         _testDatabaseName = $"test_db_{Guid.NewGuid():N}";
         var client = new MongoClient(_mongoContainer.GetConnectionString());
         Database = client.GetDatabase(_testDatabaseName);
 
-        // 3. MongoDB 2dsphere Geo-Index erstellen
+        // 3. Create MongoDB 2dsphere geo index
         var collection = Database.GetCollection<PointOfInterestEntity>("pointsOfInterest");
         var indexKeys = Builders<PointOfInterestEntity>.IndexKeys
             .Geo2DSphere(poi => poi.Location!.Coordinates);
@@ -71,14 +71,14 @@ public class MongoDbTestFixture : IAsyncLifetime
         await _mongoContainer.DisposeAsync();
     }
 
-    // Optional: Collection zwischen Tests leeren
+    // Optional: Clear collection between tests
     public async Task ClearCollectionAsync()
     {
         var collection = Database.GetCollection<PointOfInterestEntity>("pointsOfInterest");
         await collection.DeleteManyAsync(Builders<PointOfInterestEntity>.Filter.Empty);
     }
 
-    // MongoDB-Settings für Dependency Injection
+    // MongoDB settings for dependency injection
     public MongoSettings GetMongoSettings()
     {
         return new MongoSettings
@@ -90,7 +90,7 @@ public class MongoDbTestFixture : IAsyncLifetime
 }
 ```
 
-### 3. Test-Klasse mit Fixture verwenden
+### 3. Use Test Fixture in Test Class
 
 #### Service Integration Tests
 
@@ -104,7 +104,7 @@ public class PointOfInterestServiceIntegrationTests : IClassFixture<MongoDbTestF
     {
         _fixture = fixture;
         
-        // Service mit echter MongoDB initialisieren
+        // Initialize service with real MongoDB
         var mongoSettings = Options.Create(_fixture.GetMongoSettings());
         var client = new MongoClient(_fixture.GetMongoSettings().ConnectionString);
         var logger = new NullLogger<PointOfInterestService>();
@@ -142,7 +142,7 @@ public class PointOfInterestServiceIntegrationTests : IClassFixture<MongoDbTestF
 }
 ```
 
-#### API End-to-End Tests mit WebApplicationFactory
+#### API End-to-End Tests with WebApplicationFactory
 
 ```csharp
 public class ApiIntegrationTests : IClassFixture<MongoDbTestFixture>
@@ -154,19 +154,19 @@ public class ApiIntegrationTests : IClassFixture<MongoDbTestFixture>
     {
         _fixture = fixture;
 
-        // WebApplicationFactory mit Test-MongoDB konfigurieren
+        // Configure WebApplicationFactory with test MongoDB
         var factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
             {
                 builder.ConfigureServices(services =>
                 {
-                    // Produktive MongoDB-Konfiguration entfernen
+                    // Remove production MongoDB configuration
                     var descriptor = services.SingleOrDefault(
                         d => d.ServiceType == typeof(IMongoClient));
                     if (descriptor != null)
                         services.Remove(descriptor);
 
-                    // Test-MongoDB einbinden
+                    // Add test MongoDB
                     services.AddSingleton<IMongoClient>(sp =>
                         new MongoClient(_fixture.GetMongoSettings().ConnectionString));
                     
@@ -207,96 +207,96 @@ public class ApiIntegrationTests : IClassFixture<MongoDbTestFixture>
 }
 ```
 
-## Tests ausführen
+## Running Tests
 
 ```powershell
-# Alle Integration Tests
+# All integration tests
 dotnet test --filter "FullyQualifiedName~Integration"
 
-# Spezifische Test-Klasse
+# Specific test class
 dotnet test --filter "FullyQualifiedName~PointOfInterestServiceIntegrationTests"
 
-# Mit verbosem Output
+# With verbose output
 dotnet test --filter "FullyQualifiedName~Integration" --verbosity normal
 ```
 
 ## Best Practices
 
-### 1. Test-Isolation
+### 1. Test Isolation
 
-Jede Test-Klasse sollte eine eigene Fixture-Instanz erhalten:
+Each test class should receive its own fixture instance:
 
 ```csharp
 public class MyTests : IClassFixture<MongoDbTestFixture>
 {
-    // xUnit erstellt eine neue Fixture-Instanz pro Test-Klasse
-    // → Parallele Ausführung mit isolierten Datenbanken
+    // xUnit creates a new fixture instance per test class
+    // → Parallel execution with isolated databases
 }
 ```
 
-### 2. Cleanup zwischen Tests
+### 2. Cleanup Between Tests
 
 ```csharp
 public async Task InitializeAsync()
 {
-    // Wird vor jedem Test ausgeführt
+    // Executed before each test
     await _fixture.ClearCollectionAsync();
 }
 ```
 
-### 3. GeoJSON-Format beachten
+### 3. GeoJSON Format
 
-MongoDB erwartet Koordinaten im Format `[longitude, latitude]`:
+MongoDB expects coordinates in `[longitude, latitude]` format:
 
 ```csharp
-Coordinates = new[] { 13.7373, 51.0504 }  // ✅ Richtig: [lng, lat]
-Coordinates = new[] { 51.0504, 13.7373 }  // ❌ Falsch: [lat, lng]
+Coordinates = new[] { 13.7373, 51.0504 }  // ✅ Correct: [lng, lat]
+Coordinates = new[] { 51.0504, 13.7373 }  // ❌ Wrong: [lat, lng]
 ```
 
-### 4. Container-Logs bei Fehlern
+### 4. Container Logs on Errors
 
 ```csharp
 public async Task InitializeAsync()
 {
     await _mongoContainer.StartAsync();
     
-    // Logs bei Problemen ausgeben
+    // Output logs on errors
     var (stdout, stderr) = await _mongoContainer.GetLogsAsync();
     Console.WriteLine($"Container logs:\n{stdout}");
 }
 ```
 
-## Vorteile
+## Advantages
 
-- ✅ **Echte MongoDB-Features**: Geo-Spatial Queries, Aggregations, Indizes
-- ✅ **Keine Mocks**: Testen gegen echte Datenbank-Implementierung
-- ✅ **Isolation**: Jeder Test läuft in eigener Datenbank
-- ✅ **Automatisches Cleanup**: Container werden nach Tests entfernt
-- ✅ **CI/CD Ready**: Funktioniert überall wo Docker verfügbar ist
-- ✅ **Parallele Ausführung**: Mehrere Test-Klassen gleichzeitig
+- ✅ **Real MongoDB Features**: Geo-spatial queries, aggregations, indexes
+- ✅ **No Mocks**: Testing against real database implementation
+- ✅ **Isolation**: Each test runs in its own database
+- ✅ **Automatic Cleanup**: Containers are removed after tests
+- ✅ **CI/CD Ready**: Works everywhere Docker is available
+- ✅ **Parallel Execution**: Multiple test classes run simultaneously
 
 ## Performance
 
-- **Erster Start**: ~3-5 Sekunden (Container-Download + Start)
-- **Folgende Starts**: ~2-3 Sekunden (Image ist gecached)
-- **36 Tests**: ~7-8 Sekunden Gesamtlaufzeit
+- **First Start**: ~3-5 seconds (container download + start)
+- **Subsequent Starts**: ~2-3 seconds (image is cached)
+- **36 Tests**: ~7-8 seconds total runtime
 
 ## Troubleshooting
 
-### Container startet nicht
+### Container Won't Start
 
 ```powershell
-# Docker läuft?
+# Is Docker running?
 docker ps
 
-# Testcontainers-Logs aktivieren
+# Enable Testcontainers logs
 $env:TESTCONTAINERS_RYUK_DISABLED="false"
 dotnet test --verbosity normal
 ```
 
-### Port-Konflikte
+### Port Conflicts
 
-Testcontainers verwendet automatisch freie Ports. Bei Konflikten:
+Testcontainers automatically uses free ports. In case of conflicts:
 
 ```csharp
 .WithPortBinding(27017, true) // true = random host port
@@ -305,15 +305,15 @@ Testcontainers verwendet automatisch freie Ports. Bei Konflikten:
 ### Connection String
 
 ```csharp
-// Richtiger Connection String vom Container holen
+// Get correct connection string from container
 var connectionString = _mongoContainer.GetConnectionString();
 // Format: mongodb://localhost:<random-port>
 ```
 
-## Architektur
+## Architecture
 
 ```
-Test-Ausführung:
+Test Execution:
 ┌─────────────────────────────────────────┐
 │ xUnit Test Runner                       │
 │                                         │
@@ -333,8 +333,8 @@ Test-Ausführung:
 └─────────────────────────────────────────┘
 ```
 
-## Weiterführende Informationen
+## Further Information
 
-- [Testcontainers Dokumentation](https://dotnet.testcontainers.org/)
+- [Testcontainers Documentation](https://dotnet.testcontainers.org/)
 - [Testcontainers MongoDB Module](https://dotnet.testcontainers.org/modules/mongodb/)
 - [MongoDB C# Driver](https://www.mongodb.com/docs/drivers/csharp/current/)
