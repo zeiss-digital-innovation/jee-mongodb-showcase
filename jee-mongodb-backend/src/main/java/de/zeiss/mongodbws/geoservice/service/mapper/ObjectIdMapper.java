@@ -19,6 +19,9 @@ public class ObjectIdMapper {
 
             if (lastIndexOfSlash > -1) {
                 objectId = href.substring(lastIndexOfSlash + 1);
+            } else {
+                // Fallback to using the whole href as id
+                objectId = href;
             }
         } else {
             return null;

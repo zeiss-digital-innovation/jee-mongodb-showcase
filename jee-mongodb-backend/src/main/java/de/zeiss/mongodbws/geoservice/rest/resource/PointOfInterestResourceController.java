@@ -9,6 +9,9 @@ import de.zeiss.mongodbws.geoservice.rest.Constants;
 import de.zeiss.mongodbws.geoservice.service.GeoDataService;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
@@ -71,17 +74,20 @@ public class PointOfInterestResourceController {
      * POST request for new poi resource. Returns empty response with
      * {@link Status#CREATED} (HTTP 201).
      *
-     * @param poi
-     * @return
+     * @param poi The point of interest to create
+     * @return Response with location header of created resource
      */
     @POST
     @Consumes(Constants.MEDIA_TYPE_JSON)
     @Operation(summary = "Create a new point of interest", description = "Adds a new point of interest")
     @APIResponses({
             @APIResponse(responseCode = "201", description = "Point of interest created"),
-            @APIResponse(responseCode = "500", description = "Internal server error")})
-    public Response createPOI(PointOfInterest poi) {
-
+            @APIResponse(responseCode = "400", description = "Invalid POI resource", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ConstraintViolationInfo.class))),
+            @APIResponse(responseCode = "500", description = "Internal server error"),})
+    public Response createPOI(@Valid PointOfInterest poi) {
+        if (poi == null) {
+            return Response.status(Status.BAD_REQUEST).build();
+        }
         URI location = null;
 
         PointOfInterest resultPoi = geoDataService.createPOI(poi);
@@ -101,8 +107,10 @@ public class PointOfInterestResourceController {
     @Operation(summary = "Update point of interest", description = "Updates an existing point of interest by ID")
     @APIResponses({
             @APIResponse(responseCode = "201", description = "New Point of interest created if not existing for given ID"),
-            @APIResponse(responseCode = "204", description = "Point of interest updated")})
-    public Response updatePOI(@PathParam("id") String id, PointOfInterest poi) {
+            @APIResponse(responseCode = "204", description = "Point of interest updated"),
+            @APIResponse(responseCode = "400", description = "Invalid POI resource", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ConstraintViolationInfo.class)))})
+    public Response updatePOI(@PathParam("id") String id, @Valid PointOfInterest poi) {
+
         if (poi == null) {
             return Response.status(Status.BAD_REQUEST).build();
         }
@@ -171,9 +179,10 @@ public class PointOfInterestResourceController {
     @Operation(summary = "Get points of interest", description = "Returns a list of points of interest near a given location")
     @APIResponses({
             @APIResponse(responseCode = "200", description = "List of points of interest", content = @Content(mediaType = "application/json", schema = @Schema(implementation = PointOfInterest.class))),
-            @APIResponse(responseCode = "400", description = "Invalid parameters")})
-    public Response listPOIs(@QueryParam("lat") double latitude, @QueryParam("lon") double longitude,
-                             @QueryParam("radius") int radius, @QueryParam("expand") String expand) {
+            @APIResponse(responseCode = "400", description = "Invalid parameters", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ConstraintViolationInfo.class)))})
+    public Response listPOIs(@Min(value = -90, message = "latitude must be between -90 and 90") @Max(value = 90, message = "latitude must be between -90 and 90") @QueryParam("lat") double latitude,
+                             @Min(-180) @Max(180) @QueryParam("lon") double longitude,
+                             @Min(1) @Max(100000) @QueryParam("radius") int radius, @QueryParam("expand") String expand) {
 
         List<PointOfInterest> poiList = geoDataService.listPOIs(latitude, longitude, radius,
                 EXPAND_DETAILS.equalsIgnoreCase(expand));

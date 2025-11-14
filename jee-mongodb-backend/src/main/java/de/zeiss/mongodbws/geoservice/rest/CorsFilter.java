@@ -27,8 +27,8 @@ public class CorsFilter implements ContainerRequestFilter, ContainerResponseFilt
     private static final String HEADER_ORIGIN = "Origin";
     private static final String HDR_ALLOW_METHODS = "Access-Control-Allow-Methods";
     private static final String HDR_ALLOW_HEADERS = "Access-Control-Allow-Headers";
-    private static final String HDR_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
-    private static final String HDR_ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials";
+    static final String HDR_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
+    static final String HDR_ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials";
     private static final String HDR_MAX_AGE = "Access-Control-Max-Age";
 
     @Override

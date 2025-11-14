@@ -175,7 +175,7 @@ public class PointOfInterestResourceControllerTest {
         // Then
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         assertNotNull(response.getEntity());
-        assertTrue(response.getEntity() instanceof List);
+        assertInstanceOf(List.class, response.getEntity());
 
         @SuppressWarnings("unchecked")
         List<PointOfInterest> returnedList = (List<PointOfInterest>) response.getEntity();
@@ -218,17 +218,126 @@ public class PointOfInterestResourceControllerTest {
         when(geoDataService.listPOIs(lat, lon, radius, false)).thenReturn(Arrays.asList());
 
         // When
-        Response response = controller.listPOIs(lat, lon, radius, null);
+        List<PointOfInterest> returnedList;
+        try (Response response = controller.listPOIs(lat, lon, radius, null)) {
 
-        // Then
-        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-        assertNotNull(response.getEntity());
-        assertTrue(response.getEntity() instanceof List);
+            // Then
+            assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+            assertNotNull(response.getEntity());
+            assertInstanceOf(List.class, response.getEntity());
 
-        @SuppressWarnings("unchecked")
-        List<PointOfInterest> returnedList = (List<PointOfInterest>) response.getEntity();
+            returnedList = (List<PointOfInterest>) response.getEntity();
+        }
         assertTrue(returnedList.isEmpty());
 
         verify(geoDataService).listPOIs(lat, lon, radius, false);
+    }
+
+    @Test
+    public void testDeletePOI_ExistingId_ShouldReturnNoContentResponse() {
+        // Given
+        when(geoDataService.getPOI(testId, false)).thenReturn(testPoi);
+        doNothing().when(geoDataService).deletePOI(testId);
+
+        // When
+        try (Response response = controller.deletePOI(testId)) {
+
+            // Then
+            assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+        }
+        verify(geoDataService).getPOI(testId, false);
+        verify(geoDataService).deletePOI(testId);
+    }
+
+    @Test
+    public void testDeletePOI_NonExistingId_ShouldThrowNotFoundException() {
+        // Given
+        when(geoDataService.getPOI(testId, false)).thenReturn(null);
+
+        // When / Then
+        assertThrows(NotFoundException.class, () -> controller.deletePOI(testId));
+        verify(geoDataService).getPOI(testId, false);
+    }
+
+    @Test
+    public void testUpdatePOI_NonExistingId_ShouldCreateNewPOI() {
+        // Given
+        PointOfInterest inputPoi = new PointOfInterest();
+        inputPoi.setCategory("cafe");
+        inputPoi.setDetails("New cafe");
+        inputPoi.setLocation(new Point(13.7373, 51.0504));
+
+        when(geoDataService.getPOI(testId, true)).thenReturn(null);
+
+        PointOfInterest createdPoi = new PointOfInterest();
+        createdPoi.setId(testId);
+        createdPoi.setCategory("cafe");
+        createdPoi.setDetails("New cafe");
+        createdPoi.setLocation(new Point(13.7373, 51.0504));
+
+        when(geoDataService.createPOI(inputPoi)).thenReturn(createdPoi);
+
+        // When
+        try (Response response = controller.updatePOI(testId, inputPoi)) {
+
+            // Then
+            assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+            assertNotNull(response.getLocation());
+            assertTrue(response.getLocation().toString().contains(testId));
+        }
+        verify(geoDataService).getPOI(testId, true);
+        verify(geoDataService).createPOI(inputPoi);
+    }
+
+    @Test
+    public void testUpdatePOI_ExistingId_ShouldUpdatePOI() {
+        String updateId = "updateId";
+        // Given
+        PointOfInterest inputPoi = new PointOfInterest();
+        inputPoi.setName("Test Cafe");
+        inputPoi.setCategory("cafe");
+        inputPoi.setDetails("New cafe");
+        inputPoi.setLocation(new Point(13.7373, 51.0504));
+
+        when(geoDataService.getPOI(updateId, true)).thenReturn(inputPoi);
+
+        PointOfInterest updatePoi = new PointOfInterest();
+        updatePoi.setId(updateId);
+        updatePoi.setName("Updated Cafe");
+        updatePoi.setCategory("coffee");
+        updatePoi.setDetails("Updated cafe");
+        updatePoi.setLocation(new Point(13.1111, 51.2222));
+
+        when(geoDataService.updatePOI(updatePoi)).thenReturn(updatePoi);
+
+        // When
+        try (Response response = controller.updatePOI(updateId, updatePoi)) {
+
+            // Then
+            assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus());
+        }
+
+        verify(geoDataService).getPOI(updateId, true);
+        verify(geoDataService).updatePOI(updatePoi);
+    }
+
+    @Test
+    public void testCreatePOI_NullPOI_ShouldReturnBadRequest() {
+        // When
+        try (Response response = controller.createPOI(null)) {
+
+            // Then
+            assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+        }
+    }
+
+    @Test
+    public void testUpdatePOI_NullPOI_ShouldReturnBadRequest() {
+        // When
+        try (Response response = controller.updatePOI("whatever", null)) {
+
+            // Then
+            assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+        }
     }
 }

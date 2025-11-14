@@ -1,4 +1,4 @@
-package de.zeiss.mongodb_ws.spring_geo_service.integration;
+package de.zeiss.mongodbws.geoservice.integration;
 
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;

@@ -73,12 +73,21 @@ public class ObjectIdMapperTest {
     }
 
     @Test
-    public void testMapToObjectId_WithNullIdAndNullHref_ShouldReturnNull() {
+    public void testMapToObjectId_WithHrefContainingNoSlashes_ShouldReturnHref() {
+        // Given
+        String href = "507f1f77bcf86cd799439011";
+
         // When
-        ObjectId result = ObjectIdMapper.mapToObjectId(null, null);
+        ObjectId result = ObjectIdMapper.mapToObjectId(null, href);
 
         // Then
-        assertNull(result);
+        assertNotNull(result);
+        assertEquals(href, result.toString());
+    }
+
+    @Test
+    public void testMapToObjectId_WithNullIdAndNullHref_ShouldReturnNull() {
+        assertNull(ObjectIdMapper.mapToObjectId(null, null));
     }
 
     @Test

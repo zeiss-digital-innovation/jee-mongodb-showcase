@@ -60,8 +60,8 @@ public class GeoDataService {
     }
 
     public PointOfInterest updatePOI(PointOfInterest poi) {
-        if (poi.getId() == null) {
-            throw new IllegalArgumentException("POI id must not be null for update.");
+        if (poi.getId() == null || !ObjectId.isValid(poi.getId())) {
+            throw new IllegalArgumentException("Invalid or missing POI id for update operation.");
         }
         PointOfInterestEntity entity = persistenceService.getPointOfInterest(new ObjectId(poi.getId()), true);
 

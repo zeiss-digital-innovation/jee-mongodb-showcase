@@ -37,9 +37,9 @@ public class MongoDBClientProvider {
     @ConfigProperty(name = "mongodb.port", defaultValue = "27017")
     int port;
 
-    private MongoClient mongoClient = null;
+    MongoClient mongoClient = null;
 
-    private Datastore datastore;
+    Datastore datastore;
 
     @PostConstruct
     public void init() {
