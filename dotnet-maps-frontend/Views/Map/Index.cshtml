@@ -601,6 +601,13 @@
         selectedLongitude = null;
 
         }
+
+        // client side validation against potentially dangerous input
+        function containsDangerousCharacter(text) {
+            if (!text) return false;
+            // Check for script tags, javascript: protocol, and event handlers
+            return /<script|<\/script|javascript:|oneerror=|onload=|onclick=/i.test(text);
+        }
         
         function savePoi() {
             if (!validatePoiForm()) return;
@@ -611,16 +618,25 @@
             const category = $('#poiCategory').val().trim();
             const name = $('#poiName').val().trim();
             const details = $('#poiDetails').val().trim();
-            
-            // Basic XSS prevention - encode HTML entities
-            const sanitizedName = $('<div>').text(name).html();
-            const sanitizedDetails = $('<div>').text(details).html();
 
+            // client-side validation against dangerous characters
+            if (containsDangerousCharacter(name)) {
+                alert('Name contains invalid characters. Please avoid < > and script tags.');
+                $('#savePoiBtn').prop('disabled', false).text('Save');
+                return;
+            }
+
+            if (containsDangerousCharacter(details)) {
+                alert('Details contain invalid characters. Please avoid < > and script tags.');
+                $('#savePoiBtn').prop('disabled', false).text('Save');
+                return;
+            }
+            
             // Only send required fields - do NOT send href or address
             const poiData = {
                 category: category,
-                name: sanitizedName,
-                details: sanitizedDetails,
+                name: name,
+                details: details,
                 location: {
                     type: "Point",
                     coordinates: [selectedLongitude, selectedLatitude]
