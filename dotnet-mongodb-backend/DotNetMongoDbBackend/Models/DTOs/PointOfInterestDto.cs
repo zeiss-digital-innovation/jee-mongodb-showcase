@@ -23,6 +23,9 @@ public class PointOfInterestDto
     public string? Category { get; set; }
 
     [JsonPropertyName("details")]
+    [Required(ErrorMessage = "Details are required!")]
+    [StringLength(1000, MinimumLength = 1, ErrorMessage = "Details must be between 1 and 1000 characters!")]
+    [RegularExpression(@"^[^<>]*$", ErrorMessage = "Details cannot contain < or > characters!")]
     public string? Details { get; set; }
 
     [JsonPropertyName("location")]
@@ -30,6 +33,9 @@ public class PointOfInterestDto
 
     // Optional fields that may not be present in all documents
     [JsonPropertyName("name")]
+    [Required(ErrorMessage = "Name is required!")]
+    [StringLength(200, MinimumLength = 1, ErrorMessage = "Name must be between 1 and 200 characters!")]
+    [RegularExpression(@"^[^<>]*$", ErrorMessage = "Name cannot contain < or > characters!")]
     public string? Name { get; set; }
 
     [JsonPropertyName("tags")]
