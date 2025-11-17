@@ -20,6 +20,8 @@ interest). The data is stored in a MongoDB database.
     - [Build reports](#build-reports)
 - [Run](#run)
     - [Deploy to existing Wildfly](#deploy-to-existing-wildfly)
+- [Test](#test)
+    - [Integration Tests](#integration-tests)
 - [Docker](#docker)
     - [Build the Docker image](#build-the-docker-image)
     - [Docker network](#docker-network)
@@ -94,6 +96,39 @@ follow these steps:
   request http://localhost:8080/zdi-geo-service/api/poi?lat=51.0490455&lon=13.7383389&radius=100&expand=details
 - If you want to access the Swagger UI, start your Wildfly with the standalone-microprofile.xml configuration then after
   deployment you can assess it with http://localhost:8080/zdi-geo-service/swagger/
+
+## Test
+
+You can run the tests with:
+
+```bash
+mvn clean test
+```
+
+### Integration Tests
+
+The integration tests are using Testcontainers to start a MongoDB container for testing. These tests require Docker to
+be installed and running on your machine. If Docker is not available, the tests will be skipped.
+
+By default, these tests are using a MongoDB container with version 8.0. If you want to use a different version, you can
+set the desired version using one of the following ways:
+
+Use system property (preferred):
+
+```bash
+mvn -DMONGODB_IMAGE=mongo:7.0 test
+```
+
+Or set environment variable (Windows CMD):
+
+```cmd
+set MONGODB_IMAGE=mongo:7.0
+mvn test
+```
+
+Or change the default value in the `src/test/resources/test-config.properties` file.
+
+The order of preference is: system property > environment variable > test-config.properties.
 
 ## Docker
 

@@ -2,6 +2,8 @@ package de.zeiss.mongodbws.geoservice.persistence;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import com.mongodb.client.model.Indexes;
+import de.zeiss.mongodbws.geoservice.config.TestConfig;
 import de.zeiss.mongodbws.geoservice.integration.DockerAvailable;
 import de.zeiss.mongodbws.geoservice.persistence.entity.GeoPoint;
 import de.zeiss.mongodbws.geoservice.persistence.entity.PointOfInterestEntity;
@@ -26,7 +28,7 @@ class PersistenceServiceIntegrationTest {
 
     @BeforeAll
     void startMongo() {
-        mongoDBContainer = new MongoDBContainer("mongo:8.0");
+        mongoDBContainer = new MongoDBContainer(TestConfig.MONGODB_IMAGE);
         mongoDBContainer.start();
     }
 
@@ -39,9 +41,15 @@ class PersistenceServiceIntegrationTest {
     void setUp() {
         String connectionString = mongoDBContainer.getConnectionString();
         mongoClient = MongoClients.create(connectionString);
+
+        // No explicit mapping here: Morphia will pick up annotated entity classes at runtime.
         datastore = Morphia.createDatastore(mongoClient, "test-db");
-        datastore.getMapper().map(PointOfInterestEntity.class, GeoPoint.class);
-        datastore.ensureIndexes();
+
+        // datastore.ensureIndexes() is deprecated, as a workaround creating the geospatial index manually
+        datastore.getDatabase()
+                .getCollection("point-of-interest")
+                .createIndex(Indexes.geo2dsphere("location"));
+
         mongoDBClientProvider = new MongoDBClientProvider();
         mongoDBClientProvider.mongoClient = mongoClient;
         mongoDBClientProvider.datastore = datastore;
@@ -165,4 +173,3 @@ class PersistenceServiceIntegrationTest {
         assertNull(persistenceService.getPointOfInterest(entity2.getId(), false));
     }
 }
-

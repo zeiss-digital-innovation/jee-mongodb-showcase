@@ -1,5 +1,6 @@
 package de.zeiss.mongodbws.geoservice.persistence;
 
+import de.zeiss.mongodbws.geoservice.config.TestConfig;
 import de.zeiss.mongodbws.geoservice.integration.DockerAvailable;
 import dev.morphia.Datastore;
 import org.junit.jupiter.api.*;
@@ -16,7 +17,7 @@ class MongoDBClientProviderIntegrationTest {
 
     @BeforeAll
     static void startMongo() {
-        mongoDBContainer = new MongoDBContainer("mongo:8.0");
+        mongoDBContainer = new MongoDBContainer(TestConfig.MONGODB_IMAGE);
         mongoDBContainer.start();
     }
 
