@@ -344,8 +344,20 @@ public class PointOfInterestService : IPointOfInterestService
         if (poi == null)
             throw new ArgumentNullException(nameof(poi), "POI must not be null.");
 
+        if (string.IsNullOrWhiteSpace(poi.Name))
+            throw new ArgumentException("POI Name required.");
+
+        if (poi.Name.Length > 200)
+            throw new ArgumentException("POI Name must not exceed 200 characters.");
+
         if (string.IsNullOrWhiteSpace(poi.Details))
             throw new ArgumentException("POI Details required.");
+
+        if (poi.Details.Length > 1000)
+            throw new ArgumentException("POI details must not exceed 1000 characters.");
+
+        if(ContainssDangerousCharacters(poi.Name) ||ContainssDangerousCharacters(poi.Details))
+            throw new ArgumentException("POI contains invalid characters (< > script tags).");
 
         if (string.IsNullOrWhiteSpace(poi.Category))
             throw new ArgumentException("POI Category required.");
@@ -358,6 +370,14 @@ public class PointOfInterestService : IPointOfInterestService
 
         if (poi.Location.Coordinates[0] < -180 || poi.Location.Coordinates[0] > 180)
             throw new ArgumentException("Longitude must be between -180 and 180.");
+    }
+
+    private static bool ContainsDangerousCharacters(string? text)
+    {
+        if (String.IsNullOrEmpty(text)) return false;
+        return (text.Contains('<') || text.Contains('>')) ||
+            text.Contains("<script", StringComparison.OrdinalIgnoreCase) ||
+            text.Contains("javascript:", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
