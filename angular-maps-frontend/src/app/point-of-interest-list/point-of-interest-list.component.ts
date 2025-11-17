@@ -30,9 +30,14 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
 
   categories = POI_CATEGORIES;
 
-  categoryFilter: string | undefined;
   nameFilter: string | undefined;
+  categoryFilter: string | undefined;
   detailsFilter: string | undefined;
+
+  nameSort: boolean = false;
+  categorySort: boolean = false;
+  detailsSort: boolean = false;
+  sortOrder: 'asc' | 'desc' = 'asc';
 
   pointsOfInterest: PointOfInterest[] = [];
   pointsOfInterestFiltered: PointOfInterest[] = [];
@@ -242,10 +247,98 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
     }
   }
 
+  /**
+   * Sorts the filtered POI list by name. If already sorted by name, toggles the sort order.
+   * @param keepSortOrder If true, keeps the current sort order instead of toggling it.
+   */
+  sortByName(keepSortOrder: boolean = false) {
+    this.categorySort = false;
+    this.detailsSort = false;
+
+    if (!this.nameSort) {
+      this.nameSort = true;
+      this.sortOrder = 'asc';
+    } else {
+      if (!keepSortOrder) {
+        this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+      }
+    }
+
+    this.pointsOfInterestFiltered.sort((a, b) => {
+      return this.compareStrings(a.name, b.name);
+    });
+  }
+
+  /**
+   * Sorts the filtered POI list by category. If already sorted by category, toggles the sort order.
+   * @param keepSortOrder If true, keeps the current sort order instead of toggling it.
+   */
+  sortByCategory(keepSortOrder: boolean = false) {
+    this.nameSort = false;
+    this.detailsSort = false;
+
+    if (!this.categorySort) {
+      this.categorySort = true;
+      this.sortOrder = 'asc';
+    } else {
+      if (!keepSortOrder) {
+        this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+      }
+    }
+
+    this.pointsOfInterestFiltered.sort((a, b) => {
+      return this.compareStrings(a.category, b.category);
+    });
+  }
+
+  /**
+   * Sorts the filtered POI list by details. If already sorted by details, toggles the sort order.
+   * @param keepSortOrder If true, keeps the current sort order instead of toggling it.
+   */
+  sortByDetails(keepSortOrder: boolean = false) {
+    this.nameSort = false;
+    this.categorySort = false;
+
+    if (!this.detailsSort) {
+      this.detailsSort = true;
+      this.sortOrder = 'asc';
+    } else {
+      if (!keepSortOrder) {
+        this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+      }
+    }
+
+    this.pointsOfInterestFiltered.sort((a, b) => {
+      return this.compareStrings(a.details, b.details);
+    });
+  }
+
+  private compareStrings(a: string | undefined, b: string | undefined): number {
+    const strA = a ? a.toLowerCase() : '';
+    const strB = b ? b.toLowerCase() : '';
+
+    if (this.sortOrder === 'asc') {
+      return strA.localeCompare(strB);
+    } else {
+      return strB.localeCompare(strA);
+    }
+  }
+
   private updateFiltering() {
     this.poiFilterService.setFilterCriteria({ detailsFilter: this.detailsFilter, categoryFilter: this.categoryFilter, nameFilter: this.nameFilter });
     this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.nameFilter, this.detailsFilter);
+
+    if (this.nameSort) {
+      this.sortByName(true);
+    }
+    if (this.categorySort) {
+      this.sortByCategory(true);
+    }
+    if (this.detailsSort) {
+      this.sortByDetails(true);
+    }
   }
+
 
   /**
    * Called after confirmation to really delete the selected POI.

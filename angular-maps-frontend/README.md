@@ -1,6 +1,22 @@
+[![Angular](https://img.shields.io/badge/Angular-18.2.0-DD0031?logo=angular&logoColor=white)](https://angular.io/)
+[![Node.js](https://img.shields.io/badge/Node.js-18.x-green?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](../LICENSE.md)
+
 # Angular Frontend
 
 Small Angular frontend for the POI / map showcase.
+
+## Table of Contents
+
+- [Requirements](#requirements)
+- [Quickstart](#quickstart)
+- [Build](#build)
+- [Tests](#tests)
+- [Workspace notes](#workspace-notes)
+- [Security / Input handling](#security--input-handling)
+- [Development tips](#development-tips)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
 
 ## Requirements
 

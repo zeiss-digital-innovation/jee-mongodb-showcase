@@ -43,8 +43,8 @@ export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
 
   categories = POI_CATEGORIES;
 
-  categoryFilter: string | undefined;
   nameFilter: string | undefined;
+  categoryFilter: string | undefined;
   detailsFilter: string | undefined;
 
   pointsOfInterest: PointOfInterest[] = [];
