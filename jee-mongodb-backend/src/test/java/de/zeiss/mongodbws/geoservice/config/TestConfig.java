@@ -37,14 +37,17 @@ public final class TestConfig {
     private static String getFromEnvOrProperty(String systemPropName, String envName, String confPropName, String defaultValue) {
         String value = System.getProperty(systemPropName);
         if (isSet(value)) {
+            LOGGER.info("Found System Property " + systemPropName + " with value: " + value);
             return value;
         }
         value = System.getenv(envName);
         if (isSet(value)) {
+            LOGGER.info("Found Environment Property " + envName + " with value: " + value);
             return value;
         }
         value = properties.getProperty(confPropName);
         if (isSet(value)) {
+            LOGGER.info("Found Config Property " + confPropName + " with value: " + value);
             return value;
         }
         return defaultValue;
