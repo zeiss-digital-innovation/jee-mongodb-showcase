@@ -30,9 +30,9 @@ function applyFilters(nameFilter, detailsFilter) {
     });
     
     // Filter Table View (List page)
-    if (typeof window.allTablePois !== 'undefined' && typeof window.currentTablePois !== 'undefined') {
+    if (globalThis.allTablePois !== undefined && globalThis.currentTablePois !== undefined) {
         // Filter the POIs array
-        window.currentTablePois = window.allTablePois.filter(poi => {
+        globalThis.currentTablePois = globalThis.allTablePois.filter(poi => {
             const name = (poi.name || '').toLowerCase();
             const details = (poi.details || '').toLowerCase();
 
@@ -43,8 +43,8 @@ function applyFilters(nameFilter, detailsFilter) {
         });
 
         // Rebuild table with filtered POIs
-        if (typeof window.renderTableHtml === 'function') {
-            window.renderTableHtml();
+        if (typeof globalThis.renderTableHtml === 'function') {
+            globalThis.renderTableHtml();
         }
     }
 
