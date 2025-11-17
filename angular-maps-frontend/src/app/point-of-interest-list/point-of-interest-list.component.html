@@ -52,19 +52,19 @@
                 <th scope="col" style="width: 5%;">#</th>
                 <th scope="col" style="width: 15%;">
                     <i class="bi bi-tag"></i>
-                    &nbsp;Name
+                    &nbsp;Name&nbsp;
                     <i [ngClass]="nameSort ? sortOrder == 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down' : 'bi-arrow-down-up'"
                         (click)="sortByName()"></i>
                 </th>
                 <th scope="col" style="width: 15%;">
                     <i class="bi bi-folder"></i>
-                    &nbsp;Category
+                    &nbsp;Category&nbsp;
                     <i [ngClass]="categorySort ? sortOrder == 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down' : 'bi-arrow-down-up'"
                         (click)="sortByCategory()"></i>
                 </th>
                 <th scope="col" style="width: 35%;">
                     <i class="bi bi-info-circle"></i>
-                    &nbsp;Details
+                    &nbsp;Details&nbsp;
                     <i [ngClass]="detailsSort ? sortOrder == 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down' : 'bi-arrow-down-up'"
                         (click)="sortByDetails()"></i>
                 </th>

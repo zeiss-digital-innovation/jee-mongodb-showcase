@@ -64,10 +64,13 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
     const filterCriteria = this.poiFilterService.getFilterCriteria();
 
     if (filterCriteria) {
-      console.log('Category filter on init:', this.categoryFilter);
       this.categoryFilter = filterCriteria.categoryFilter;
       this.nameFilter = filterCriteria.nameFilter;
       this.detailsFilter = filterCriteria.detailsFilter;
+      this.nameSort = filterCriteria.nameSort || false;
+      this.categorySort = filterCriteria.categorySort || false;
+      this.detailsSort = filterCriteria.detailsSort || false;
+      this.sortOrder = filterCriteria.sortOrder || 'asc';
     }
 
     const searchData = this.searchCriteriaService.getSearchCriteria();
@@ -325,7 +328,10 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
   }
 
   private updateFiltering() {
-    this.poiFilterService.setFilterCriteria({ detailsFilter: this.detailsFilter, categoryFilter: this.categoryFilter, nameFilter: this.nameFilter });
+    this.poiFilterService.setFilterCriteria({
+      detailsFilter: this.detailsFilter, categoryFilter: this.categoryFilter, nameFilter: this.nameFilter, //
+      nameSort: this.nameSort, categorySort: this.categorySort, detailsSort: this.detailsSort, sortOrder: this.sortOrder
+    });
     this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.nameFilter, this.detailsFilter);
 
     if (this.nameSort) {

@@ -321,7 +321,23 @@ export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
   }
 
   private updateFiltering() {
-    this.poiFilterService.setFilterCriteria({ detailsFilter: this.detailsFilter, categoryFilter: this.categoryFilter, nameFilter: this.nameFilter });
+    const filterCriteria = this.poiFilterService.getFilterCriteria();
+
+    if (filterCriteria) {
+      var nameSort = filterCriteria.nameSort || false;
+      var categorySort = filterCriteria.categorySort || false;
+      var detailsSort = filterCriteria.detailsSort || false;
+      var sortOrder = filterCriteria.sortOrder || 'asc';
+
+      this.poiFilterService.setFilterCriteria({
+        detailsFilter: this.detailsFilter, categoryFilter: this.categoryFilter, nameFilter: this.nameFilter,
+        nameSort: nameSort, categorySort: categorySort, detailsSort: detailsSort, sortOrder: sortOrder
+      });
+    } else {
+      this.poiFilterService.setFilterCriteria({ detailsFilter: this.detailsFilter, categoryFilter: this.categoryFilter, nameFilter: this.nameFilter });
+    }
+
+
     this.pointsOfInterestFiltered = this.poiFilterService.filter(this.pointsOfInterest, this.categoryFilter, this.nameFilter, this.detailsFilter);
     this.showPointsOnMap();
   }
