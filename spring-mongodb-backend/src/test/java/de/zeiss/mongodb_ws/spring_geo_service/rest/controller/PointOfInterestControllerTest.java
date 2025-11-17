@@ -5,11 +5,16 @@ import de.zeiss.mongodb_ws.spring_geo_service.rest.model.PointOfInterest;
 import de.zeiss.mongodb_ws.spring_geo_service.service.PointOfInterestService;
 import org.geojson.Point;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.stream.Stream;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -27,6 +32,31 @@ public class PointOfInterestControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    static Stream<Arguments> validFindParametersProvider() {
+        return Stream.of(
+                Arguments.of(12.34, 56.78, 1000, "somewhere valid"),
+                Arguments.of(-12.34, -56.78, 5000, "negative valid scenario"),
+                Arguments.of(90.0, 56.78, 1000, "positive edge case latitude"),
+                Arguments.of(-90.0, -56.78, 1000, "negative edge case latitude"),
+                Arguments.of(12.34, 180.0, 1000, "positive edge case  longitude"),
+                Arguments.of(-12.34, -180.0, 1000, "negative edge case longitude"),
+                Arguments.of(12.34, 56.78, 1, "lower edge case radius"),
+                Arguments.of(12.34, 56.78, 100000, "upper edge case radius")
+        );
+    }
+
+    static Stream<Arguments> invalidFindParametersProvider() {
+        return Stream.of(
+                Arguments.of(-90.1, -180.0, 1000, "invalid lower bound latitude"),
+                Arguments.of(90.1, 180.0, 1000, "invalid upper bound latitude"),
+                Arguments.of(-90.0, -180.1, 1000, "invalid lower bound longitude"),
+                Arguments.of(90.0, -180.1, 1000, "invalid lower bound longitude"),
+                Arguments.of(90.0, 180.0, -1, "invalid negative radius"),
+                Arguments.of(90.0, 180.0, 0, "invalid lower bound radius"),
+                Arguments.of(90.0, 180.0, 100001, "invalid upper bound radius")
+        );
+    }
 
     @Test
     public void testGetPointOfInterest_KnownId_ShouldReturnOk() throws Exception {
@@ -52,58 +82,25 @@ public class PointOfInterestControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    @Test
-    public void testFindPointsOfInterest_NearLocation_ShouldReturnOk() throws Exception {
+    @ParameterizedTest(name = "Valid parameters #{index}: lat={0}, lon={1}, radius={2}, description={3}")
+    @MethodSource("validFindParametersProvider")
+    public void testFindPointsOfInterest_NearLocation_ShouldReturnOk(double lat, double lon, int radius, String description) throws Exception {
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/poi")
-                        .param("lat", "12.34")
-                        .param("lon", "56.78")
-                        .param("radius", "1000")
-                        .param("expandDetails", "false")
+                        .param("lat", "" + lat)
+                        .param("lon", "" + lon)
+                        .param("radius", "" + radius)
+                        .param("expand", "details")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
 
-    @Test
-    public void testFindPointsOfInterest_InvalidParameters_ShouldReturnBadRequest() throws Exception {
+    @ParameterizedTest(name = "Invalid parameters #{index}: lat={0}, lon={1}, radius={2}, description={3}")
+    @MethodSource("invalidFindParametersProvider")
+    public void testFindPointsOfInterest_InvalidParameters_ShouldReturnBadRequest(double lat, double lon, int radius, String description) throws Exception {
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/poi")
-                        .param("lat", "-90.1") // Invalid latitude
-                        .param("lon", "-180.0")
-                        .param("radius", "1000")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/poi")
-                        .param("lat", "90.1") // Invalid latitude
-                        .param("lon", "180.0")
-                        .param("radius", "1000")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/poi")
-                        .param("lat", "-90.0")
-                        .param("lon", "-180.1") // Invalid longitude
-                        .param("radius", "1000")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/poi")
-                        .param("lat", "90.0")
-                        .param("lon", "180.1") // Invalid longitude
-                        .param("radius", "1000")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/poi")
-                        .param("lat", "90.0")
-                        .param("lon", "180.0")
-                        .param("radius", "-1") // Invalid radius
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
-
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/poi")
-                        .param("lat", "90.0")
-                        .param("lon", "180.0")
-                        .param("radius", "100001") // Invalid radius
+                        .param("lat", "" + lat)
+                        .param("lon", "" + lon)
+                        .param("radius", "" + radius)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }

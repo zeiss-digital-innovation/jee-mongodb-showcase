@@ -37,9 +37,9 @@ public class MongoDBClientProvider {
     @ConfigProperty(name = "mongodb.port", defaultValue = "27017")
     int port;
 
-    private MongoClient mongoClient = null;
+    MongoClient mongoClient = null;
 
-    private Datastore datastore;
+    Datastore datastore;
 
     @PostConstruct
     public void init() {
@@ -52,9 +52,6 @@ public class MongoDBClientProvider {
         mongoClient = MongoClients.create("mongodb://" + hostname + ":" + port);
 
         datastore = Morphia.createDatastore(mongoClient, databaseName);
-        // looks like we don't need this anymore with Morphia 2.x
-        //datastore.getMapper().mapPackage("de.zeiss.mongodbws.geoservice.persistence.entity");
-        //datastore.ensureIndexes();
     }
 
     public Datastore getDatastore() {

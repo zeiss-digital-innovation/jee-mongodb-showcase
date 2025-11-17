@@ -28,7 +28,8 @@ interest). The data is stored in a MongoDB database.
     - [Run with embedded server](#run-with-embedded-server)
     - [Run without embedded server](#run-without-embedded-server)
     - [Development / Production configuration](#development--production-configuration)
-- [Testing](#testing)
+- [Tests](#tests)
+    - [Integration Tests](#integration-tests)
 - [Docker](#docker)
     - [Build the Docker image](#build-the-docker-image)
     - [Docker network](#docker-network)
@@ -156,7 +157,7 @@ You can use different application properties for development and production.
 - The active profile can be set via the `SPRING_PROFILES_ACTIVE` environment variable or via command line argument
   `--spring.profiles.active=dev|prod`.
 
-## Testing
+## Tests
 
 You can run the tests with Maven using:
 
@@ -171,6 +172,18 @@ mvn clean test jacoco:report
 ```
 
 After running the tests, the code coverage report can be found in the folder `target/site/jacoco/index.html`.
+
+### Integration Tests
+
+The integration tests are using Testcontainers to start a MongoDB container for testing. These tests require Docker to
+be installed and running on your machine. If Docker is not available, the tests will be skipped.
+
+By default, these tests are using a MongoDB container with version 8.0. If you want to use a different version, you can
+set the desired version as follows:
+
+```bash
+mvn -DMONGODB_IMAGE=mongo:7.0 test
+```
 
 ## Docker
 

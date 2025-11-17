@@ -167,7 +167,7 @@
                     <!-- Add Mockito as javaagent from the copied jar to avoid inline self-attachment warnings -->
                     <!-- https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3 -->
                     <!-- Prepend with @{argLine} so the jacoco agent can also run (see https://stackoverflow.com/questions/18107375/getting-skipping-jacoco-execution-due-to-missing-execution-data-file-upon-exec) -->
-                    <argLine>@{argLine} -javaagent:${project.build.directory}/dependency-jars/mockito-core.jar
+                    <argLine>@{argLine} -javaagent:"${project.build.directory}/dependency-jars/mockito-core.jar"
                     </argLine>
                     <!--
                     -->
