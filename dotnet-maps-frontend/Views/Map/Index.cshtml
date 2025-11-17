@@ -122,7 +122,7 @@
         let availableCategories = [];
         let markersLayer = L.layerGroup(); // Layer to hold all POI markers
         
-        // localStorage keys for synchronization between pages
+        // sessionStorage keys for synchronization between pages
         const STORAGE_KEYS = {
             latitude: 'poi_latitude',
             longitude: 'poi_longitude',
@@ -135,10 +135,10 @@
         };
         
         // Default coordinates (Dresden)
-        const latitudeDefault = 51.0504;
-        const longitudeDefault = 13.7373;
-        const radiusDefault = 2000;
-        const zoomDefault = 13;
+        const latitudeDefault = @MapDefaults.DefaultLatitude;
+        const longitudeDefault = @MapDefaults.DefaultLongitude;
+        const radiusDefault = @MapDefaults.DefaultRadius;
+        const zoomDefault = @MapDefaults.DefaultZoom;
         
         // Category icon mapping from server-side CategoryConstants
         const CATEGORY_ICONS = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(CategoryConstants.GetIconMappingDictionary()));
@@ -148,8 +148,8 @@
             return CATEGORY_ICONS[category?.toLowerCase()] || CATEGORY_ICONS['_default'] || 'bi-geo';
         }
         
-        // Session timeout: 30 minutes of inactivity = new session
-        const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+        // Session timeout from constants
+        const SESSION_TIMEOUT_MS = @MapDefaults.DefaultSessionTimeoutMinutes * 60 * 1000;
         
         // Flag to prevent moveend from overwriting manual input changes
         let programmaticMapMove = false;
@@ -167,24 +167,24 @@
                 reloadCurrentPois();
             });
             // Check if this is a new browser session
-            const lastActivity = localStorage.getItem(STORAGE_KEYS.sessionStart);
+            const lastActivity = sessionStorage.getItem(STORAGE_KEYS.sessionStart);
             const now = Date.now();
             const isNewSession = !lastActivity || (now - parseInt(lastActivity)) > SESSION_TIMEOUT_MS;
             
             if (isNewSession) {
                 // This is a NEW session - clear settings but keep view preference
-                localStorage.removeItem(STORAGE_KEYS.latitude);
-                localStorage.removeItem(STORAGE_KEYS.longitude);
-                localStorage.removeItem(STORAGE_KEYS.radius);
-                localStorage.removeItem(STORAGE_KEYS.needsReload);
-                localStorage.removeItem(STORAGE_KEYS.mapZoom);
-                localStorage.setItem(STORAGE_KEYS.view, 'cards');
+                sessionStorage.removeItem(STORAGE_KEYS.latitude);
+                sessionStorage.removeItem(STORAGE_KEYS.longitude);
+                sessionStorage.removeItem(STORAGE_KEYS.radius);
+                sessionStorage.removeItem(STORAGE_KEYS.needsReload);
+                sessionStorage.removeItem(STORAGE_KEYS.mapZoom);
+                sessionStorage.setItem(STORAGE_KEYS.view, 'cards');
             }
             
             // Update session timestamp
-            localStorage.setItem(STORAGE_KEYS.sessionStart, now.toString());
+            sessionStorage.setItem(STORAGE_KEYS.sessionStart, now.toString());
             
-            // Load values from localStorage or use defaults
+            // Load values from sessionStorage or use defaults
             loadSettingsFromStorage();
             
             // Check if we need to reload due to updates from List page
@@ -207,10 +207,10 @@
             // Listen for page visibility changes to sync with List page
             // This ensures input fields are updated when navigating back from List page
             window.addEventListener('pageshow', function(event) {
-                console.log('[Map] pageshow event - reloading settings from localStorage');
-                const lat = parseFloat(localStorage.getItem(STORAGE_KEYS.latitude));
-                const lon = parseFloat(localStorage.getItem(STORAGE_KEYS.longitude));
-                const radius = parseInt(localStorage.getItem(STORAGE_KEYS.radius));
+                console.log('[Map] pageshow event - reloading settings from sessionStorage');
+                const lat = parseFloat(sessionStorage.getItem(STORAGE_KEYS.latitude));
+                const lon = parseFloat(sessionStorage.getItem(STORAGE_KEYS.longitude));
+                const radius = parseInt(sessionStorage.getItem(STORAGE_KEYS.radius));
                 
                 if (!isNaN(lat) && !isNaN(lon) && !isNaN(radius)) {
                     $('#latitudeInput').val(lat);
@@ -229,10 +229,10 @@
             
             // Also listen for focus events (when user returns to this tab)
             window.addEventListener('focus', function() {
-                console.log('[Map] window focus event - reloading settings from localStorage');
-                const lat = parseFloat(localStorage.getItem(STORAGE_KEYS.latitude));
-                const lon = parseFloat(localStorage.getItem(STORAGE_KEYS.longitude));
-                const radius = parseInt(localStorage.getItem(STORAGE_KEYS.radius));
+                console.log('[Map] window focus event - reloading settings from sessionStorage');
+                const lat = parseFloat(sessionStorage.getItem(STORAGE_KEYS.latitude));
+                const lon = parseFloat(sessionStorage.getItem(STORAGE_KEYS.longitude));
+                const radius = parseInt(sessionStorage.getItem(STORAGE_KEYS.radius));
                 
                 if (!isNaN(lat) && !isNaN(lon) && !isNaN(radius)) {
                     $('#latitudeInput').val(lat);
@@ -246,10 +246,10 @@
         // ============ Helper functions =============
 
         function loadSettingsFromStorage() {
-            // Load values from localStorage or use defaults
-            const lat = localStorage.getItem(STORAGE_KEYS.latitude);
-            const lon = localStorage.getItem(STORAGE_KEYS.longitude);
-            const radius = localStorage.getItem(STORAGE_KEYS.radius);
+            // Load values from sessionStorage or use defaults
+            const lat = sessionStorage.getItem(STORAGE_KEYS.latitude);
+            const lon = sessionStorage.getItem(STORAGE_KEYS.longitude);
+            const radius = sessionStorage.getItem(STORAGE_KEYS.radius);
             
             const actualLat = lat ? parseFloat(lat) : latitudeDefault;
             const actualLon = lon ? parseFloat(lon) : longitudeDefault;
@@ -261,10 +261,10 @@
             $('#radiusInput').val(actualRadius);
             $('#radiusValue').text(actualRadius + ' m');
             
-            // Save to localStorage if they were defaults (ensures consistency)
-            if (!lat) localStorage.setItem(STORAGE_KEYS.latitude, actualLat);
-            if (!lon) localStorage.setItem(STORAGE_KEYS.longitude, actualLon);
-            if (!radius) localStorage.setItem(STORAGE_KEYS.radius, actualRadius);
+            // Save to sessionStorage if they were defaults (ensures consistency)
+            if (!lat) sessionStorage.setItem(STORAGE_KEYS.latitude, actualLat);
+            if (!lon) sessionStorage.setItem(STORAGE_KEYS.longitude, actualLon);
+            if (!radius) sessionStorage.setItem(STORAGE_KEYS.radius, actualRadius);
         }
         
         function saveSettingsToStorage() {
@@ -272,20 +272,20 @@
             const lon = $('#longitudeInput').val();
             const radius = $('#radiusInput').val();
             
-            localStorage.setItem(STORAGE_KEYS.latitude, lat);
-            localStorage.setItem(STORAGE_KEYS.longitude, lon);
-            localStorage.setItem(STORAGE_KEYS.radius, radius);
+            sessionStorage.setItem(STORAGE_KEYS.latitude, lat);
+            sessionStorage.setItem(STORAGE_KEYS.longitude, lon);
+            sessionStorage.setItem(STORAGE_KEYS.radius, radius);
             
             // Set flag that List page needs to reload
-            localStorage.setItem(STORAGE_KEYS.needsReload, 'true');
+            sessionStorage.setItem(STORAGE_KEYS.needsReload, 'true');
         }
         
         function checkForReloadFlag() {
             // Check if List page triggered a reload request
-            const needsReload = localStorage.getItem(STORAGE_KEYS.needsReload);
+            const needsReload = sessionStorage.getItem(STORAGE_KEYS.needsReload);
             if (needsReload === 'true') {
                 // Clear the flag
-                localStorage.removeItem(STORAGE_KEYS.needsReload);
+                sessionStorage.removeItem(STORAGE_KEYS.needsReload);
                 
                 // Reload the map with stored parameters after initialization
                 // Set a flag to reload after map is initialized
@@ -349,7 +349,7 @@
                     // Set flag to prevent moveend from overwriting input fields
                     programmaticMapMove = true;
                     
-                    // Save to localStorage BEFORE moving map
+                    // Save to sessionStorage BEFORE moving map
                     saveSettingsToStorage();
                     
                     // Move map to new center (keeps current zoom level)
@@ -379,7 +379,7 @@
                 // Set flag to prevent moveend from overwriting input fields
                 programmaticMapMove = true;
                 
-                // Save to localStorage BEFORE moving map
+                // Save to sessionStorage BEFORE moving map
                 saveSettingsToStorage();
                 
                 // Update map center and reload POIs
@@ -397,13 +397,13 @@
                 shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
             });
             
-            // Get current values from inputs (already loaded from localStorage)
+            // Get current values from inputs (already loaded from sessionStorage)
             const currentLat = parseFloat($('#latitudeInput').val());
             const currentLon = parseFloat($('#longitudeInput').val());
             const currentRadius = parseInt($('#radiusInput').val());
             
             // Load saved zoom level or use default
-            const savedZoom = localStorage.getItem(STORAGE_KEYS.mapZoom);
+            const savedZoom = sessionStorage.getItem(STORAGE_KEYS.mapZoom);
             const currentZoom = savedZoom ? parseInt(savedZoom) : zoomDefault;
             
             // Initialize the map with current settings
@@ -438,10 +438,10 @@
                 modal.show();
             });
             
-            // Save zoom level to localStorage when user zooms the map
+            // Save zoom level to sessionStorage when user zooms the map
             map.on('zoomend', function() {
                 const currentZoom = map.getZoom();
-                localStorage.setItem(STORAGE_KEYS.mapZoom, currentZoom);
+                sessionStorage.setItem(STORAGE_KEYS.mapZoom, currentZoom);
             });
             
             // Auto-reload POIs when map is moved or zoomed
@@ -460,7 +460,7 @@
                     $('#latitudeInput').val(center.lat.toFixed(6));
                     $('#longitudeInput').val(center.lng.toFixed(6));
                     
-                    // Save to localStorage (this will trigger List page to reload when navigated to)
+                    // Save to sessionStorage (this will trigger List page to reload when navigated to)
                     saveSettingsToStorage();
                 } else {
                     console.log('[Map] Programmatic map move - keeping input fields as-is');
@@ -805,7 +805,6 @@
         }
         
         function getRadiusForZoom(zoom) {
-            // Exact same logic as Angular frontend MapDataService
             if (zoom <= 8) {
                 return 20000;
             }
