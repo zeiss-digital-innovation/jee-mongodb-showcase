@@ -34,14 +34,15 @@
         <h2 class="mb-3">Points of Interest</h2>
         <!-- View Toggle -->
         <div class="view-toggle">
-            <div class="btn-group" role="group" aria-label="View toggle">
+            <fieldset class="btn-group">
+                <legend class="visually-hidden">View toggle</legend>
                 <button type="button" class="btn btn-outline-primary active" id="cardsViewBtn">
                     <i class="bi bi-grid-3x3-gap me-1"></i>Cards
                 </button>
                 <button type="button" class="btn btn-outline-primary" id="listViewBtn">
                     <i class="bi bi-list-ul me-1"></i>List
                 </button>
-            </div>
+            </fieldset>
         </div>
     </div>
 </div>
@@ -158,6 +159,7 @@
         
         // sorting state for table columns
         let currentTablePois = []; // current POI list for Sorting
+        let allTablePois = []; // all POIs non-filtered
         let currentSortedColumn = sessionStorage.getItem(STORAGE_KEYS.sortedColumn);
         let sortAscending = sessionStorage.getItem(STORAGE_KEYS.sortAscending) === 'true';
 
@@ -659,6 +661,7 @@
                 // 3. If no sort state exists just render the unsorted table once.
                 // 4. Apply filters exactly once. (The restore function already renders + filters when active.)
 
+                allTablePois = [...pois]; // save all POIs
                 currentTablePois = [...pois]; // Copy used for sorting
 
                 if (currentSortedColumn) {
@@ -714,7 +717,7 @@
                     const category = poi.category; // Keep lowercase
                     const name = poi.name || 'Unnamed POI'; // Default if no name
 
-                     // Format location coordinates
+                    // Format location coordinates
                     let locationHtml = '<span class="text-muted">No location</span>';
                     if (poi.location && poi.location.coordinates && poi.location.coordinates.length === 2) {
                         const lat = poi.location.coordinates[1].toFixed(6);
@@ -746,6 +749,7 @@
                 `;
                 
                 $container.html(tableHtml);
+
             }
             
             function formatDetails(details) {
