@@ -144,7 +144,7 @@ body {
 
 /* Header row: Uses display: flex; justify-content: space-between; to position the name on the left and icon on the right
    Spacing: gap: 8px for breathing room between name and icon */
-.mapmarker-popup-header {
+.poi-description-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -152,22 +152,42 @@ body {
 }
 
 /* Icon: Positioned in the top-right corner with flex-shrink: 0 to prevent compression */
-.mapmarker-popup-header-icon {
+.poi-description-header-icon {
     font-size: 1.25rem;
     flex-shrink: 0;
 }
 
-.mapmarker-popup-coordinates {
+.poi-description-coordinates {
     margin-top: 5px;
     margin-bottom: 12px;
     font-size: 0.65rem;
     color: #929EAB;
 }
 
-.mapmarker-popup-details {
+.poi-description-details {
     margin-top: 8px;
 }
 
-.mapmarker-popup-category {
+.poi-description-category {
     margin-top: 8px;
+}
+
+.poi-description-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.poi-description-footer-buttons {
+    flex-shrink: 0;
+}
+
+.card {
+    transition: box-shadow 160ms ease;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 }

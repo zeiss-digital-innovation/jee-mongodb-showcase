@@ -34,6 +34,14 @@
     overflow: auto;
 }
 
+.poi-list-content-controls {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+}
+
 .poi-list-content-column-right {
     align-items: flex-end;
 }

@@ -40,24 +40,24 @@ export class MapDataService {
 
         const cat = (poi.category || '').toLowerCase();
 
-        markerPopup += '<div class="mapmarker-popup-header" style="">';
+        markerPopup += '<div class="poi-description-header">';
         // Name: Left-aligned using flex default, displays with .lead class (larger size)
         markerPopup += `<span class="lead">${this.poiFormat.formatDetails(poi.name || 'Unnamed')}</span>`;
-        markerPopup += `<i class="${getBootstrapIconClass(cat)} text-primary mapmarker-popup-header-icon"></i>`;
+        markerPopup += `<i class="${getBootstrapIconClass(cat)} text-primary poi-description-header-icon"></i>`;
         markerPopup += '</div>';
 
         // Coordinates line with geo icon and formatted lat/lon (4 decimal places)
         const lat = poi.location.coordinates[1].toFixed(4);
         const lng = poi.location.coordinates[0].toFixed(4);
-        markerPopup += `<div class="mapmarker-popup-coordinates"><i class="bi bi-geo-alt text-primary"></i>&nbsp;Lat: ${lat} | Lng: ${lng}</div>`;
+        markerPopup += `<div class="poi-description-coordinates"><i class="bi bi-geo-alt text-primary"></i>&nbsp;Lat: ${lat} | Lng: ${lng}</div>`;
 
         // sanitize and format details: only allow safe links, escape other text, format phones
         let details = this.poiFormat.formatDetails(poi.details || '');
 
-        markerPopup += `<div class="mapmarker-popup-details">${details}</div>`;
+        markerPopup += `<div class="poi-description-details">${details}</div>`;
 
         // Category badge
-        markerPopup += '<div class="mapmarker-popup-category"><span class="badge bg-secondary">' + cat.charAt(0).toUpperCase() + cat.slice(1) + '</span></div>';
+        markerPopup += '<div class="poi-description-category"><span class="badge bg-secondary">' + cat.charAt(0).toUpperCase() + cat.slice(1) + '</span></div>';
 
         return markerPopup;
     }
