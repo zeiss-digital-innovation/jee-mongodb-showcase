@@ -84,26 +84,32 @@ export class PointOfInterestMapComponent implements OnInit, AfterViewInit {
 
     const searchData = this.searchCriteriaService.getSearchCriteria();
 
+    var zoom = this.zoomDefault;
+
     if (searchData) {
       this.latitude = searchData.latitude;
       this.longitude = searchData.longitude;
       this.radius = searchData.radius;
+      console.log("Zomm Default " + this.zoomDefault + " Radius from List page: " + this.radius);
+      zoom = this.mapDataService.mapRadiusToZoom(this.radius);
+      console.log("New zoom: " + zoom);
+    } else {
+      this.radius = this.mapDataService.mapZoomToRadius(this.zoomDefault);
     }
 
     // Initialize the map
-    this.map = L.map('map').setView([this.latitude, this.longitude], this.zoomDefault);
-
+    this.map = L.map('map').setView([this.latitude, this.longitude], zoom);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(this.map);
 
-    this.loadPointsOfInterest(this.latitude, this.longitude, this.mapDataService.getRadiusForZoom(this.zoomDefault));
+    this.loadPointsOfInterest(this.latitude, this.longitude, this.radius);
 
     this.map.on('moveend', () => {
       const center = this.map!.getCenter();
       this.latitude = center.lat;
       this.longitude = center.lng;
-      this.radius = this.mapDataService.getRadiusForZoom(this.map!.getZoom());
+      this.radius = this.mapDataService.mapZoomToRadius(this.map!.getZoom());
       this.loadPointsOfInterest(this.latitude, this.longitude, this.radius);
       this.searchCriteriaService.setSearchCriteria({ latitude: this.latitude, longitude: this.longitude, radius: this.radius });
     });

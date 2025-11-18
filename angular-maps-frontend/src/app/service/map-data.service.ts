@@ -12,6 +12,20 @@ import { getBootstrapIconClass } from "../model/poi-categories";
 })
 export class MapDataService {
 
+    /**
+     * Mapping of zoom levels to search radius in meters.
+     * Used by mapZoomToRadius() and mapRadiusToZoom() methods.
+     */
+    private readonly zoomToRadiusMap = new Map<number, number>([
+        [9, 50000],
+        [10, 30000],
+        [11, 20000],
+        [12, 10000],
+        [13, 3000],
+        [14, 2000],
+        [15, 1000],
+    ]);
+
     constructor(private sanitizer: Sanitizer, private poiFormat: PoiFormatService) { }
 
     /**
@@ -43,24 +57,49 @@ export class MapDataService {
     }
 
     /**
-     * Determines the search radius for points of interest based on the current zoom level.
-     * @param zoom Current map zoom level.
-     * @returns Search radius in meters.
+     * Maps a zoom level to the corresponding search radius using the zoom-to-radius map.
+     * @param zoom Zoom level.
+     * @returns Search radius in meters, or a default radius if zoom is not in the map.
      */
-    getRadiusForZoom(zoom: number): number {
-        if (zoom <= 8) {
-            return 50000;
+    mapZoomToRadius(zoom: number): number {
+        // Check if the zoom level exists in the map
+        if (this.zoomToRadiusMap.has(zoom)) {
+            return this.zoomToRadiusMap.get(zoom)!;
         }
-        if (zoom <= 11) {
-            return 20000;
+
+        // For zoom levels between mapped values, find the closest lower zoom and return its radius
+        const sortedZooms = Array.from(this.zoomToRadiusMap.keys()).sort((a, b) => a - b);
+        const closestZoom = sortedZooms.reverse().find(z => z < zoom);
+
+        if (closestZoom !== undefined) {
+            return this.zoomToRadiusMap.get(closestZoom)!;
         }
-        if (zoom == 12) {
-            return 10000;
+
+        // If zoom is less than the smallest mapped zoom, return the radius for the smallest zoom
+        const minZoom = Math.min(...Array.from(this.zoomToRadiusMap.keys()));
+        return this.zoomToRadiusMap.get(minZoom)!;
+    }
+
+    /**
+     * Maps a radius to the corresponding zoom level by finding the closest radius in the map.
+     * @param radius Search radius in meters.
+     * @returns Zoom level that best matches the given radius.
+     */
+    mapRadiusToZoom(radius: number): number {
+        let closestZoom = 13; // default zoom
+        let minDifference = Number.MAX_VALUE;
+
+        // Iterate through the map and find the radius value closest to the input
+        for (const [zoom, mapRadius] of this.zoomToRadiusMap.entries()) {
+            const difference = Math.abs(mapRadius - radius);
+
+            if (difference < minDifference) {
+                minDifference = difference;
+                closestZoom = zoom;
+            }
         }
-        if (zoom == 13) {
-            return 3000;
-        }
-        return 2000;
+
+        return closestZoom;
     }
 
 }
