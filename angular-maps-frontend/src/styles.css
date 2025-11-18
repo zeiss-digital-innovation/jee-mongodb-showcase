@@ -141,3 +141,33 @@ body {
     font-weight: 600;
     transition: background-color 160ms ease, color 160ms ease;
 }
+
+/* Header row: Uses display: flex; justify-content: space-between; to position the name on the left and icon on the right
+   Spacing: gap: 8px for breathing room between name and icon */
+.mapmarker-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+/* Icon: Positioned in the top-right corner with flex-shrink: 0 to prevent compression */
+.mapmarker-popup-header-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.mapmarker-popup-coordinates {
+    margin-top: 5px;
+    margin-bottom: 12px;
+    font-size: 0.65rem;
+    color: #929EAB;
+}
+
+.mapmarker-popup-details {
+    margin-top: 8px;
+}
+
+.mapmarker-popup-category {
+    margin-top: 8px;
+}
