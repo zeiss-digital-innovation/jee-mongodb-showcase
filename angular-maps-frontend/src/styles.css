@@ -10,6 +10,8 @@
     --color-azure: #0072EF;
     --color-bright-orange-neon: #E71E1E;
     --color-purple-red: #A70240;
+    --color-ultralight-gray: #DCE3E9;
+    --color-ultradark-gray: #32373E;
 }
 
 
@@ -36,6 +38,12 @@
     background-color: var(--color-indigo) !important;
     border-color: var(--color-indigo) !important;
     color: var(--color-white) !important;
+}
+
+.bg-secondary {
+    background-color: var(--color-ultralight-gray) !important;
+    border-color: var(--color-ultralight-gray) !important;
+    color: var(--color-ultradark-gray) !important;
 }
 
 .btn-outline-primary {

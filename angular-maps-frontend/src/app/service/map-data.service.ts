@@ -38,20 +38,21 @@ export class MapDataService {
 
         if (!poi) return markerPopup;
 
-        var iconImg: string;
-
         const cat = (poi.category || '').toLowerCase();
 
-        iconImg = `<i class="${getBootstrapIconClass(cat)} text-primary"></i>`;
-
-        markerPopup += iconImg + '&nbsp;<strong>' + cat.charAt(0).toUpperCase() + cat.slice(1) + '</strong><br />';
-
-        markerPopup += `<br><span class="lead">${this.poiFormat.formatDetails(poi.name || 'Unnamed')}</span><br />`;
+        // Header with name (left) and category icon (top-right) using flexbox
+        markerPopup += '<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">';
+        markerPopup += `<span class="lead">${this.poiFormat.formatDetails(poi.name || 'Unnamed')}</span>`;
+        markerPopup += `<i class="${getBootstrapIconClass(cat)} text-primary" style="font-size: 1.25rem; flex-shrink: 0;"></i>`;
+        markerPopup += '</div>';
 
         // sanitize and format details: only allow safe links, escape other text, format phones
         let details = this.poiFormat.formatDetails(poi.details || '');
 
-        markerPopup += `<br>${details}`;
+        markerPopup += `<div style="margin-top: 8px;">${details}</div>`;
+
+        // Category badge
+        markerPopup += '<div style="margin-top: 8px;"><span class="badge bg-secondary">' + cat.charAt(0).toUpperCase() + cat.slice(1) + '</span></div>';
 
         return markerPopup;
     }
