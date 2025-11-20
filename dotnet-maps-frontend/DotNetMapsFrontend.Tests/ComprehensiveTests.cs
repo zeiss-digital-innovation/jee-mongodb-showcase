@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using DotNetMapsFrontend.Services;
 using DotNetMapsFrontend.Controllers;
 using DotNetMapsFrontend.Models;
+using DotNetMapsFrontend.Constants;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -121,7 +122,7 @@ public class MapControllerTests
                 Location = new Location
                 {
                     Type = "Point",
-                    Coordinates = new[] { 13.7373, 51.0504 }
+                    Coordinates = new[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude }
                 },
                 Href = "/poi/1"
             }
@@ -224,8 +225,8 @@ public class PointOfInterestControllerTests
     {
         // Arrange
         var mockPois = new List<PointOfInterest>();
-        var lat = 51.0504;
-        var lon = 13.7373;
+        var lat = MapDefaults.DefaultLatitude;
+        var lon = MapDefaults.DefaultLongitude;
         var radius = 3900;
         _mockService.Setup(s => s.GetPointsOfInterestAsync(lat, lon, radius)).ReturnsAsync(mockPois);
 
@@ -242,16 +243,16 @@ public class PointOfInterestControllerTests
     {
         // Arrange
         var mockPois = new List<PointOfInterest>();
-        var lat = 51.0504;
-        var lon = 13.7373;
-        _mockService.Setup(s => s.GetPointsOfInterestAsync(lat, lon, 2000)).ReturnsAsync(mockPois);
+        var lat = MapDefaults.DefaultLatitude;
+        var lon = MapDefaults.DefaultLongitude;
+        _mockService.Setup(s => s.GetPointsOfInterestAsync(lat, lon, MapDefaults.DefaultRadius)).ReturnsAsync(mockPois);
 
         // Act
         var result = await _controller.Index(lat, lon, null);
 
         // Assert
         Assert.That(result, Is.InstanceOf<ViewResult>());
-        _mockService.Verify(s => s.GetPointsOfInterestAsync(lat, lon, 2000), Times.Once);
+        _mockService.Verify(s => s.GetPointsOfInterestAsync(lat, lon, MapDefaults.DefaultRadius), Times.Once);
     }
 
     [Test]
@@ -283,7 +284,7 @@ public class PointOfInterestControllerTests
             Location = new Location
             {
                 Type = "Point",
-                Coordinates = new double[] { 13.7373, 51.0504 }
+                Coordinates = new double[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude }
             }
         };
 
@@ -319,7 +320,7 @@ public class PointOfInterestControllerTests
             Location = new Location
             {
                 Type = "Point",
-                Coordinates = new double[] { 13.7373, 51.0504 }
+                Coordinates = new double[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude }
             }
         };
 
@@ -342,7 +343,7 @@ public class PointOfInterestControllerTests
             Location = new Location
             {
                 Type = "Point",
-                Coordinates = new double[] { 13.7373, 51.0504 }
+                Coordinates = new double[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude }
             }
         };
 
@@ -417,7 +418,7 @@ public class PointOfInterestControllerTests
             Location = new Location
             {
                 Type = "Point",
-                Coordinates = new double[] { 13.7373, 51.0504 }
+                Coordinates = new double[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude }
             }
         };
 
@@ -446,7 +447,7 @@ public class ModelTests
             Location = new Location
             {
                 Type = "Point",
-                Coordinates = new double[] { 13.7373, 51.0504 }
+                Coordinates = new double[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude }
             }
         };
 
@@ -465,12 +466,12 @@ public class ModelTests
         var location = new Location
         {
             Type = "Point",
-            Coordinates = new double[] { 13.7373, 51.0504 }
+            Coordinates = new double[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude }
         };
 
         // Assert
-        Assert.That(location.Coordinates[0], Is.EqualTo(13.7373));
-        Assert.That(location.Coordinates[1], Is.EqualTo(51.0504));
+        Assert.That(location.Coordinates[0], Is.EqualTo(MapDefaults.DefaultLongitude));
+        Assert.That(location.Coordinates[1], Is.EqualTo(MapDefaults.DefaultLatitude));
     }
 
     [Test]

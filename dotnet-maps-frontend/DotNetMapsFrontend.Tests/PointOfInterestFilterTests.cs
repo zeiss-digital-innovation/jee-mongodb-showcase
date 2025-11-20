@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using DotNetMapsFrontend.Services;
 using DotNetMapsFrontend.Models;
+using DotNetMapsFrontend.Constants;
 using System.Net;
 
 namespace DotNetMapsFrontend.Tests;
@@ -62,7 +63,7 @@ public class PointOfInterestFilterTests
             .ReturnsAsync(testPois);
 
         // Act
-        var response = await _client.GetAsync("/poi?lat=51.0504&lon=13.7373&radius=2000");
+        var response = await _client.GetAsync("/poi?lat=MapDefaults.DefaultLatitude&lon=MapDefaults.DefaultLongitude&radius=MapDefaults.DefaultRadius");
 
         // Assert
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
@@ -87,7 +88,7 @@ public class PointOfInterestFilterTests
             .ReturnsAsync(testPois);
 
         // Act
-        var response = await _client.GetAsync("/poi?lat=51.0504&lon=13.7373&radius=2000");
+        var response = await _client.GetAsync("/poi?lat=MapDefaults.DefaultLatitude&lon=MapDefaults.DefaultLongitude&radius=MapDefaults.DefaultRadius");
         var content = await response.Content.ReadAsStringAsync();
 
         // Assert - Check for JavaScript files
@@ -117,7 +118,7 @@ public class PointOfInterestFilterTests
             .ReturnsAsync(testPois);
 
         // Act
-        var response = await _client.GetAsync("/poi?lat=51.0504&lon=13.7373&radius=2000");
+        var response = await _client.GetAsync("/poi?lat=MapDefaults.DefaultLatitude&lon=MapDefaults.DefaultLongitude&radius=MapDefaults.DefaultRadius");
         var content = await response.Content.ReadAsStringAsync();
 
         // Assert - Check for category filter dropdown
@@ -135,7 +136,7 @@ public class PointOfInterestFilterTests
             .ReturnsAsync(testPois);
 
         // Act
-        var response = await _client.GetAsync("/poi?lat=51.0504&lon=13.7373&radius=2000");
+        var response = await _client.GetAsync("/poi?lat=MapDefaults.DefaultLatitude&lon=MapDefaults.DefaultLongitude&radius=MapDefaults.DefaultRadius");
         var content = await response.Content.ReadAsStringAsync();
 
         // Assert - Check for Name and Details filter inputs
@@ -155,7 +156,7 @@ public class PointOfInterestFilterTests
                 Location = new Location
                 {
                     Type = "Point",
-                    Coordinates = new[] { 13.7373, 51.0504 }
+                    Coordinates = new[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude }
                 },
                 Href = "/poi/1"
             },
