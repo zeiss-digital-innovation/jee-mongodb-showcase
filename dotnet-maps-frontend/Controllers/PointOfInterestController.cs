@@ -23,7 +23,7 @@ namespace DotNetMapsFrontend.Controllers
             if (lat.HasValue && lon.HasValue)
             {
                 // Use provided coordinates and radius
-                var searchRadius = radius ?? 2000;
+                var searchRadius = radius ?? MapDefaults.DefaultRadius;
                 points = await _poiService.GetPointsOfInterestAsync(lat.Value, lon.Value, searchRadius);
             }
             else
@@ -45,8 +45,8 @@ namespace DotNetMapsFrontend.Controllers
                 
                 if (lat.HasValue && lon.HasValue)
                 {
-                    // Use provided coordinates and radius (default 2000m if not specified)
-                    var searchRadius = radius ?? 2000;
+                    // Use provided coordinates and radius (default if not specified)
+                    var searchRadius = radius ?? MapDefaults.DefaultRadius;
                     var categories = category ?? new List<string>();
                     
                     points = await _poiService.GetPointsOfInterestAsync(lat.Value, lon.Value, searchRadius, categories);
