@@ -77,6 +77,18 @@ export class PoiDialogComponent {
   action = 'Add';
   cssClass = 'bi bi-file-earmark-plus';
 
+  nameOld: string = '';
+  categoryOld: string = '';
+  detailsOld: string = '';
+
+  ngOnInit(): void {
+    if (this.pointOfInterest) {
+      this.nameOld = this.pointOfInterest.name;
+      this.categoryOld = this.pointOfInterest.category;
+      this.detailsOld = this.pointOfInterest.details;
+    }
+  }
+
   onSave(): void {
     if (!this.pointOfInterest?.details || this.pointOfInterest.details.trim().length === 0) {
       alert('Please enter details');
@@ -89,6 +101,12 @@ export class PoiDialogComponent {
   }
 
   onCancel(): void {
+    if (this.pointOfInterest) {
+      // restore old values
+      this.pointOfInterest.name = this.nameOld;
+      this.pointOfInterest.category = this.categoryOld;
+      this.pointOfInterest.details = this.detailsOld;
+    }
     this.cancel.emit();
   }
 
