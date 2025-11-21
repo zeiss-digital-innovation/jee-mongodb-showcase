@@ -823,6 +823,10 @@
         // calculates optimal zoom-factor for given radius
         // uses logarithmic formula to determine zoom level
         function getZoomForRadius(radiusInMeters) {
+            if (!map) {
+                return zoomDefault;
+            }
+
             // Get visible size of the map
             const mapSize = map.getSize();
             // Use the smaller dimension (height or width)
