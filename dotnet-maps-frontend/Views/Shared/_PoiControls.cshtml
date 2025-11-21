@@ -24,14 +24,14 @@
 <!-- Apply values immediately from sessionstorage to prevent flash -->
 <script>
     (function() {
-        // Get defaults
-        const defaultLat = @MapDefaults.DefaultLatitude;
-        const defaultLon = @MapDefaults.DefaultLongitude;
+        // Get defaults (attention! const are strings where depending from culture set is a comma inside, not a dot)
+        const defaultLat = @MapDefaults.DefaultLatitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        const defaultLon = @MapDefaults.DefaultLongitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
         const defaultRadius = @MapDefaults.DefaultRadius;
 
-        const lat = sessionStorage.getItem('poi_latitude') || defaultLat;
-        const lon = sessionStorage.getItem('poi_longitude') || defaultLon;
-        const radius = sessionStorage.getItem('poi_radius') || defaultRadius;
+        const lat = parseFloat(sessionStorage.getItem('poi_latitude')) || defaultLat;
+        const lon = parseFloat(sessionStorage.getItem('poi_longitude')) || defaultLon;
+        const radius = parseInt(sessionStorage.getItem('poi_radius')) || defaultRadius;
 
         document.getElementById('latitudeInput').value = lat;
         document.getElementById('longitudeInput').value = lon;

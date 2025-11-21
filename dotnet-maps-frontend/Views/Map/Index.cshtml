@@ -135,11 +135,11 @@
         };
         
         // Default coordinates (Dresden)
-        const latitudeDefault = @MapDefaults.DefaultLatitude;
-        const longitudeDefault = @MapDefaults.DefaultLongitude;
-        const radiusDefault = @MapDefaults.DefaultRadius;
-        const zoomDefault = @MapDefaults.DefaultZoom;
-        
+        const latitudeDefault = @MapDefaults.DefaultLatitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        const longitudeDefault = @MapDefaults.DefaultLongitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        const radiusDefault = @MapDefaults.DefaultRadius.ToString();
+        const zoomDefault = @MapDefaults.DefaultZoom.ToString();
+
         // Category icon mapping from server-side CategoryConstants
         const CATEGORY_ICONS = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(CategoryConstants.GetIconMappingDictionary()));
         
@@ -329,9 +329,16 @@
                 $('#radiusValue').text(newRadius + ' m');
                 saveSettingsToStorage();
                 
-                // Reload POIs with new radius
-                const center = map.getCenter();
-                loadPointsOfInterest(center.lat, center.lng, parseInt(newRadius));
+                // Calculate an optimal zoom for the new radius
+                const optimalZoom = getZoomForRadius(parseInt(newRadius));
+                console.log(`[Map] Radius changed to ${newRadius} m, adjusting zoom to ${optimalZoom}`);
+                
+                // Set a flag for programmatic map move
+                programmaticMapMove = true;
+
+                // Adjust map zoom to fit the new radius (keeping center the same)
+                map.setZoom(optimalZoom);
+
             });
             
             // When user changes coordinates manually, move map center
@@ -404,7 +411,7 @@
             
             // Load saved zoom level or use default
             const savedZoom = sessionStorage.getItem(STORAGE_KEYS.mapZoom);
-            const currentZoom = savedZoom ? parseInt(savedZoom) : zoomDefault;
+            const currentZoom = savedZoom ? parseInt(savedZoom) : getZoomForRadius(currentRadius);
             
             // Initialize the map with current settings
             map = L.map('map').setView([currentLat, currentLon], currentZoom);
@@ -442,6 +449,15 @@
             map.on('zoomend', function() {
                 const currentZoom = map.getZoom();
                 sessionStorage.setItem(STORAGE_KEYS.mapZoom, currentZoom);
+
+                // Update radius based on new zoom level
+                const optimalRadius = getRadiusForZoom(currentZoom);
+                $('#radiusInput').val(optimalRadius);
+                $('#radiusValue').text(optimalRadius + ' m');
+                sessionStorage.setItem(STORAGE_KEYS.radius, optimalRadius);
+
+                // Update circle on map
+                updateMapCircle();
             });
             
             // Auto-reload POIs when map is moved or zoomed
@@ -804,24 +820,59 @@
             return popupContent;
         }
         
-        function getRadiusForZoom(zoom) {
-            if (zoom <= 8) {
-                return 20000;
-            }
-            if (zoom <= 11) {
-                return 10000;
-            }
-            if (zoom == 12) {
-                return 5000;
-            }
-            if (zoom == 13) {
-                return 2000;
-            }
-            return 1000;
+        // calculates optimal zoom-factor for given radius
+        // uses logarithmic formula to determine zoom level
+        function getZoomForRadius(radiusInMeters) {
+            // Get visible size of the map
+            const mapSize = map.getSize();
+            // Use the smaller dimension (height or width)
+            // and reduce it to 80% to account for padding, so that the circle fits well within the view
+            const minDimension = Math.min(mapSize.x, mapSize.y);
+            const effectivePixels = minDimension * 0.8; // Use 80% of the smaller dimension
+
+            // The circle must fit into effectivePixels
+            // radiusDiameterInMeters = 2 * radiusInMeters
+            // for latitude ~51°: cosLat = 0.6293
+            const latitude = parseFloat($('#latitudeInput').val()) || latitudeDefault;
+            const cosLat = Math.cos(latitude * Math.PI / 180);
+
+            // Basic formula: by zoom 13 are 2000 meter optimally visible
+            // Every zoom-level doubles/halves the visible radius
+            // zoom = 13 + log2(2000 / radius)
+            const meterPerPixelAtZoom0 = 156543.03392;
+            const targetMetersPerPixel = (2 * radiusInMeters) / effectivePixels;
+
+            const calculatedZoom = Math.log2(meterPerPixelAtZoom0 * cosLat / targetMetersPerPixel);
+            const roundedZoom = Math.round(calculatedZoom);
+            return Math.max(8, Math.min(18, roundedZoom)); // Clamp between 8 and 18
         }
 
+        // Calculates optimal radius for a given zoom level
+        // Inverse function of getZoomForRadius
+        function getRadiusForZoom(zoomLevel) {
+            // Get visible size of the map
+            const mapSize = map.getSize();
+            const minDimension = Math.min(mapSize.x, mapSize.y);
+            const effectivePixels = minDimension * 0.8; // Use 80% of the smaller dimension
 
+            // Account for latitude (Mercator projection)
+            const latitude = parseFloat($('#latitudeInput').val()) || latitudeDefault;
+            const cosLat = Math.cos(latitude * Math.PI / 180);
 
+            // Calculate meters per pixel at this zoom level
+            const meterPerPixelAtZoom0 = 156543.03392;
+            const metersPerPixel = meterPerPixelAtZoom0 * cosLat / Math.pow(2, zoomLevel);
+
+            // Calculate radius from pixels
+            const radiusInMeters = (metersPerPixel * effectivePixels) / 2;
+
+            // Round to reasonable values (10m steps for small radii, 100m for large)
+            const rounded = radiusInMeters < 1000 
+                ? Math.round(radiusInMeters / 10) * 10 
+                : Math.round(radiusInMeters / 100) * 100;
+
+            return Math.max(100, Math.min(5000, rounded)); // Clamp between 100m and 5000m
+        }
 
         // Show POI ontext menu
         function showMarkerContextMenu(e, poi) {
