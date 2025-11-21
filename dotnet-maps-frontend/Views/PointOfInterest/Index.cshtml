@@ -32,9 +32,9 @@
         if (lat || lon || radius) {
             // Store values to apply immediately after DOM loads
             window._preloadedCoords = {
-                lat: lat || @MapDefaults.DefaultLatitude,
-                lon: lon || @MapDefaults.DefaultLongitude,
-                radius: radius || @MapDefaults.DefaultRadius
+                lat: lat || @MapDefaults.DefaultLatitude.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                lon: lon || @MapDefaults.DefaultLongitude.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                radius: radius || @MapDefaults.DefaultRadius.ToString()
             };
         }
     })();
@@ -169,16 +169,16 @@
         };
         
         // Default coordinates (Dresden) - must match Map page
-        const latitudeDefault = @MapDefaults.DefaultLatitude;
-        const longitudeDefault = @MapDefaults.DefaultLongitude;
-        const radiusDefault = @MapDefaults.DefaultRadius;
-        
+        const latitudeDefault = @MapDefaults.DefaultLatitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        const longitudeDefault = @MapDefaults.DefaultLongitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        const radiusDefault = @MapDefaults.DefaultRadius.ToString();
+
         // Session timeout: 30 minutes of inactivity = new session
         const SESSION_TIMEOUT_MS = @MapDefaults.DefaultSessionTimeoutMinutes * 60 * 1000;
         
-        // sorting state for table columns
-        let currentTablePois = []; // current POI list for Sorting
-        let allTablePois = []; // all POIs non-filtered
+        // sorting state for table columns - make arrays GLOBAL for site.js filters
+        globalThis.currentTablePois = []; // current POI list for Sorting
+        globalThis.allTablePois = []; // all POIs non-filtered
         let currentSortedColumn = sessionStorage.getItem(STORAGE_KEYS.sortedColumn);
         let sortAscending = sessionStorage.getItem(STORAGE_KEYS.sortAscending) === 'true';
 
@@ -624,6 +624,9 @@
 
             // Make applyCurrentFilters globally available so reloadCurrentPois can use it
             globalThis.buildPoiRequestData = buildPoiRequestData;
+
+            // Make renderTableHtml globally available so reloadCurrentPois can use it
+            globalThis.renderTableHtml = renderTableHtml;
             
             function updatePoiCards(pois) {
                 const $container = $('#poiCardsContainer');
@@ -686,8 +689,8 @@
                 // 3. If no sort state exists just render the unsorted table once.
                 // 4. Apply filters exactly once. (The restore function already renders + filters when active.)
 
-                allTablePois = [...pois]; // save all POIs
-                currentTablePois = [...pois]; // Copy used for sorting
+                globalThis.allTablePois = [...pois]; // save all POIs
+                globalThis.currentTablePois = [...pois]; // Copy used for sorting
 
                 if (currentSortedColumn) {
                     restoreSortWithoutToggle(); // Restore sorting without changing direction
@@ -704,7 +707,7 @@
 
             function renderTableHtml() {
                 const $container = $('#poiTableContainer');
-                if (!currentTablePois || currentTablePois.length === 0) {
+                if (!globalThis.currentTablePois || globalThis.currentTablePois.length === 0) {
                     $container.html(`
                         <div class="alert alert-info">
                             <i class="bi bi-info-circle me-2"></i>
@@ -736,7 +739,7 @@
                         </thead>
                         <tbody id="poiTableBody">
                 `;
-                currentTablePois.forEach((poi, index) => {
+                globalThis.currentTablePois.forEach((poi, index) => {
                     const icon = getCategoryIcon(poi.category);
                     const details = formatDetails(poi.details);
                     const category = poi.category; // Keep lowercase
@@ -776,6 +779,8 @@
                 $container.html(tableHtml);
 
             }
+
+            
             
             function formatDetails(details) {
                 if (!details) return '';
@@ -800,7 +805,7 @@
             }
             // Internal helper: column sort with German diacritic ordering
             function sortInternal(column, ascending) {
-                currentTablePois.sort((a, b) => {
+                globalThis.currentTablePois.sort((a, b) => {
                     let aVal, bVal;
                     if (column === 'name') { aVal = a.name; bVal = b.name; }
                     else if (column === 'category') { aVal = a.category; bVal = b.category; }
