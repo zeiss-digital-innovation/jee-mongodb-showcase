@@ -6,6 +6,11 @@ export interface PoiFilterCriteria {
     categoryFilter?: string;
     nameFilter?: string;
     detailsFilter?: string;
+
+    nameSort?: boolean;
+    categorySort?: boolean;
+    detailsSort?: boolean;
+    sortOrder?: 'asc' | 'desc';
 }
 
 @Injectable({ providedIn: 'root' })

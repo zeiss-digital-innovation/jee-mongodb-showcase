@@ -1,5 +1,20 @@
 <div class="container top-controls fixed-top">
     <div class="row">
+        <div class="col-auto">
+            <label class="form-label"><i class="bi bi-layout-three-columns text-primary"></i>&nbsp;View</label><br />
+            <div class="btn-group btn-group-sm view-toggle" role="group">
+                <input type="radio" class="btn-check" name="viewToggle" id="cardViewRadio" [checked]="cardviewEnabled"
+                    (change)="showCardView()">
+                <label class="btn btn-outline-primary" for="cardViewRadio">
+                    <i class="bi bi-grid-3x3-gap me-1"></i>Cards
+                </label>
+                <input type="radio" class="btn-check" name="viewToggle" id="listViewRadio" [checked]="!cardviewEnabled"
+                    (change)="showListView()">
+                <label class="btn btn-outline-primary" for="listViewRadio">
+                    <i class="bi bi-list-ul me-1"></i>List
+                </label>
+            </div>
+        </div>
         <div class="col">
             <label for="latitudeInput" class="form-label">Latitude <small class="text-muted">(-90 to
                     90)</small></label>
@@ -12,10 +27,10 @@
         </div>
         <div class="col">
             <label for="radiusInput" class="form-label">Radius {{ radius }} </label>
-            <input type="range" class="form-range" min="100" max="5000" [(ngModel)]="radius" id="customRange2">
+            <input type="range" class="form-range" min="100" max="50000" [(ngModel)]="radius" id="customRange2">
         </div>
         <div class="col">
-            <button type="button" class="btn btn-primary mt-4 btn-sm" (click)="loadPointsOfInterest()"
+            <button type="button" class="btn btn-outline-primary mt-4 btn-sm" (click)="loadPointsOfInterest()"
                 [disabled]="!coordsValid">
                 <i class="bi bi-arrow-clockwise me-1"></i>Load POIs</button>
         </div>
@@ -45,14 +60,95 @@
     </div>
 </div>
 
-<div class="container poi-list-content">
+<div *ngIf="cardviewEnabled" class="container poi-list-content">
+    <div class="mb-3 poi-list-content-controls">
+        <div class="dropdown">
+            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi-arrow-down-up"></i> Sort List
+            </button>
+            <ul class="dropdown-menu">
+                <li>
+                    <a class="dropdown-item" (click)="sortByName()" style="cursor: pointer;">
+                        <i [ngClass]="nameSort ? sortOrder == 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down' : ''"></i>
+                        Name
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" (click)="sortByCategory()" style="cursor: pointer;">
+                        <i [ngClass]="categorySort ? sortOrder == 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down' : ''"></i>
+                        Category
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" (click)="sortByDetails()" style="cursor: pointer;">
+                        <i [ngClass]="detailsSort ? sortOrder == 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down' : ''"></i>
+                        Details
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="row g-3">
+        <div class="col-12 col-md-6 col-lg-4" *ngFor="let poi of pointsOfInterestFiltered; let i = index">
+            <div class="card mb-0">
+                <div class="card-body">
+                    <div class="">
+                        <div class="poi-description-header">
+                            <span class="lead">{{ poi.name }}</span>
+                            <i [ngClass]="getBootstrapIconClass(poi.category)"
+                                class="text-primary poi-description-header-icon"></i>
+                        </div>
+                    </div>
+                    <div class="">
+                        <div class="poi-description-coordinates"><i class="bi bi-geo-alt text-primary"></i>&nbsp;Lat: {{
+                            poi.location.coordinates[1].toFixed(4) }} | Lng: {{
+                            poi.location.coordinates[0].toFixed(4) }}</div>
+                    </div>
+                    <div class="">
+                        <div [innerHTML]="poi.details | formatDetails"></div>
+                    </div>
+                    <div class="">
+                        <div class="poi-description-footer">
+                            <span class="badge bg-secondary">{{ poi.category | titlecase }}</span>
+                            <div class="poi-description-footer-buttons">
+                                <button type="button" class="btn btn-outline-primary btn-sm" (click)="editPoi(poi)"><i
+                                        class="bi bi-pencil"></i> Edit</button>
+                                &nbsp;
+                                <button type="button" class="btn btn-outline-danger btn-sm"
+                                    (click)="openDeleteConfirmationModal(poi)"><i class="bi bi-trash"></i>
+                                    Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div *ngIf="!cardviewEnabled" class="container poi-list-content">
     <table class="table table-striped table-hover">
         <thead class="table-primary">
             <tr>
                 <th scope="col" style="width: 5%;">#</th>
-                <th scope="col" style="width: 15%;"><i class="bi bi-tag"></i>&nbsp;Name</th>
-                <th scope="col" style="width: 10%;"><i class="bi bi-folder"></i>&nbsp;Category</th>
-                <th scope="col" style="width: 40%;"><i class="bi bi-info-circle"></i>&nbsp;Details</th>
+                <th scope="col" style="width: 15%;">
+                    <i class="bi bi-tag"></i>
+                    &nbsp;Name&nbsp;
+                    <i [ngClass]="nameSort ? sortOrder == 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down' : 'bi-arrow-down-up'"
+                        (click)="sortByName()"></i>
+                </th>
+                <th scope="col" style="width: 15%;">
+                    <i class="bi bi-folder"></i>
+                    &nbsp;Category&nbsp;
+                    <i [ngClass]="categorySort ? sortOrder == 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down' : 'bi-arrow-down-up'"
+                        (click)="sortByCategory()"></i>
+                </th>
+                <th scope="col" style="width: 35%;">
+                    <i class="bi bi-info-circle"></i>
+                    &nbsp;Details&nbsp;
+                    <i [ngClass]="detailsSort ? sortOrder == 'asc' ? 'bi bi-sort-up' : 'bi bi-sort-down' : 'bi-arrow-down-up'"
+                        (click)="sortByDetails()"></i>
+                </th>
                 <th scope="col" style="width: 15%;"><i class="bi bi-geo-alt"></i>&nbsp;Location</th>
                 <th scope="col" style="width: 15%;"><i class="bi bi-gear"></i>&nbsp;Action</th>
             </tr>
