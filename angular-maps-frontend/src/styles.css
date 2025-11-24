@@ -191,3 +191,14 @@ body {
 .card:hover {
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 }
+
+/* View toggle button styling */
+.view-toggle {
+    width: auto;
+}
+
+.view-toggle .btn-check:checked+.btn-outline-primary {
+    background-color: var(--color-azure) !important;
+    border-color: var(--color-azure) !important;
+    color: var(--color-white) !important;
+}

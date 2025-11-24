@@ -39,6 +39,8 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
   detailsSort: boolean = false;
   sortOrder: 'asc' | 'desc' = 'asc';
 
+  cardviewEnabled: boolean = false;
+
   pointsOfInterest: PointOfInterest[] = [];
   pointsOfInterestFiltered: PointOfInterest[] = [];
 
@@ -248,6 +250,14 @@ export class PointOfInterestListComponent implements OnInit, AfterViewInit {
     } else {
       console.warn('Success toast not available to show');
     }
+  }
+
+  showCardView(): void {
+    this.cardviewEnabled = true;
+  }
+
+  showListView(): void {
+    this.cardviewEnabled = false;
   }
 
   /**
