@@ -2,3 +2,4 @@
 .vscode/settings.json
 .github/prompts/my.prompt.md
 .vscode/mcp.json
+.github/agents/
