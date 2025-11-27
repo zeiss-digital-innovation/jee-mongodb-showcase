@@ -10,6 +10,8 @@
     --color-azure: #0072EF;
     --color-bright-orange-neon: #E71E1E;
     --color-purple-red: #A70240;
+    --color-ultralight-gray: #DCE3E9;
+    --color-ultradark-gray: #32373E;
 }
 
 
@@ -36,6 +38,12 @@
     background-color: var(--color-indigo) !important;
     border-color: var(--color-indigo) !important;
     color: var(--color-white) !important;
+}
+
+.bg-secondary {
+    background-color: var(--color-ultralight-gray) !important;
+    border-color: var(--color-ultralight-gray) !important;
+    color: var(--color-ultradark-gray) !important;
 }
 
 .btn-outline-primary {
@@ -132,4 +140,65 @@ body {
     border-radius: .25rem;
     font-weight: 600;
     transition: background-color 160ms ease, color 160ms ease;
+}
+
+/* Header row: Uses display: flex; justify-content: space-between; to position the name on the left and icon on the right
+   Spacing: gap: 8px for breathing room between name and icon */
+.poi-description-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+/* Icon: Positioned in the top-right corner with flex-shrink: 0 to prevent compression */
+.poi-description-header-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.poi-description-coordinates {
+    margin-top: 5px;
+    margin-bottom: 12px;
+    font-size: 0.65rem;
+    color: #929EAB;
+}
+
+.poi-description-details {
+    margin-top: 8px;
+}
+
+.poi-description-category {
+    margin-top: 8px;
+}
+
+.poi-description-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.poi-description-footer-buttons {
+    flex-shrink: 0;
+}
+
+.card {
+    transition: box-shadow 160ms ease;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* View toggle button styling */
+.view-toggle {
+    width: auto;
+}
+
+.view-toggle .btn-check:checked+.btn-outline-primary {
+    background-color: var(--color-azure) !important;
+    border-color: var(--color-azure) !important;
+    color: var(--color-white) !important;
 }
