@@ -175,7 +175,14 @@ public class PointOfInterestController : ControllerBase
 
             _logger.LogInformation("POI retrieved: {Name} (ID: {Id})", poiEntity.Name, poiEntity.Id);
             // Entity to DTO transformation
-            PointOfInterestDto poiDto = PointOfInterestMapper.ToDto(poiEntity);
+            var poiDto = PointOfInterestMapper.ToDto(poiEntity);
+            
+            if (poiDto == null)
+            {
+                _logger.LogError("Failed to map POI entity to DTO for ID: {Id}", id);
+                return StatusCode(500, "Internal server error mapping POI data");
+            }
+            
             // href generation
             GenerateHref(poiDto);
             return Ok(poiDto);
@@ -213,9 +220,20 @@ public class PointOfInterestController : ControllerBase
 
             // NOTE: ModelState validation is automatically performed by [ApiController]
             // Manual check here would cause problems in unit tests
-            var createdPoiDto = PointOfInterestMapper.ToDto(await _poiService.CreatePoiAsync(PointOfInterestMapper.ToEntity(poiDto)));
-            GenerateHref(createdPoiDto);
+            var poiEntity = PointOfInterestMapper.ToEntity(poiDto);
+            if (poiEntity == null)
+            {
+                return BadRequest(new { message = "Failed to map POI data to entity" });
+            }
+            
+            var createdPoiDto = PointOfInterestMapper.ToDto(await _poiService.CreatePoiAsync(poiEntity));
+            
+            if (createdPoiDto == null)
+            {
+                return StatusCode(500, "Failed to create POI");
+            }
 
+            GenerateHref(createdPoiDto);
 
             _logger.LogInformation("POI created: {Name} (ID: {Id})", createdPoiDto.Name, createdPoiDto.Id);
 
@@ -295,6 +313,12 @@ public class PointOfInterestController : ControllerBase
 
             // Map DTO to entity
             var poiEntity = PointOfInterestMapper.ToEntity(poiDto);
+            
+            if (poiEntity == null)
+            {
+                return BadRequest(new { message = "Failed to map POI data to entity" });
+            }
+            
             // Service does entity update
             var updatedPoiEntity = await _poiService.UpdatePoiAsync(id, poiEntity);
 
@@ -306,6 +330,11 @@ public class PointOfInterestController : ControllerBase
 
             // Mapper entity to DTO
             var updatedPoiDto = PointOfInterestMapper.ToDto(updatedPoiEntity);
+
+            if (updatedPoiDto == null)
+            {
+                return StatusCode(500, "Failed to map updated POI entity to DTO");
+            }
 
             // Generate href
             GenerateHref(updatedPoiDto);
@@ -462,6 +491,11 @@ public class PointOfInterestController : ControllerBase
 
             // Mapper: Entity → DTO
             var updatedDto = PointOfInterestMapper.ToDto(updatedEntity);
+
+            if (updatedDto == null)
+            {
+                return StatusCode(500, "Failed to map updated POI entity to DTO");
+            }
 
             // Href generieren
             GenerateHref(updatedDto);

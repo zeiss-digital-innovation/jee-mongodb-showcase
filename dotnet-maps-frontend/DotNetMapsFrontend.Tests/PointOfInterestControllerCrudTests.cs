@@ -3,6 +3,7 @@
 using DotNetMapsFrontend.Controllers;
 using DotNetMapsFrontend.Models;
 using DotNetMapsFrontend.Services;
+using DotNetMapsFrontend.Constants;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 
@@ -46,7 +47,7 @@ public class PointOfInterestControllerCrudTests
             Location = new Location
             {
                 Type = "Point",
-                Coordinates = new[] { 13.7373, 51.0504 }
+                Coordinates = new[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude }
             }
         };
 
@@ -114,7 +115,7 @@ public class PointOfInterestControllerCrudTests
             Location = new Location
             {
                 Type = "Point",
-                Coordinates = new[] { 13.7373, 51.0504 }
+                Coordinates = new[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude }
             }
         };
 
@@ -150,7 +151,7 @@ public class PointOfInterestControllerCrudTests
             Location = new Location
             {
                 Type = "Point",
-                Coordinates = new[] { 13.7373, 51.0504 }
+                Coordinates = new[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude }
             }
         };
 
@@ -176,7 +177,7 @@ public class PointOfInterestControllerCrudTests
             Location = new Location
             {
                 Type = "Point",
-                Coordinates = new[] { 13.7373, 51.0504 }
+                Coordinates = new[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude }
             }
         };
 
@@ -202,7 +203,7 @@ public class PointOfInterestControllerCrudTests
             Location = new Location
             {
                 Type = "Point",
-                Coordinates = new[] { 13.7373, 51.0504 }
+                Coordinates = new[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude }
             }
         };
 
@@ -228,7 +229,7 @@ public class PointOfInterestControllerCrudTests
             Location = new Location
             {
                 Type = "Point",
-                Coordinates = new[] { 13.7373, 51.0504 }
+                Coordinates = new[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude }
             }
         };
 
@@ -326,7 +327,7 @@ public class PointOfInterestControllerCrudTests
             Location = new Location
             {
                 Type = "Point",
-                Coordinates = new[] { 13.7373, 51.0504 }
+                Coordinates = new[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude }
             }
         };
 
@@ -355,7 +356,7 @@ public class PointOfInterestControllerCrudTests
             Location = new Location
             {
                 Type = "Point",
-                Coordinates = new[] { 13.7373, 51.0504 }
+                Coordinates = new[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude }
             }
         };
 

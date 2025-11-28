@@ -33,11 +33,11 @@ namespace DotNetMapsFrontend.Services
         public async Task<List<PointOfInterest>> GetPointsOfInterestAsync()
         {
             // Default values from Angular Frontend (Dresden, Zoom 13)
-            const double defaultLatitude = 51.0504;
-            const double defaultLongitude = 13.7373;
-            const int defaultRadius = 2000; // Radius for zoom level 13
-            
-            return await GetPointsOfInterestAsync(defaultLatitude, defaultLongitude, defaultRadius);
+            return await GetPointsOfInterestAsync(
+                MapDefaults.DefaultLatitude, 
+                MapDefaults.DefaultLongitude, 
+                MapDefaults.DefaultRadius
+            );
         }
 
         public async Task<List<PointOfInterest>> GetPointsOfInterestAsync(double latitude, double longitude, int radiusInMeters)

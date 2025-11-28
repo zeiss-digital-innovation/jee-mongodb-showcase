@@ -68,6 +68,7 @@ public class PointOfInterestModelTests
         {
             Name = "Test POI",
             Category = "restaurant",
+            Details = "Test Details",
             Location = new LocationDto { Type = "Point", Coordinates = [0, 0] } // Coordinates can be 0,0 (Gulf of Guinea)
         };
         var results = ValidateModel(invalidPoi);

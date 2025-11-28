@@ -191,6 +191,7 @@ public class PointOfInterestServiceCrudTests
     {
         // Arrange
         var poi = new PointOfInterestEntity {
+            Name = "Test POI",
             Category = "restaurant",
             Details = "", // Empty
             Location = new LocationEntity { Type = "Point", Coordinates = [13.7373, 51.0504] }
@@ -207,6 +208,7 @@ public class PointOfInterestServiceCrudTests
     {
         // Arrange
         var poi = new PointOfInterestEntity {
+            Name = "Test POI",
             Category = "", // Empty
             Details = "Test Details",
             Location = new LocationEntity { Type = "Point", Coordinates = [13.7373, 51.0504] }
@@ -223,6 +225,7 @@ public class PointOfInterestServiceCrudTests
     {
         // Arrange
         var poi = new PointOfInterestEntity {
+            Name = "Test POI",
             Category = "restaurant",
             Details = "Test Details",
             Location = null! // Null location
@@ -239,6 +242,7 @@ public class PointOfInterestServiceCrudTests
     {
         // Arrange - Latitude > 90
         var poi = new PointOfInterestEntity {
+            Name = "Test POI",
             Category = "restaurant",
             Details = "Test Details",
             Location = new LocationEntity { Type = "Point", Coordinates = [0, 91] } // Invalid latitude
@@ -255,6 +259,7 @@ public class PointOfInterestServiceCrudTests
     {
         // Arrange - Longitude > 180
         var poi = new PointOfInterestEntity {
+            Name = "Test POI",
             Category = "restaurant",
             Details = "Test Details",
             Location = new LocationEntity { Type = "Point", Coordinates = [181, 0] } // Invalid longitude
@@ -330,6 +335,7 @@ public class PointOfInterestServiceCrudTests
         // Arrange
         var testId = ObjectId.GenerateNewId().ToString();
         var updatePoi = new PointOfInterestEntity {
+            Name = "Updated POI",
             Category = "museum",
             Details = "Updated Museum",
             Location = new LocationEntity { Type = "Point", Coordinates = [13.7373, 51.0504] }

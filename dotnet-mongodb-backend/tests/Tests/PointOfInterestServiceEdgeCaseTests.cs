@@ -246,8 +246,9 @@ public class PointOfInterestServiceEdgeCaseTests
     [Fact]
     public async Task CreatePoiAsync_WithMinimalValidData_CreatesPoi()
     {
-        // Arrange - Only required fields
+        // Arrange - Minimal required fields
         var poi = new PointOfInterestEntity {
+            Name = "Minimal POI",
             Category = "other",
             Details = "Minimal POI",
             Location = new LocationEntity { Type = "Point", Coordinates = [0, 0] } // Null Island
@@ -272,6 +273,7 @@ public class PointOfInterestServiceEdgeCaseTests
     {
         // Arrange - Western hemisphere
         var poi = new PointOfInterestEntity {
+            Name = "Western POI",
             Category = "landmark",
             Details = "Western POI",
             Location = new LocationEntity { Type = "Point", Coordinates = [-120, 40] }

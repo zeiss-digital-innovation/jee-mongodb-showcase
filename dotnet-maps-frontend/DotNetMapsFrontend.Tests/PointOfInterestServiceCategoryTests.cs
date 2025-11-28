@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using DotNetMapsFrontend.Services;
 using DotNetMapsFrontend.Models;
+using DotNetMapsFrontend.Constants;
 using System.Net;
 using System.Text.Json;
 
@@ -58,9 +59,9 @@ public class PointOfInterestServiceCategoryTests
     public async Task GetPointsOfInterestAsync_WithEmptyCategories_ShouldCallBackendWithoutCategoryParameter()
     {
         // Arrange
-        double lat = 51.0504;
-        double lon = 13.7373;
-        int radius = 2000;
+        double lat = MapDefaults.DefaultLatitude;
+        double lon = MapDefaults.DefaultLongitude;
+        int radius = MapDefaults.DefaultRadius;
         var categories = new List<string>();
         var expectedPois = GetTestPointsOfInterest();
 
@@ -97,9 +98,9 @@ public class PointOfInterestServiceCategoryTests
     public async Task GetPointsOfInterestAsync_WithSingleCategory_ShouldIncludeCategoryInUrl()
     {
         // Arrange
-        double lat = 51.0504;
-        double lon = 13.7373;
-        int radius = 2000;
+        double lat = MapDefaults.DefaultLatitude;
+        double lon = MapDefaults.DefaultLongitude;
+        int radius = MapDefaults.DefaultRadius;
         var categories = new List<string> { "museum" };
         var expectedPois = GetTestPointsOfInterest().Where(p => p.Category == "museum").ToList();
 
@@ -134,9 +135,9 @@ public class PointOfInterestServiceCategoryTests
     public async Task GetPointsOfInterestAsync_WithMultipleCategories_ShouldIncludeAllCategoriesInUrl()
     {
         // Arrange
-        double lat = 51.0504;
-        double lon = 13.7373;
-        int radius = 2000;
+        double lat = MapDefaults.DefaultLatitude;
+        double lon = MapDefaults.DefaultLongitude;
+        int radius = MapDefaults.DefaultRadius;
         var categories = new List<string> { "museum", "castle", "restaurant" };
         var expectedPois = GetTestPointsOfInterest()
             .Where(p => categories.Contains(p.Category))
@@ -175,9 +176,9 @@ public class PointOfInterestServiceCategoryTests
     public async Task GetPointsOfInterestAsync_WithSpecialCharactersInCategory_ShouldUrlEncodeCategories()
     {
         // Arrange
-        double lat = 51.0504;
-        double lon = 13.7373;
-        int radius = 2000;
+        double lat = MapDefaults.DefaultLatitude;
+        double lon = MapDefaults.DefaultLongitude;
+        int radius = MapDefaults.DefaultRadius;
         var categories = new List<string> { "café & restaurant", "shop+store" };
         var expectedPois = new List<PointOfInterest>();
 
@@ -216,9 +217,9 @@ public class PointOfInterestServiceCategoryTests
     public async Task GetPointsOfInterestAsync_BackwardCompatibility_ShouldStillWorkWithOldMethod()
     {
         // Arrange
-        double lat = 51.0504;
-        double lon = 13.7373;
-        int radius = 2000;
+        double lat = MapDefaults.DefaultLatitude;
+        double lon = MapDefaults.DefaultLongitude;
+        int radius = MapDefaults.DefaultRadius;
         var expectedPois = GetTestPointsOfInterest();
 
         var responseMessage = new HttpResponseMessage
@@ -246,9 +247,9 @@ public class PointOfInterestServiceCategoryTests
     public async Task GetPointsOfInterestAsync_WithCategories_ShouldLogCategoryCount()
     {
         // Arrange
-        double lat = 51.0504;
-        double lon = 13.7373;
-        int radius = 2000;
+        double lat = MapDefaults.DefaultLatitude;
+        double lon = MapDefaults.DefaultLongitude;
+        int radius = MapDefaults.DefaultRadius;
         var categories = new List<string> { "museum", "castle" };
         var expectedPois = GetTestPointsOfInterest();
 
@@ -286,9 +287,9 @@ public class PointOfInterestServiceCategoryTests
     public async Task GetPointsOfInterestAsync_WithManyCategories_ShouldHandleLargeQueryString()
     {
         // Arrange
-        double lat = 51.0504;
-        double lon = 13.7373;
-        int radius = 2000;
+        double lat = MapDefaults.DefaultLatitude;
+        double lon = MapDefaults.DefaultLongitude;
+        int radius = MapDefaults.DefaultRadius;
         var categories = new List<string>();
         for (int i = 0; i < 20; i++)
         {
@@ -330,9 +331,9 @@ public class PointOfInterestServiceCategoryTests
     public async Task GetPointsOfInterestAsync_WithCategories_OnHttpError_ShouldReturnMockData()
     {
         // Arrange
-        double lat = 51.0504;
-        double lon = 13.7373;
-        int radius = 2000;
+        double lat = MapDefaults.DefaultLatitude;
+        double lon = MapDefaults.DefaultLongitude;
+        int radius = MapDefaults.DefaultRadius;
         var categories = new List<string> { "museum" };
 
         var responseMessage = new HttpResponseMessage
@@ -366,9 +367,9 @@ public class PointOfInterestServiceCategoryTests
     public async Task GetPointsOfInterestAsync_WithNullCategories_ShouldTreatAsEmptyList()
     {
         // Arrange
-        double lat = 51.0504;
-        double lon = 13.7373;
-        int radius = 2000;
+        double lat = MapDefaults.DefaultLatitude;
+        double lon = MapDefaults.DefaultLongitude;
+        int radius = MapDefaults.DefaultRadius;
         List<string> categories = null;
         var expectedPois = GetTestPointsOfInterest();
 
@@ -406,7 +407,7 @@ public class PointOfInterestServiceCategoryTests
             { 
                 Category = "museum", 
                 Details = "Dresden Museum",
-                Location = new Location { Type = "Point", Coordinates = new double[] { 13.7373, 51.0504 } }
+                Location = new Location { Type = "Point", Coordinates = new double[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude } }
             },
             new PointOfInterest 
             { 

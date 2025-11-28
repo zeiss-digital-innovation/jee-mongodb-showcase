@@ -3,6 +3,7 @@
 using DotNetMapsFrontend.Controllers;
 using DotNetMapsFrontend.Models;
 using DotNetMapsFrontend.Services;
+using DotNetMapsFrontend.Constants;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 
@@ -30,7 +31,7 @@ public class EdgeCaseTests
             Location = new Location
             {
                 Type = "Point",
-                Coordinates = new[] { 13.7373, 51.0504 }
+                Coordinates = new[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude }
             }
         };
         
@@ -285,7 +286,7 @@ public class EdgeCaseTests
             Location = new Location
             {
                 Type = "Point",
-                Coordinates = new[] { 13.7373, 51.0504 }
+                Coordinates = new[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude }
             }
         };
         
@@ -314,7 +315,7 @@ public class EdgeCaseTests
             {
                 Category = "test",
                 Details = "test",
-                Location = new Location { Type = "Point", Coordinates = new[] { 13.7373, 51.0504 } }
+                Location = new Location { Type = "Point", Coordinates = new[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude } }
             }
         };
         
@@ -367,11 +368,11 @@ public class EdgeCaseTests
         var controller = new PointOfInterestController(mockService.Object);
 
         // Act
-        var result = await controller.Index(51.0504, 13.7373, 5000);
+        var result = await controller.Index(MapDefaults.DefaultLatitude, MapDefaults.DefaultLongitude, 5000);
 
         // Assert
         Assert.That(result, Is.InstanceOf<ViewResult>());
-        mockService.Verify(s => s.GetPointsOfInterestAsync(51.0504, 13.7373, 5000), Times.Once);
+        mockService.Verify(s => s.GetPointsOfInterestAsync(MapDefaults.DefaultLatitude, MapDefaults.DefaultLongitude, 5000), Times.Once);
         controller.Dispose();
     }
 

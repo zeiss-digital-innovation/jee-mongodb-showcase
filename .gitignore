@@ -1,1 +1,4 @@
-.vscode/settings.json
+.idea/
+.vscode/
+.github/prompts/
+.github/agents/

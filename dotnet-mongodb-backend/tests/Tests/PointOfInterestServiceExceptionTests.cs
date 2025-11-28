@@ -210,6 +210,7 @@ public class PointOfInterestServiceExceptionTests
     {
         // Arrange
         var poi = new PointOfInterestEntity {
+            Name = "Test Restaurant",
             Category = "restaurant",
             Details = "Test Restaurant",
             Location = new LocationEntity { Type = "Point", Coordinates = [13.7373, 51.0504] }
@@ -235,6 +236,7 @@ public class PointOfInterestServiceExceptionTests
         // Arrange
         var validId = MongoDB.Bson.ObjectId.GenerateNewId().ToString();
         var poi = new PointOfInterestEntity {
+            Name = "Updated Museum",
             Category = "museum",
             Details = "Updated Museum",
             Location = new LocationEntity { Type = "Point", Coordinates = [13.7373, 51.0504] }

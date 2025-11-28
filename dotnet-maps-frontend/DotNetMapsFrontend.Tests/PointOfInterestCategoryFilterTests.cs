@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using DotNetMapsFrontend.Services;
 using DotNetMapsFrontend.Controllers;
 using DotNetMapsFrontend.Models;
+using DotNetMapsFrontend.Constants;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Text.Json;
@@ -38,9 +39,9 @@ public class PointOfInterestCategoryFilterTests
     public async Task GetAll_WithoutCategories_ShouldPassEmptyListToService()
     {
         // Arrange
-        double lat = 51.0504;
-        double lon = 13.7373;
-        int radius = 2000;
+        double lat = MapDefaults.DefaultLatitude;
+        double lon = MapDefaults.DefaultLongitude;
+        int radius = MapDefaults.DefaultRadius;
         var expectedPois = GetTestPointsOfInterest();
         
         _mockService.Setup(s => s.GetPointsOfInterestAsync(lat, lon, radius, It.IsAny<List<string>>()))
@@ -59,9 +60,9 @@ public class PointOfInterestCategoryFilterTests
     public async Task GetAll_WithSingleCategory_ShouldPassCategoryToService()
     {
         // Arrange
-        double lat = 51.0504;
-        double lon = 13.7373;
-        int radius = 2000;
+        double lat = MapDefaults.DefaultLatitude;
+        double lon = MapDefaults.DefaultLongitude;
+        int radius = MapDefaults.DefaultRadius;
         var categories = new List<string> { "museum" };
         var expectedPois = GetTestPointsOfInterest().Where(p => p.Category == "museum").ToList();
         
@@ -88,9 +89,9 @@ public class PointOfInterestCategoryFilterTests
     public async Task GetAll_WithMultipleCategories_ShouldPassAllCategoriesToService()
     {
         // Arrange
-        double lat = 51.0504;
-        double lon = 13.7373;
-        int radius = 2000;
+        double lat = MapDefaults.DefaultLatitude;
+        double lon = MapDefaults.DefaultLongitude;
+        int radius = MapDefaults.DefaultRadius;
         var categories = new List<string> { "museum", "castle", "restaurant" };
         var expectedPois = GetTestPointsOfInterest()
             .Where(p => categories.Contains(p.Category))
@@ -122,9 +123,9 @@ public class PointOfInterestCategoryFilterTests
     public async Task GetAll_WithCategories_ShouldReturnOnlyMatchingCategories()
     {
         // Arrange
-        double lat = 51.0504;
-        double lon = 13.7373;
-        int radius = 2000;
+        double lat = MapDefaults.DefaultLatitude;
+        double lon = MapDefaults.DefaultLongitude;
+        int radius = MapDefaults.DefaultRadius;
         var categories = new List<string> { "park" };
         var expectedPois = GetTestPointsOfInterest()
             .Where(p => p.Category == "park")
@@ -150,9 +151,9 @@ public class PointOfInterestCategoryFilterTests
     public async Task GetAll_WithEmptyCategories_ShouldReturnAllPois()
     {
         // Arrange
-        double lat = 51.0504;
-        double lon = 13.7373;
-        int radius = 2000;
+        double lat = MapDefaults.DefaultLatitude;
+        double lon = MapDefaults.DefaultLongitude;
+        int radius = MapDefaults.DefaultRadius;
         var categories = new List<string>();
         var expectedPois = GetTestPointsOfInterest();
         
@@ -178,9 +179,9 @@ public class PointOfInterestCategoryFilterTests
     public async Task GetAll_WithNonExistingCategory_ShouldReturnEmptyList()
     {
         // Arrange
-        double lat = 51.0504;
-        double lon = 13.7373;
-        int radius = 2000;
+        double lat = MapDefaults.DefaultLatitude;
+        double lon = MapDefaults.DefaultLongitude;
+        int radius = MapDefaults.DefaultRadius;
         var categories = new List<string> { "nonexistent" };
         var expectedPois = new List<PointOfInterest>();
         
@@ -203,9 +204,9 @@ public class PointOfInterestCategoryFilterTests
     public async Task GetAll_WithMixedCaseCategories_ShouldPassExactCaseToService()
     {
         // Arrange
-        double lat = 51.0504;
-        double lon = 13.7373;
-        int radius = 2000;
+        double lat = MapDefaults.DefaultLatitude;
+        double lon = MapDefaults.DefaultLongitude;
+        int radius = MapDefaults.DefaultRadius;
         var categories = new List<string> { "Museum", "CASTLE" };
         var expectedPois = new List<PointOfInterest>();
         
@@ -226,9 +227,9 @@ public class PointOfInterestCategoryFilterTests
     public async Task GetAll_WithDuplicateCategories_ShouldPassAllToService()
     {
         // Arrange
-        double lat = 51.0504;
-        double lon = 13.7373;
-        int radius = 2000;
+        double lat = MapDefaults.DefaultLatitude;
+        double lon = MapDefaults.DefaultLongitude;
+        int radius = MapDefaults.DefaultRadius;
         var categories = new List<string> { "museum", "museum", "castle" };
         var expectedPois = GetTestPointsOfInterest()
             .Where(p => p.Category == "museum" || p.Category == "castle")
@@ -251,8 +252,8 @@ public class PointOfInterestCategoryFilterTests
     {
         // Arrange
         double? lat = null;
-        double lon = 13.7373;
-        int radius = 2000;
+        double lon = MapDefaults.DefaultLongitude;
+        int radius = MapDefaults.DefaultRadius;
         var categories = new List<string> { "museum" };
         var fallbackPois = GetTestPointsOfInterest();
         
@@ -272,8 +273,8 @@ public class PointOfInterestCategoryFilterTests
     public async Task GetAll_WithCategoriesAndInvalidRadius_ShouldUseDefaultRadius()
     {
         // Arrange
-        double lat = 51.0504;
-        double lon = 13.7373;
+        double lat = MapDefaults.DefaultLatitude;
+        double lon = MapDefaults.DefaultLongitude;
         int? radius = null;
         var categories = new List<string> { "museum" };
         var expectedPois = GetTestPointsOfInterest()
@@ -288,8 +289,8 @@ public class PointOfInterestCategoryFilterTests
 
         // Assert
         Assert.That(result, Is.InstanceOf<JsonResult>());
-        // When radius is null, controller uses default radius of 2000m
-        _mockService.Verify(s => s.GetPointsOfInterestAsync(lat, lon, 2000, 
+        // When radius is null, controller uses default radius
+        _mockService.Verify(s => s.GetPointsOfInterestAsync(lat, lon, MapDefaults.DefaultRadius, 
             It.Is<List<string>>(list => list.Count == 1 && list.Contains("museum"))), Times.Once);
     }
 
@@ -297,9 +298,9 @@ public class PointOfInterestCategoryFilterTests
     public async Task GetAll_ServiceThrowsException_ShouldReturnEmptyJsonList()
     {
         // Arrange
-        double lat = 51.0504;
-        double lon = 13.7373;
-        int radius = 2000;
+        double lat = MapDefaults.DefaultLatitude;
+        double lon = MapDefaults.DefaultLongitude;
+        int radius = MapDefaults.DefaultRadius;
         var categories = new List<string> { "museum" };
         
         _mockService.Setup(s => s.GetPointsOfInterestAsync(lat, lon, radius, It.IsAny<List<string>>()))
@@ -326,7 +327,7 @@ public class PointOfInterestCategoryFilterTests
             { 
                 Category = "museum", 
                 Details = "Dresden Museum",
-                Location = new Location { Type = "Point", Coordinates = new double[] { 13.7373, 51.0504 } }
+                Location = new Location { Type = "Point", Coordinates = new double[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude } }
             },
             new PointOfInterest 
             { 

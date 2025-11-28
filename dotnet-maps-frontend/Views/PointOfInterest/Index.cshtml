@@ -22,6 +22,25 @@
     })();
 </script>
 
+<!-- Pre-load coordinates from sessionStorage to prevent flash of default values -->
+<script>
+    (function() {
+        const lat = sessionStorage.getItem('poi_latitude');
+        const lon = sessionStorage.getItem('poi_longitude');
+        const radius = sessionStorage.getItem('poi_radius');
+        
+        if (lat || lon || radius) {
+            // Store values to apply immediately after DOM loads
+            window._preloadedCoords = {
+                lat: lat || @MapDefaults.DefaultLatitude.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                lon: lon || @MapDefaults.DefaultLongitude.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                radius: radius || @MapDefaults.DefaultRadius.ToString()
+            };
+        }
+    })();
+</script>
+
+
 <div class="top-controls fixed-top">
     <div class="container">
         <partial name="_PoiControls" />
@@ -34,14 +53,15 @@
         <h2 class="mb-3">Points of Interest</h2>
         <!-- View Toggle -->
         <div class="view-toggle">
-            <div class="btn-group" role="group" aria-label="View toggle">
+            <fieldset class="btn-group">
+                <legend class="visually-hidden">View toggle</legend>
                 <button type="button" class="btn btn-outline-primary active" id="cardsViewBtn">
                     <i class="bi bi-grid-3x3-gap me-1"></i>Cards
                 </button>
                 <button type="button" class="btn btn-outline-primary" id="listViewBtn">
                     <i class="bi bi-list-ul me-1"></i>List
                 </button>
-            </div>
+            </fieldset>
         </div>
     </div>
 </div>
@@ -149,15 +169,16 @@
         };
         
         // Default coordinates (Dresden) - must match Map page
-        const latitudeDefault = 51.0504;
-        const longitudeDefault = 13.7373;
-        const radiusDefault = 2000;
-        
+        const latitudeDefault = @MapDefaults.DefaultLatitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        const longitudeDefault = @MapDefaults.DefaultLongitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        const radiusDefault = @MapDefaults.DefaultRadius.ToString();
+
         // Session timeout: 30 minutes of inactivity = new session
-        const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+        const SESSION_TIMEOUT_MS = @MapDefaults.DefaultSessionTimeoutMinutes * 60 * 1000;
         
-        // sorting state for table columns
-        let currentTablePois = []; // current POI list for Sorting
+        // sorting state for table columns - make arrays GLOBAL for site.js filters
+        globalThis.currentTablePois = []; // current POI list for Sorting
+        globalThis.allTablePois = []; // all POIs non-filtered
         let currentSortedColumn = sessionStorage.getItem(STORAGE_KEYS.sortedColumn);
         let sortAscending = sessionStorage.getItem(STORAGE_KEYS.sortAscending) === 'true';
 
@@ -172,15 +193,6 @@
         $(document).ready(async function() {
             // Initialize Category Manager FIRST
             await CategoryManager.init();
-            
-            // Listen for category selection changes
-            document.addEventListener('categorySelectionChanged', function(e) {
-                console.log('Category selection changed, reloading POIs...');
-                reloadCurrentPois();
-            });
-            
-            // Load initial POIs from server via AJAX
-            loadInitialPois();
             
             // Check if this is a new browser session
             const lastActivity = sessionStorage.getItem(STORAGE_KEYS.sessionStart);
@@ -199,6 +211,18 @@
             // Update session timestamp
             sessionStorage.setItem(STORAGE_KEYS.sessionStart, now.toString());
             
+            // Load settings from sessionStorage on page load
+            loadSettingsFromStorage();
+
+            // Listen for category selection changes
+            document.addEventListener('categorySelectionChanged', function(e) {
+                console.log('Category selection changed, reloading POIs...');
+                reloadCurrentPois();
+            });
+           
+            // Load initial POIs from server via AJAX
+            loadInitialPois();
+
             // View toggle functionality - load from sessionStorage or default to 'cards'
             let currentView = sessionStorage.getItem(STORAGE_KEYS.view) || 'cards';
             
@@ -210,10 +234,7 @@
             
             // Apply saved view IMMEDIATELY to prevent flash
             applySavedView();
-            
-            // Load settings from sessionStorage on page load
-            loadSettingsFromStorage();
-            
+                        
             // Check if we need to reload POIs based on updates from Map page
             checkForUpdates();
             
@@ -588,6 +609,9 @@
                     applyFilters(nameFilter, detailsFilter);
                 }
             }
+            
+            // Make applyCurrentFilters globally available so reloadCurrentPois can use it
+            globalThis.applyCurrentFilters = applyCurrentFilters;
 
             // Helper: build request data incl. category array (shared by initial load, reload and button click)
             function buildPoiRequestData(lat, lon, radius, categories) {
@@ -597,6 +621,12 @@
                 });
                 return data;
             }
+
+            // Make applyCurrentFilters globally available so reloadCurrentPois can use it
+            globalThis.buildPoiRequestData = buildPoiRequestData;
+
+            // Make renderTableHtml globally available so reloadCurrentPois can use it
+            globalThis.renderTableHtml = renderTableHtml;
             
             function updatePoiCards(pois) {
                 const $container = $('#poiCardsContainer');
@@ -659,7 +689,8 @@
                 // 3. If no sort state exists just render the unsorted table once.
                 // 4. Apply filters exactly once. (The restore function already renders + filters when active.)
 
-                currentTablePois = [...pois]; // Copy used for sorting
+                globalThis.allTablePois = [...pois]; // save all POIs
+                globalThis.currentTablePois = [...pois]; // Copy used for sorting
 
                 if (currentSortedColumn) {
                     restoreSortWithoutToggle(); // Restore sorting without changing direction
@@ -676,7 +707,7 @@
 
             function renderTableHtml() {
                 const $container = $('#poiTableContainer');
-                if (!currentTablePois || currentTablePois.length === 0) {
+                if (!globalThis.currentTablePois || globalThis.currentTablePois.length === 0) {
                     $container.html(`
                         <div class="alert alert-info">
                             <i class="bi bi-info-circle me-2"></i>
@@ -708,13 +739,13 @@
                         </thead>
                         <tbody id="poiTableBody">
                 `;
-                currentTablePois.forEach((poi, index) => {
+                globalThis.currentTablePois.forEach((poi, index) => {
                     const icon = getCategoryIcon(poi.category);
                     const details = formatDetails(poi.details);
                     const category = poi.category; // Keep lowercase
                     const name = poi.name || 'Unnamed POI'; // Default if no name
 
-                     // Format location coordinates
+                    // Format location coordinates
                     let locationHtml = '<span class="text-muted">No location</span>';
                     if (poi.location && poi.location.coordinates && poi.location.coordinates.length === 2) {
                         const lat = poi.location.coordinates[1].toFixed(6);
@@ -746,7 +777,10 @@
                 `;
                 
                 $container.html(tableHtml);
+
             }
+
+            
             
             function formatDetails(details) {
                 if (!details) return '';
@@ -771,7 +805,7 @@
             }
             // Internal helper: column sort with German diacritic ordering
             function sortInternal(column, ascending) {
-                currentTablePois.sort((a, b) => {
+                globalThis.currentTablePois.sort((a, b) => {
                     let aVal, bVal;
                     if (column === 'name') { aVal = a.name; bVal = b.name; }
                     else if (column === 'category') { aVal = a.category; bVal = b.category; }
@@ -1001,7 +1035,9 @@
             
             // Get selected categories
             const selectedCategories = CategoryManager.getSelectedCategories();
-            const requestData = buildPoiRequestData(lat, lon, radius, selectedCategories);
+
+            
+            const requestData = globalThis.buildPoiRequestData(lat, lon, radius, selectedCategories);
             
             console.log('Reloading POIs with categories:', selectedCategories);
             
@@ -1015,6 +1051,11 @@
                     console.log(`Reloaded ${data.length} POIs`);
                     updatePoiCards(data);
                     updatePoiTable(data);
+                    
+                    // Apply text filters after updating the table
+                    if (typeof globalThis.applyCurrentFilters === 'function') {
+                        globalThis.applyCurrentFilters();
+                    }
                 },
                 error: function() {
                     console.error('Failed to reload POIs');

@@ -30,26 +30,28 @@ function applyFilters(nameFilter, detailsFilter) {
     });
     
     // Filter Table View (List page)
-    $('#poiTableBody tr').each(function() {
-        const $row = $(this);
-        const name = $row.find('td:first').text().toLowerCase(); // First column is Name
-        const details = $row.find('.details-cell').text().toLowerCase();
-        
-        const nameMatch = nameFilterLower === '' || name.includes(nameFilterLower);
-        const detailsMatch = detailsFilterLower === '' || details.includes(detailsFilterLower);
-        
-        if (nameMatch && detailsMatch) {
-            $row.show();
-        } else {
-            $row.hide();
+    if (globalThis.allTablePois !== undefined && globalThis.currentTablePois !== undefined) {
+        // Filter the POIs array
+        globalThis.currentTablePois = globalThis.allTablePois.filter(poi => {
+            const name = (poi.name || '').toLowerCase();
+            const details = (poi.details || '').toLowerCase();
+
+            const nameMatch = nameFilterLower === '' || name.includes(nameFilterLower);
+            const detailsMatch = detailsFilterLower === '' || details.includes(detailsFilterLower);
+
+            return nameMatch && detailsMatch;
+        });
+
+        // Rebuild table with filtered POIs
+        if (typeof globalThis.renderTableHtml === 'function') {
+            globalThis.renderTableHtml();
         }
-    });
-    
+    }
+
     // Filter Map Markers (Map page)
     if (typeof markersLayer !== 'undefined' && typeof pointsOfInterest !== 'undefined') {
         applyMapFilters(nameFilterLower, detailsFilterLower);
     }
-    
     // Update visible count
     updateVisibleCount();
 }
@@ -64,7 +66,7 @@ function applyMapFilters(nameFilter, detailsFilter) {
     markersLayer.clearLayers();
     
     // Re-add only matching markers
-    pointsOfInterest.forEach(function(poi) {
+    for (const poi of pointsOfInterest) {
         const name = (poi.name || '').toLowerCase();
         const details = (poi.details || '').toLowerCase();
         
@@ -81,7 +83,7 @@ function applyMapFilters(nameFilter, detailsFilter) {
             marker.bindPopup(getMarkerPopupFor(poi));
             markersLayer.addLayer(marker);
         }
-    });
+    }
     
     console.log(`Map markers filtered: ${markersLayer.getLayers().length} visible`);
 }
