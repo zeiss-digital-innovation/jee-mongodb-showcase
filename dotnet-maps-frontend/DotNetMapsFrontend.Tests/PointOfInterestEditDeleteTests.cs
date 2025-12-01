@@ -3,6 +3,7 @@
 using Moq;
 using Moq.Protected;
 using DotNetMapsFrontend.Models;
+using DotNetMapsFrontend.Constants;
 using System.Net;
 using System.Text.Json;
 
@@ -56,7 +57,7 @@ public class PointOfInterestEditDeleteTests
             Location = new Location
             {
                 Type = "Point",
-                Coordinates = new double[] { 13.7373, 51.0504 }
+                Coordinates = new double[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude }
             },
             Href = $"{BaseUrl}/poi/{poiId}"
         };
@@ -94,8 +95,8 @@ public class PointOfInterestEditDeleteTests
         Assert.That(poi, Is.Not.Null);
         Assert.That(poi.Category, Is.EqualTo("restaurant"));
         Assert.That(poi.Details, Is.EqualTo("Great Italian restaurant"));
-        Assert.That(poi.Location.Coordinates[0], Is.EqualTo(13.7373));
-        Assert.That(poi.Location.Coordinates[1], Is.EqualTo(51.0504));
+        Assert.That(poi.Location.Coordinates[0], Is.EqualTo(MapDefaults.DefaultLongitude));
+        Assert.That(poi.Location.Coordinates[1], Is.EqualTo(MapDefaults.DefaultLatitude));
     }
 
     /// <summary>
@@ -115,7 +116,7 @@ public class PointOfInterestEditDeleteTests
             Location = new Location
             {
                 Type = "Point",
-                Coordinates = new double[] { 13.7373, 51.0504 }
+                Coordinates = new double[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude }
             }
         };
 
@@ -180,7 +181,7 @@ public class PointOfInterestEditDeleteTests
             Location = new Location
             {
                 Type = "Point",
-                Coordinates = new double[] { 13.7373, 51.0504 }
+                Coordinates = new double[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude }
             },
             Href = $"{BaseUrl}/poi/{poiId}"
         };
@@ -347,7 +348,7 @@ public class PointOfInterestEditDeleteTests
     {
         // Arrange
         var poiId = "507f1f77bcf86cd799439011";
-        var originalLocation = new double[] { 13.7373, 51.0504 };
+        var originalLocation = new double[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude };
         
         var updateData = new
         {
@@ -425,7 +426,7 @@ public class PointOfInterestEditDeleteTests
             {
                 Category = update.category,
                 Details = update.details,
-                Location = new Location { Type = "Point", Coordinates = new double[] { 13.7373, 51.0504 } }
+                Location = new Location { Type = "Point", Coordinates = new double[] { MapDefaults.DefaultLongitude, MapDefaults.DefaultLatitude } }
             }, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
 
             _mockHttpMessageHandler.Protected()

@@ -122,7 +122,7 @@
         let availableCategories = [];
         let markersLayer = L.layerGroup(); // Layer to hold all POI markers
         
-        // localStorage keys for synchronization between pages
+        // sessionStorage keys for synchronization between pages
         const STORAGE_KEYS = {
             latitude: 'poi_latitude',
             longitude: 'poi_longitude',
@@ -135,11 +135,11 @@
         };
         
         // Default coordinates (Dresden)
-        const latitudeDefault = 51.0504;
-        const longitudeDefault = 13.7373;
-        const radiusDefault = 2000;
-        const zoomDefault = 13;
-        
+        const latitudeDefault = @MapDefaults.DefaultLatitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        const longitudeDefault = @MapDefaults.DefaultLongitude.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        const radiusDefault = @MapDefaults.DefaultRadius.ToString();
+        const zoomDefault = @MapDefaults.DefaultZoom.ToString();
+
         // Category icon mapping from server-side CategoryConstants
         const CATEGORY_ICONS = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(CategoryConstants.GetIconMappingDictionary()));
         
@@ -148,8 +148,8 @@
             return CATEGORY_ICONS[category?.toLowerCase()] || CATEGORY_ICONS['_default'] || 'bi-geo';
         }
         
-        // Session timeout: 30 minutes of inactivity = new session
-        const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+        // Session timeout from constants
+        const SESSION_TIMEOUT_MS = @MapDefaults.DefaultSessionTimeoutMinutes * 60 * 1000;
         
         // Flag to prevent moveend from overwriting manual input changes
         let programmaticMapMove = false;
@@ -167,24 +167,24 @@
                 reloadCurrentPois();
             });
             // Check if this is a new browser session
-            const lastActivity = localStorage.getItem(STORAGE_KEYS.sessionStart);
+            const lastActivity = sessionStorage.getItem(STORAGE_KEYS.sessionStart);
             const now = Date.now();
             const isNewSession = !lastActivity || (now - parseInt(lastActivity)) > SESSION_TIMEOUT_MS;
             
             if (isNewSession) {
                 // This is a NEW session - clear settings but keep view preference
-                localStorage.removeItem(STORAGE_KEYS.latitude);
-                localStorage.removeItem(STORAGE_KEYS.longitude);
-                localStorage.removeItem(STORAGE_KEYS.radius);
-                localStorage.removeItem(STORAGE_KEYS.needsReload);
-                localStorage.removeItem(STORAGE_KEYS.mapZoom);
-                localStorage.setItem(STORAGE_KEYS.view, 'cards');
+                sessionStorage.removeItem(STORAGE_KEYS.latitude);
+                sessionStorage.removeItem(STORAGE_KEYS.longitude);
+                sessionStorage.removeItem(STORAGE_KEYS.radius);
+                sessionStorage.removeItem(STORAGE_KEYS.needsReload);
+                sessionStorage.removeItem(STORAGE_KEYS.mapZoom);
+                sessionStorage.setItem(STORAGE_KEYS.view, 'cards');
             }
             
             // Update session timestamp
-            localStorage.setItem(STORAGE_KEYS.sessionStart, now.toString());
+            sessionStorage.setItem(STORAGE_KEYS.sessionStart, now.toString());
             
-            // Load values from localStorage or use defaults
+            // Load values from sessionStorage or use defaults
             loadSettingsFromStorage();
             
             // Check if we need to reload due to updates from List page
@@ -207,10 +207,10 @@
             // Listen for page visibility changes to sync with List page
             // This ensures input fields are updated when navigating back from List page
             window.addEventListener('pageshow', function(event) {
-                console.log('[Map] pageshow event - reloading settings from localStorage');
-                const lat = parseFloat(localStorage.getItem(STORAGE_KEYS.latitude));
-                const lon = parseFloat(localStorage.getItem(STORAGE_KEYS.longitude));
-                const radius = parseInt(localStorage.getItem(STORAGE_KEYS.radius));
+                console.log('[Map] pageshow event - reloading settings from sessionStorage');
+                const lat = parseFloat(sessionStorage.getItem(STORAGE_KEYS.latitude));
+                const lon = parseFloat(sessionStorage.getItem(STORAGE_KEYS.longitude));
+                const radius = parseInt(sessionStorage.getItem(STORAGE_KEYS.radius));
                 
                 if (!isNaN(lat) && !isNaN(lon) && !isNaN(radius)) {
                     $('#latitudeInput').val(lat);
@@ -229,10 +229,10 @@
             
             // Also listen for focus events (when user returns to this tab)
             window.addEventListener('focus', function() {
-                console.log('[Map] window focus event - reloading settings from localStorage');
-                const lat = parseFloat(localStorage.getItem(STORAGE_KEYS.latitude));
-                const lon = parseFloat(localStorage.getItem(STORAGE_KEYS.longitude));
-                const radius = parseInt(localStorage.getItem(STORAGE_KEYS.radius));
+                console.log('[Map] window focus event - reloading settings from sessionStorage');
+                const lat = parseFloat(sessionStorage.getItem(STORAGE_KEYS.latitude));
+                const lon = parseFloat(sessionStorage.getItem(STORAGE_KEYS.longitude));
+                const radius = parseInt(sessionStorage.getItem(STORAGE_KEYS.radius));
                 
                 if (!isNaN(lat) && !isNaN(lon) && !isNaN(radius)) {
                     $('#latitudeInput').val(lat);
@@ -246,10 +246,10 @@
         // ============ Helper functions =============
 
         function loadSettingsFromStorage() {
-            // Load values from localStorage or use defaults
-            const lat = localStorage.getItem(STORAGE_KEYS.latitude);
-            const lon = localStorage.getItem(STORAGE_KEYS.longitude);
-            const radius = localStorage.getItem(STORAGE_KEYS.radius);
+            // Load values from sessionStorage or use defaults
+            const lat = sessionStorage.getItem(STORAGE_KEYS.latitude);
+            const lon = sessionStorage.getItem(STORAGE_KEYS.longitude);
+            const radius = sessionStorage.getItem(STORAGE_KEYS.radius);
             
             const actualLat = lat ? parseFloat(lat) : latitudeDefault;
             const actualLon = lon ? parseFloat(lon) : longitudeDefault;
@@ -261,10 +261,10 @@
             $('#radiusInput').val(actualRadius);
             $('#radiusValue').text(actualRadius + ' m');
             
-            // Save to localStorage if they were defaults (ensures consistency)
-            if (!lat) localStorage.setItem(STORAGE_KEYS.latitude, actualLat);
-            if (!lon) localStorage.setItem(STORAGE_KEYS.longitude, actualLon);
-            if (!radius) localStorage.setItem(STORAGE_KEYS.radius, actualRadius);
+            // Save to sessionStorage if they were defaults (ensures consistency)
+            if (!lat) sessionStorage.setItem(STORAGE_KEYS.latitude, actualLat);
+            if (!lon) sessionStorage.setItem(STORAGE_KEYS.longitude, actualLon);
+            if (!radius) sessionStorage.setItem(STORAGE_KEYS.radius, actualRadius);
         }
         
         function saveSettingsToStorage() {
@@ -272,20 +272,20 @@
             const lon = $('#longitudeInput').val();
             const radius = $('#radiusInput').val();
             
-            localStorage.setItem(STORAGE_KEYS.latitude, lat);
-            localStorage.setItem(STORAGE_KEYS.longitude, lon);
-            localStorage.setItem(STORAGE_KEYS.radius, radius);
+            sessionStorage.setItem(STORAGE_KEYS.latitude, lat);
+            sessionStorage.setItem(STORAGE_KEYS.longitude, lon);
+            sessionStorage.setItem(STORAGE_KEYS.radius, radius);
             
             // Set flag that List page needs to reload
-            localStorage.setItem(STORAGE_KEYS.needsReload, 'true');
+            sessionStorage.setItem(STORAGE_KEYS.needsReload, 'true');
         }
         
         function checkForReloadFlag() {
             // Check if List page triggered a reload request
-            const needsReload = localStorage.getItem(STORAGE_KEYS.needsReload);
+            const needsReload = sessionStorage.getItem(STORAGE_KEYS.needsReload);
             if (needsReload === 'true') {
                 // Clear the flag
-                localStorage.removeItem(STORAGE_KEYS.needsReload);
+                sessionStorage.removeItem(STORAGE_KEYS.needsReload);
                 
                 // Reload the map with stored parameters after initialization
                 // Set a flag to reload after map is initialized
@@ -329,9 +329,16 @@
                 $('#radiusValue').text(newRadius + ' m');
                 saveSettingsToStorage();
                 
-                // Reload POIs with new radius
-                const center = map.getCenter();
-                loadPointsOfInterest(center.lat, center.lng, parseInt(newRadius));
+                // Calculate an optimal zoom for the new radius
+                const optimalZoom = getZoomForRadius(parseInt(newRadius));
+                console.log(`[Map] Radius changed to ${newRadius} m, adjusting zoom to ${optimalZoom}`);
+                
+                // Set a flag for programmatic map move
+                programmaticMapMove = true;
+
+                // Adjust map zoom to fit the new radius (keeping center the same)
+                map.setZoom(optimalZoom);
+
             });
             
             // When user changes coordinates manually, move map center
@@ -349,7 +356,7 @@
                     // Set flag to prevent moveend from overwriting input fields
                     programmaticMapMove = true;
                     
-                    // Save to localStorage BEFORE moving map
+                    // Save to sessionStorage BEFORE moving map
                     saveSettingsToStorage();
                     
                     // Move map to new center (keeps current zoom level)
@@ -379,7 +386,7 @@
                 // Set flag to prevent moveend from overwriting input fields
                 programmaticMapMove = true;
                 
-                // Save to localStorage BEFORE moving map
+                // Save to sessionStorage BEFORE moving map
                 saveSettingsToStorage();
                 
                 // Update map center and reload POIs
@@ -397,14 +404,14 @@
                 shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
             });
             
-            // Get current values from inputs (already loaded from localStorage)
+            // Get current values from inputs (already loaded from sessionStorage)
             const currentLat = parseFloat($('#latitudeInput').val());
             const currentLon = parseFloat($('#longitudeInput').val());
             const currentRadius = parseInt($('#radiusInput').val());
             
             // Load saved zoom level or use default
-            const savedZoom = localStorage.getItem(STORAGE_KEYS.mapZoom);
-            const currentZoom = savedZoom ? parseInt(savedZoom) : zoomDefault;
+            const savedZoom = sessionStorage.getItem(STORAGE_KEYS.mapZoom);
+            const currentZoom = savedZoom ? parseInt(savedZoom) : getZoomForRadius(currentRadius);
             
             // Initialize the map with current settings
             map = L.map('map').setView([currentLat, currentLon], currentZoom);
@@ -438,10 +445,19 @@
                 modal.show();
             });
             
-            // Save zoom level to localStorage when user zooms the map
+            // Save zoom level to sessionStorage when user zooms the map
             map.on('zoomend', function() {
                 const currentZoom = map.getZoom();
-                localStorage.setItem(STORAGE_KEYS.mapZoom, currentZoom);
+                sessionStorage.setItem(STORAGE_KEYS.mapZoom, currentZoom);
+
+                // Update radius based on new zoom level
+                const optimalRadius = getRadiusForZoom(currentZoom);
+                $('#radiusInput').val(optimalRadius);
+                $('#radiusValue').text(optimalRadius + ' m');
+                sessionStorage.setItem(STORAGE_KEYS.radius, optimalRadius);
+
+                // Update circle on map
+                updateMapCircle();
             });
             
             // Auto-reload POIs when map is moved or zoomed
@@ -460,7 +476,7 @@
                     $('#latitudeInput').val(center.lat.toFixed(6));
                     $('#longitudeInput').val(center.lng.toFixed(6));
                     
-                    // Save to localStorage (this will trigger List page to reload when navigated to)
+                    // Save to sessionStorage (this will trigger List page to reload when navigated to)
                     saveSettingsToStorage();
                 } else {
                     console.log('[Map] Programmatic map move - keeping input fields as-is');
@@ -601,6 +617,13 @@
         selectedLongitude = null;
 
         }
+
+        // client side validation against potentially dangerous input
+        function containsDangerousCharacter(text) {
+            if (!text) return false;
+            // Check for script tags, javascript: protocol, and event handlers
+            return /<script|<\/script|javascript:|oneerror=|onload=|onclick=/i.test(text);
+        }
         
         function savePoi() {
             if (!validatePoiForm()) return;
@@ -611,16 +634,25 @@
             const category = $('#poiCategory').val().trim();
             const name = $('#poiName').val().trim();
             const details = $('#poiDetails').val().trim();
-            
-            // Basic XSS prevention - encode HTML entities
-            const sanitizedName = $('<div>').text(name).html();
-            const sanitizedDetails = $('<div>').text(details).html();
 
+            // client-side validation against dangerous characters
+            if (containsDangerousCharacter(name)) {
+                alert('Name contains invalid characters. Please avoid < > and script tags.');
+                $('#savePoiBtn').prop('disabled', false).text('Save');
+                return;
+            }
+
+            if (containsDangerousCharacter(details)) {
+                alert('Details contain invalid characters. Please avoid < > and script tags.');
+                $('#savePoiBtn').prop('disabled', false).text('Save');
+                return;
+            }
+            
             // Only send required fields - do NOT send href or address
             const poiData = {
                 category: category,
-                name: sanitizedName,
-                details: sanitizedDetails,
+                name: name,
+                details: details,
                 location: {
                     type: "Point",
                     coordinates: [selectedLongitude, selectedLatitude]
@@ -788,25 +820,63 @@
             return popupContent;
         }
         
-        function getRadiusForZoom(zoom) {
-            // Exact same logic as Angular frontend MapDataService
-            if (zoom <= 8) {
-                return 20000;
+        // calculates optimal zoom-factor for given radius
+        // uses logarithmic formula to determine zoom level
+        function getZoomForRadius(radiusInMeters) {
+            if (!map) {
+                return zoomDefault;
             }
-            if (zoom <= 11) {
-                return 10000;
-            }
-            if (zoom == 12) {
-                return 5000;
-            }
-            if (zoom == 13) {
-                return 2000;
-            }
-            return 1000;
+
+            // Get visible size of the map
+            const mapSize = map.getSize();
+            // Use the smaller dimension (height or width)
+            // and reduce it to 80% to account for padding, so that the circle fits well within the view
+            const minDimension = Math.min(mapSize.x, mapSize.y);
+            const effectivePixels = minDimension * 0.8; // Use 80% of the smaller dimension
+
+            // The circle must fit into effectivePixels
+            // radiusDiameterInMeters = 2 * radiusInMeters
+            // for latitude ~51°: cosLat = 0.6293
+            const latitude = parseFloat($('#latitudeInput').val()) || latitudeDefault;
+            const cosLat = Math.cos(latitude * Math.PI / 180);
+
+            // Basic formula: by zoom 13 are 2000 meter optimally visible
+            // Every zoom-level doubles/halves the visible radius
+            // zoom = 13 + log2(2000 / radius)
+            const meterPerPixelAtZoom0 = 156543.03392;
+            const targetMetersPerPixel = (2 * radiusInMeters) / effectivePixels;
+
+            const calculatedZoom = Math.log2(meterPerPixelAtZoom0 * cosLat / targetMetersPerPixel);
+            const roundedZoom = Math.round(calculatedZoom);
+            return Math.max(8, Math.min(18, roundedZoom)); // Clamp between 8 and 18
         }
 
+        // Calculates optimal radius for a given zoom level
+        // Inverse function of getZoomForRadius
+        function getRadiusForZoom(zoomLevel) {
+            // Get visible size of the map
+            const mapSize = map.getSize();
+            const minDimension = Math.min(mapSize.x, mapSize.y);
+            const effectivePixels = minDimension * 0.8; // Use 80% of the smaller dimension
 
+            // Account for latitude (Mercator projection)
+            const latitude = parseFloat($('#latitudeInput').val()) || latitudeDefault;
+            const cosLat = Math.cos(latitude * Math.PI / 180);
 
+            // Calculate meters per pixel at this zoom level
+            const meterPerPixelAtZoom0 = 156543.03392;
+            const metersPerPixel = meterPerPixelAtZoom0 * cosLat / Math.pow(2, zoomLevel);
+
+            // Calculate radius from pixels
+            const radiusInMeters = (metersPerPixel * effectivePixels) / 2;
+
+            // Round to reasonable values (10m steps for small radii, 100m for large)
+            const rounded = radiusInMeters < 1000 
+                ? Math.round(radiusInMeters / 10) * 10 
+                : Math.round(radiusInMeters / 100) * 100;
+
+            return Math.max(100, Math.min(5000, rounded)); // Clamp between 100m and 5000m
+        }
 
         // Show POI ontext menu
         function showMarkerContextMenu(e, poi) {
